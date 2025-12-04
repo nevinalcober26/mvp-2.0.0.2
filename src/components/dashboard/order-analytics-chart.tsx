@@ -49,10 +49,16 @@ const chartConfig = {
 
 export function OrderAnalyticsChart() {
   const [data, setData] = useState<any[]>([]);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setData(generateChartData());
+    setIsClient(true);
   }, []);
+
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <Card>
