@@ -28,10 +28,10 @@ const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
 
 export function DashboardHeader() {
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-card px-4 sm:px-6 lg:px-8">
       <div className="flex items-center gap-2">
         <EMenuIcon />
-        <span className="text-lg font-semibold font-headline text-gray-800 dark:text-white">eMenu</span>
+        <span className="text-lg font-semibold font-headline text-card-foreground">eMenu</span>
         <div className="hidden md:block">
           <SidebarTrigger />
         </div>
