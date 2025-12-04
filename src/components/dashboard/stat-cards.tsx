@@ -1,39 +1,41 @@
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import {
   LayoutGrid,
   Package,
   FileText,
   ShoppingCart,
-  ArrowUp,
+  TrendingUp,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type StatCardProps = {
   title: string;
   value: string;
   change?: string;
+  changeDescription?: string;
   icon: React.ElementType;
+  color: string;
 };
 
-function StatCard({ title, value, change, icon: Icon }: StatCardProps) {
+function StatCard({ title, value, change, changeDescription, icon: Icon, color }: StatCardProps) {
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        {change && (
-          <p className="text-xs text-muted-foreground flex items-center">
-            <ArrowUp className="h-3 w-3 text-green-500 mr-1" />
-            {change}
-          </p>
-        )}
+    <Card className={cn("relative overflow-hidden border-0 shadow-lg", `before:content-[''] before:absolute before:right-0 before:top-0 before:bottom-0 before:w-1 before:bg-${color}-400`)}>
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start mb-4">
+          <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
+          <div className={cn("p-2 rounded-lg", `bg-${color}-100`)}>
+            <Icon className={cn("h-5 w-5", `text-${color}-600`)} />
+          </div>
+        </div>
+        <div className="text-3xl font-bold">{value}</div>
+        <div className="text-xs text-muted-foreground mt-2 flex items-center">
+          {change && <TrendingUp className="h-4 w-4 mr-1 text-green-500" />}
+          {change && <span className="text-green-500 font-semibold">{change}</span>}
+          <span className="ml-1">{changeDescription}</span>
+        </div>
       </CardContent>
     </Card>
   );
@@ -44,18 +46,35 @@ export function StatCards() {
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
       <StatCard
         title="Total Categories"
-        value="12"
-        change="+2 this month"
+        value="26"
+        change="+4.5%"
+        changeDescription="vs last month"
         icon={LayoutGrid}
+        color="orange"
       />
       <StatCard
         title="Active Products"
-        value="89"
-        change="+5 this week"
+        value="120"
+        change="+12%"
+        changeDescription="New items added"
         icon={Package}
+        color="pink"
       />
-      <StatCard title="Published Pages" value="4" icon={FileText} />
-      <StatCard title="Today's Orders" value="63" icon={ShoppingCart} />
+      <StatCard 
+        title="Published Pages" 
+        value="8" 
+        changeDescription="Updated 2 days ago" 
+        icon={FileText} 
+        color="green" 
+      />
+      <StatCard
+        title="Today's Orders"
+        value="45"
+        change="+8.2%"
+        changeDescription="vs yesterday"
+        icon={ShoppingCart}
+        color="teal"
+      />
     </div>
   );
 }
