@@ -21,7 +21,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { EMenuIcon } from './app-sidebar';
 import { SidebarTrigger } from '../ui/sidebar';
 
 const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
@@ -29,15 +28,11 @@ const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
 export function DashboardHeader() {
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-card px-4 sm:px-6 lg:px-8">
-      <div className="flex items-center gap-2">
-        <EMenuIcon />
-        <span className="text-lg font-semibold font-headline text-card-foreground">eMenu</span>
-        <div className="hidden md:block">
-          <SidebarTrigger />
-        </div>
+      <div className="md:hidden">
+        <SidebarTrigger />
       </div>
 
-      <div className="flex-1 flex justify-center">
+      <div className="flex-1 flex justify-end">
         <div className="relative w-full max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -48,10 +43,6 @@ export function DashboardHeader() {
         </div>
       </div>
       <div className="flex items-center gap-4">
-        <div className="md:hidden">
-          <SidebarTrigger />
-        </div>
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="gap-2">
