@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useState, useEffect } from 'react';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import {
   Card,
@@ -10,7 +11,7 @@ import {
 } from '@/components/ui/card';
 import { ChartTooltipContent } from '@/components/ui/chart';
 
-const data = [
+const generateChartData = () => [
   { date: 'Mon', orders: Math.floor(Math.random() * 200) + 50 },
   { date: 'Tue', orders: Math.floor(Math.random() * 200) + 50 },
   { date: 'Wed', orders: Math.floor(Math.random() * 200) + 50 },
@@ -21,6 +22,12 @@ const data = [
 ];
 
 export function OrderAnalyticsChart() {
+  const [data, setData] = useState<any[]>([]);
+
+  useEffect(() => {
+    setData(generateChartData());
+  }, []);
+
   return (
     <Card>
       <CardHeader>
