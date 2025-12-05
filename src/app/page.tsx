@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -19,6 +19,7 @@ import {
 } from '@/firebase/non-blocking-login';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -28,12 +29,29 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
+  React.useEffect(() => {
+    if (!auth) return;
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        router.push('/dashboard');
+      }
+    }, (error) => {
+      if (error.code === 'auth/invalid-credential') {
+        setError('Invalid email or password. Please try again.');
+      } else {
+        setError(error.message);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [auth, router]);
+
   if (isUserLoading) {
     return <div>Loading...</div>;
   }
 
   if (user) {
-    router.push('/dashboard');
+    // router.push('/dashboard') is handled by onAuthStateChanged
     return null;
   }
 
@@ -43,11 +61,7 @@ export default function LoginPage() {
       return;
     }
     setError('');
-    try {
-      initiateEmailSignUp(auth, email, password);
-    } catch (e: any) {
-      setError(e.message);
-    }
+    initiateEmailSignUp(auth, email, password);
   };
 
   const handleSignIn = async () => {
@@ -56,11 +70,7 @@ export default function LoginPage() {
       return;
     }
     setError('');
-    try {
-      initiateEmailSignIn(auth, email, password);
-    } catch (e: any) {
-      setError(e.message);
-    }
+    initiateEmailSignIn(auth, email, password);
   };
 
   return (
