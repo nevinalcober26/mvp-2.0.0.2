@@ -260,7 +260,7 @@ function BoardColumn({
             </DropdownMenu>
           </div>
         </CardHeader>
-        <CardContent className={cn("p-3 flex-grow", isDragging && "min-h-[100px]")}>
+        <CardContent className={cn("p-3", isDragging && "min-h-[100px]")}>
           <SortableContext items={allItemIds} strategy={verticalListSortingStrategy}>
             {column.items.map((item) => (
                 <SortableItem
@@ -438,13 +438,17 @@ export default function CategoriesPage() {
      if (!overId || active.id === overId) return;
 
      const activeIsItem = active.data.current?.type === 'Item';
-     const overIsItem = over.data.current?.type === 'Item';
-     const overIsColumn = over.data.current?.type === 'Column';
-
      if (!activeIsItem) return;
 
+     const overIsItem = over.data.current?.type === 'Item';
+     
+     if (overIsItem) {
+        // This logic makes items children of other items, but can be buggy
+        // and cause re-renders. We will do this in onDragEnd instead.
+        return;
+     }
+
       setBoard((board) => produce(board, (draft) => {
-          // Find active item and its parent
           let activeItem: Item | null = null;
           let activeParent: Item[] | null = null;
           for (const col of draft) {
@@ -458,34 +462,12 @@ export default function CategoriesPage() {
 
           if (!activeItem || !activeParent) return;
 
-          // Remove active item from its original position
-          const activeIndex = activeParent.findIndex(i => i.id === active.id);
-          activeParent.splice(activeIndex, 1);
-
-          // Find over item and its parent
-          let overItem: Item | null = null;
-          let overParent: Item[] | null = null;
-          let overCol: Column | null = null;
-          
-          if (overIsItem) {
-              for (const col of draft) {
-                  const result = findItemAndParent(overId, col.items);
-                  if (result.item) {
-                      overItem = result.item;
-                      overParent = result.parent;
-                      break;
-                  }
-              }
-              if (overItem) {
-                  // Make it a child
-                  overItem.children.unshift(activeItem);
-              }
-          } else if (overIsColumn) {
-              overCol = draft.find(c => c.id === overId) || null;
-              if (overCol) {
-                  // Add to column
-                  overCol.items.push(activeItem);
-              }
+          // Check if moving to a different column
+          const overCol = draft.find(c => c.id === overId);
+          if (overCol && !overCol.items.some(i => i.id === active.id)) {
+             const activeIndex = activeParent.findIndex(i => i.id === active.id);
+             activeParent.splice(activeIndex, 1);
+             overCol.items.push(activeItem);
           }
       }));
   }
@@ -519,7 +501,6 @@ export default function CategoriesPage() {
     if(activeIsItem) {
       setBoard(produce(draft => {
           let activeItem: Item | null = null;
-          let activeParent: Item[] | null = null;
 
           // 1. Find and remove active item from its original position
           for (const col of draft) {
@@ -528,7 +509,6 @@ export default function CategoriesPage() {
                   activeItem = { ...item };
                   const itemIndex = parent.findIndex(i => i.id === activeId);
                   parent.splice(itemIndex, 1);
-                  activeParent = parent;
                   break;
               }
           }
@@ -538,38 +518,35 @@ export default function CategoriesPage() {
           // 2. Find drop position and insert the item
           let overParent: Item[] | null = null;
           let overIndex: number = -1;
-
-          for (const col of draft) {
-              const { item: overItem, parent, index } = findItemAndParent(overId, col.items);
-              if (overItem) { // Dropped on another item
-                  overParent = overItem.children;
-                  overIndex = 0; // Insert at the beginning of children
-                  break;
-              } else if (parent) { // Dropped in a sortable list (could be root or nested)
-                  const isBelow = event.delta.y > 0;
-                  overParent = parent;
-                  overIndex = index + (isBelow ? 1 : 0);
-                  break;
-              }
-          }
           
-          // Dropped on a column directly
-          if (!overParent) {
-            const overCol = draft.find(c => c.id === overId);
-            if (overCol) {
-              overParent = overCol.items;
-              overIndex = overCol.items.length; // Insert at the end
+          const { item: overItem, parent: overItemParent, index: overItemIndex } = (() => {
+            for (const col of draft) {
+              const result = findItemAndParent(overId, col.items);
+              if (result.item) return result;
             }
-          }
+            return {item: null, parent: null, index: -1};
+          })();
 
-          if (overParent) {
-             overParent.splice(overIndex, 0, activeItem);
-          } else if (activeParent) {
-              // Fallback: if drop target is invalid, return to original position
-              const activeCol = draft.find(c => c.items === activeParent);
-              if(activeCol) {
-                 const originalIndex = findItemAndParent(activeId, initialBoardData.find(c => c.id === activeCol.id)?.items || [])?.index;
-                 activeCol.items.splice(originalIndex, 0, activeItem);
+
+          if (overItem) { // Dropped on another item
+              overItem.children.unshift(activeItem);
+          } else { // Dropped in a sortable list or on a column
+              const overCol = draft.find(c => c.id === overId);
+              if (overCol) { // Dropped on a column
+                  overCol.items.push(activeItem);
+              } else if (overItemParent) { // Dropped in a list
+                 const isBelow = over && active.rect.current.translated && over.rect.top > active.rect.current.translated.top;
+                 overItemParent.splice(overItemIndex + (isBelow ? 1 : 0), 0, activeItem);
+              } else {
+                 // Fallback if we can't find a place, put it back
+                  for (const col of initialBoardData) {
+                    const { item, parent } = findItemAndParent(activeId, col.items);
+                    if(item && parent) {
+                        const originalCol = draft.find(c => c.id === col.id);
+                        originalCol?.items.push(activeItem);
+                        break;
+                    }
+                  }
               }
           }
       }));
