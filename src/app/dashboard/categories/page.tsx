@@ -138,8 +138,8 @@ function BoardColumn({
   return (
     <div ref={setNodeRef} style={style} className="flex-shrink-0 w-80">
       <Card className="bg-muted/50">
-        <CardHeader className="p-3 flex flex-row items-center justify-between border-b" {...attributes} {...listeners}>
-          <div className="flex-grow" onClick={onTitleClick}>
+        <CardHeader className="p-3 flex flex-row items-center justify-between border-b" {...attributes}>
+           <div className="flex-grow" onClick={onTitleClick}>
             {isEditing ? (
               <Input
                   ref={inputRef}
@@ -161,7 +161,7 @@ function BoardColumn({
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="secondary">{column.items.length}</Badge>
-            <Button variant="ghost" size="icon" className="h-7 w-7 cursor-grab">
+            <Button {...listeners} variant="ghost" size="icon" className="h-7 w-7 cursor-grab">
                 <MoreHorizontal className="h-4 w-4" />
             </Button>
           </div>
@@ -370,7 +370,7 @@ export default function CategoriesPage() {
                     column={column} 
                     isEditing={editingColumnId === column.id}
                     onTitleClick={() => {
-                        if (!isEditing) setEditingColumnId(column.id);
+                        setEditingColumnId(column.id);
                     }}
                     onTitleChange={(e) => handleColumnNameChange(column.id, e.target.value)}
                     onTitleBlur={() => setEditingColumnId(null)}
