@@ -674,22 +674,25 @@ export default function CategoriesPage() {
     const newCategory: Item = { id: newItemId, name, children: [] };
 
     setBoard(produce(draft => {
-      if (parentId === 'none') {
-        draft.push({
-          id: `col-${Date.now()}`,
-          name: name,
-          items: [],
-        });
+      if (parentId === 'none' || parentId === null) {
+        const newColumnId = `col-${Date.now()}`;
+        const newColumn = draft.find(col => col.name.toLowerCase() === name.toLowerCase());
+        if(newColumn) {
+          newColumn.items.push(newCategory);
+        } else {
+           draft.push({
+            id: newColumnId,
+            name: name,
+            items: [],
+          });
+        }
       } else {
-        // It's a sub-category, find the parent
         let parentFound = false;
-        // Check if parent is a column
         const parentColumn = draft.find(col => col.id === parentId);
         if (parentColumn) {
           parentColumn.items.push(newCategory);
           parentFound = true;
         } else {
-          // Check if parent is another item
           for (const col of draft) {
             const { item: parentItem } = findItemAndParent(parentId, col.items);
             if (parentItem) {
@@ -700,7 +703,6 @@ export default function CategoriesPage() {
           }
         }
          if (!parentFound) {
-            // Failsafe: if parent not found, create as a new top-level column
             draft.push({
                 id: `col-${Date.now()}`,
                 name: name,
