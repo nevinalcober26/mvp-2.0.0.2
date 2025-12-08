@@ -324,10 +324,12 @@ const ListView = ({
   board,
   onSelect,
   onDeleteItem,
+  onAddCategory,
 }: {
   board: Column[];
   onSelect: (item: Column | Item) => void;
   onDeleteItem: (itemId: UniqueIdentifier) => void;
+  onAddCategory: () => void;
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: keyof ListItem; direction: 'ascending' | 'descending' } | null>({ key: 'name', direction: 'ascending' });
@@ -410,7 +412,7 @@ const ListView = ({
                  <p className="text-sm text-muted-foreground">entries</p>
               </div>
             </div>
-             <Button>
+             <Button onClick={onAddCategory}>
                 <Plus className="mr-2 h-4 w-4" /> Add Category
             </Button>
         </div>
@@ -692,7 +694,7 @@ export default function CategoriesPage() {
           // Case 2: Dropped on another item (nesting or reordering)
           let dropped = false;
           for (const col of draft) {
-            const { item: overItem, parent: overParent, index: overIndex } = findItemAndParent(overId, col.items);
+            const { item: overItem } = findItemAndParent(overId, col.items);
   
             if (overItem) {
               // Dropped ON an item to nest it
@@ -822,6 +824,7 @@ export default function CategoriesPage() {
             board={board}
             onSelect={(item) => setSelectedCategory(item)}
             onDeleteItem={handleDeleteItem}
+            onAddCategory={handleAddNewColumn}
           />
         )}
       </main>
@@ -838,5 +841,3 @@ export default function CategoriesPage() {
     </>
   );
 }
-
-    
