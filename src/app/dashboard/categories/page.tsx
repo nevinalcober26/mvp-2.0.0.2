@@ -20,14 +20,14 @@ import {
   DragOverlay,
   UniqueIdentifier,
   DragStartEvent,
+  DragOverEvent,
 } from '@dnd-kit/core';
 import {
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
-  horizontalListSortingStrategy,
   verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
+} from '@dnd-kit/dnd-kit-sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { produce } from 'immer';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +35,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { CategorySheet } from './category-sheet';
+import { cn } from '@/lib/utils';
+
 
 export type Item = {
   id: UniqueIdentifier;
@@ -80,17 +82,11 @@ const initialBoardData: Column[] = [
 function SortableItem({ 
   item, 
   depth = 0,
-  editingItemId,
-  setEditingItemId,
-  handleItemNameChange,
   onDeleteItem,
   onSelect,
 }: { 
   item: Item, 
   depth?: number,
-  editingItemId: UniqueIdentifier | null;
-  setEditingItemId: (id: UniqueIdentifier | null) => void;
-  handleItemNameChange: (itemId: UniqueIdentifier, newName: string) => void;
   onDeleteItem: (itemId: UniqueIdentifier) => void;
   onSelect: (item: Item) => void;
 }) {
@@ -101,7 +97,7 @@ function SortableItem({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: item.id, data: {type: 'Item'} });
+  } = useSortable({ id: item.id, data: {type: 'Item', item} });
 
   const style = {
     transform: CSS.Translate.toString(transform),
@@ -111,7 +107,7 @@ function SortableItem({
   
   return (
     <div ref={setNodeRef} style={style} {...attributes}>
-        <Card className="mb-2" onClick={() => onSelect(item)}>
+        <Card className="mb-2 group/item" onClick={() => onSelect(item)}>
             <CardContent className="p-2 flex items-center justify-between">
                 <div className="flex items-center gap-2 flex-grow">
                  <button {...listeners} className="cursor-grab p-1 text-muted-foreground hover:text-foreground" onClick={(e) => e.stopPropagation()}>
@@ -126,7 +122,7 @@ function SortableItem({
                 </div>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover/item:opacity-100" onClick={(e) => e.stopPropagation()}>
                             <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
                         </Button>
                     </DropdownMenuTrigger>
@@ -144,9 +140,6 @@ function SortableItem({
                         key={child.id} 
                         item={child} 
                         depth={depth + 1} 
-                        editingItemId={editingItemId}
-                        setEditingItemId={setEditingItemId}
-                        handleItemNameChange={handleItemNameChange}
                         onDeleteItem={onDeleteItem}
                         onSelect={onSelect}
                       />)}
@@ -165,16 +158,14 @@ function BoardColumn({
   onTitleChange, 
   onTitleBlur,
   onAddItem,
-  editingItemId,
-  setEditingItemId,
-  handleItemNameChange,
   onDeleteColumn,
   onDeleteItem,
   onSelect,
   isAddingItem,
   onToggleAddItem,
   newItemName,
-  setNewItemName
+  setNewItemName,
+  isDragging
 }: { 
   column: Column;
   isEditing: boolean;
@@ -182,9 +173,6 @@ function BoardColumn({
   onTitleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onTitleBlur: () => void;
   onAddItem: () => void;
-  editingItemId: UniqueIdentifier | null;
-  setEditingItemId: (id: UniqueIdentifier | null) => void;
-  handleItemNameChange: (itemId: UniqueIdentifier, newName: string) => void;
   onDeleteColumn: (columnId: UniqueIdentifier) => void;
   onDeleteItem: (itemId: UniqueIdentifier) => void;
   onSelect: (item: Column | Item) => void;
@@ -192,6 +180,7 @@ function BoardColumn({
   onToggleAddItem: () => void;
   newItemName: string;
   setNewItemName: (name: string) => void;
+  isDragging: boolean;
 }) {
   const {
     attributes,
@@ -199,20 +188,26 @@ function BoardColumn({
     setNodeRef,
     transform,
     transition,
-    isDragging,
-  } = useSortable({ id: column.id, data: { type: 'Column' } });
+  } = useSortable({ id: column.id, data: { type: 'Column', column } });
 
   const style = {
     transform: CSS.Translate.toString(transform),
     transition,
-    opacity: isDragging ? 0.8 : 1,
   };
   
-  const flattenItems = (items: Item[]): Item[] => {
-    return items.flatMap(item => [item, ...flattenItems(item.children || [])]);
-  };
-  
-  const allItemIds = useMemo(() => flattenItems(column.items).map(i => i.id), [column.items]);
+  const allItemIds = useMemo(() => {
+    const ids: UniqueIdentifier[] = [];
+    function recursive(items: Item[]) {
+        items.forEach(item => {
+            ids.push(item.id);
+            if(item.children) {
+                recursive(item.children);
+            }
+        })
+    }
+    recursive(column.items);
+    return ids;
+  }, [column.items]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -222,22 +217,6 @@ function BoardColumn({
     }
   }, [isEditing]);
   
-  const renderSortableItem = (item: Item, depth = 0) => {
-    return (
-        <SortableItem
-            key={item.id}
-            item={item}
-            depth={depth}
-            editingItemId={editingItemId}
-            setEditingItemId={setEditingItemId}
-            handleItemNameChange={handleItemNameChange}
-            onDeleteItem={onDeleteItem}
-            onSelect={onSelect}
-        />
-    );
-};
-
-
   return (
     <div ref={setNodeRef} style={style} className="flex-shrink-0 w-80">
       <Card className="bg-muted/50 flex flex-col h-full">
@@ -263,7 +242,7 @@ function BoardColumn({
             )}
           </div>
           <div className="flex items-center gap-0">
-            <Badge variant="secondary">{flattenItems(column.items).length}</Badge>
+            <Badge variant="secondary">{allItemIds.length}</Badge>
              <button {...listeners} className="cursor-grab p-1 text-muted-foreground hover:text-foreground">
                 <GripVertical className="h-5 w-5" />
             </button>
@@ -280,9 +259,16 @@ function BoardColumn({
             </DropdownMenu>
           </div>
         </CardHeader>
-        <CardContent className="p-3 min-h-[100px] flex-grow">
+        <CardContent className={cn("p-3 flex-grow", isDragging && "min-h-[100px]")}>
           <SortableContext items={allItemIds} strategy={verticalListSortingStrategy}>
-            {column.items.map((item) => renderSortableItem(item))}
+            {column.items.map((item) => (
+                <SortableItem
+                    key={item.id}
+                    item={item}
+                    onDeleteItem={onDeleteItem}
+                    onSelect={onSelect}
+                />
+             ))}
           </SortableContext>
         </CardContent>
         <CardFooter className="p-3 border-t">
@@ -317,7 +303,6 @@ export default function CategoriesPage() {
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
   const [activeItem, setActiveItem] = useState<Item | null>(null);
   const [editingColumnId, setEditingColumnId] = useState<UniqueIdentifier | null>(null);
-  const [editingItemId, setEditingItemId] = useState<UniqueIdentifier | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Column | Item | null>(null);
   const [addingToColumnId, setAddingToColumnId] = useState<UniqueIdentifier | null>(null);
   const [newItemName, setNewItemName] = useState('');
@@ -331,14 +316,14 @@ export default function CategoriesPage() {
     })
   );
 
-  const findItemRecursive = (itemId: UniqueIdentifier, items: Item[]): {item: Item | null, parent: Item[] | null, index: number} => {
+  const findItemAndParent = (itemId: UniqueIdentifier, items: Item[]): {item: Item | null, parent: Item[] | null, index: number} => {
       for (let i = 0; i < items.length; i++) {
           const item = items[i];
           if (item.id === itemId) {
               return { item, parent: items, index: i };
           }
           if (item.children && item.children.length > 0) {
-              const found = findItemRecursive(itemId, item.children);
+              const found = findItemAndParent(itemId, item.children);
               if (found.item) {
                   return found;
               }
@@ -347,18 +332,19 @@ export default function CategoriesPage() {
       return { item: null, parent: null, index: -1 };
   };
 
-  const findItemData = (itemId: UniqueIdentifier) => {
-    for (const column of board) {
-        const { item, parent, index } = findItemRecursive(itemId, column.items);
+  const findContainer = (id: UniqueIdentifier) => {
+    if (board.some(c => c.id === id)) {
+        return id;
+    }
+    for (const col of board) {
+        const { item } = findItemAndParent(id, col.items);
         if (item) {
-            return { item, parent, column, itemIndexInParent: index };
+            return col.id;
         }
     }
-    return { item: null, parent: null, column: null, itemIndexInParent: -1 };
+    return null;
   }
   
-  const findColumn = (columnId: UniqueIdentifier) => board.find(c => c.id === columnId);
-
   const handleAddNewColumn = () => {
     const newColumnId = `col-${Date.now()}`;
     setBoard(produce(board => {
@@ -389,51 +375,27 @@ export default function CategoriesPage() {
     }));
   };
 
-  const handleItemNameChange = (itemId: UniqueIdentifier, newName: string) => {
+  const handleDeleteItem = (itemId: UniqueIdentifier) => {
       setBoard(produce(draft => {
-          const findAndMutate = (items: Item[]) => {
-              for (const item of items) {
-                  if (item.id === itemId) {
-                      item.name = newName;
+          const findAndRemove = (items: Item[]): boolean => {
+              for (let i = 0; i < items.length; i++) {
+                  if (items[i].id === itemId) {
+                      items.splice(i, 1);
                       return true;
                   }
-                  if (item.children && findAndMutate(item.children)) {
+                  if (items[i].children && findAndRemove(items[i].children)) {
                       return true;
                   }
               }
               return false;
           };
-
           for (const column of draft) {
-              if (findAndMutate(column.items)) {
+              if (findAndRemove(column.items)) {
                   break;
               }
           }
       }));
   };
-
-    const handleDeleteItem = (itemId: UniqueIdentifier) => {
-        setBoard(produce(draft => {
-            const findAndRemove = (items: Item[]): boolean => {
-                for (let i = 0; i < items.length; i++) {
-                    if (items[i].id === itemId) {
-                        items.splice(i, 1);
-                        return true;
-                    }
-                    if (items[i].children && findAndRemove(items[i].children)) {
-                        return true;
-                    }
-                }
-                return false;
-            };
-
-            for (const column of draft) {
-                if (findAndRemove(column.items)) {
-                    break;
-                }
-            }
-        }));
-    };
 
 
   const handleAddNewItem = (columnId: UniqueIdentifier) => {
@@ -460,18 +422,46 @@ export default function CategoriesPage() {
 
   const handleDragStart = (event: DragStartEvent) => {
     setEditingColumnId(null);
-    setEditingItemId(null);
     const { active } = event;
-    const activeId = active.id;
-    if (active.data.current?.type === 'Column') {
-      setActiveColumn(board.find(col => col.id === activeId) || null);
-      return;
-    }
-    if(active.data.current?.type === 'Item') {
-      const { item } = findItemData(activeId);
-      setActiveItem(item);
+    const { id, data } = active;
+    if (data.current?.type === 'Column') {
+      setActiveColumn(data.current.column);
+    } else if (data.current?.type === 'Item') {
+      setActiveItem(data.current.item);
     }
   };
+
+  const handleDragOver = (event: DragOverEvent) => {
+     const { active, over, draggingRect } = event;
+     const overId = over?.id;
+     if (!overId || active.id === overId) return;
+
+     const activeIsItem = active.data.current?.type === 'Item';
+     const overIsItem = over.data.current?.type === 'Item';
+     const overIsColumn = over.data.current?.type === 'Column';
+
+     // This handles dropping an item into an empty column
+     if (activeIsItem && overIsColumn) {
+        setBoard(produce(draft => {
+            const activeContainerId = findContainer(active.id);
+            const overContainerId = over.id;
+
+            if (activeContainerId !== overContainerId) {
+                const activeCol = draft.find(c => c.id === activeContainerId);
+                const overCol = draft.find(c => c.id === overContainerId);
+                if (!activeCol || !overCol) return;
+
+                const { item: activeItem, parent: activeParent } = findItemAndParent(active.id, activeCol.items);
+                if (activeItem && activeParent) {
+                    const activeIndex = activeParent.findIndex(i => i.id === active.id);
+                    activeParent.splice(activeIndex, 1);
+                    overCol.items.push(activeItem);
+                }
+            }
+        }));
+     }
+  }
+
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -484,16 +474,12 @@ export default function CategoriesPage() {
     const overId = over.id;
     if (activeId === overId) return;
     
-    const isColumnDrag = active.data.current?.type === 'Column';
-
-    if (isColumnDrag) {
+    const activeIsColumn = active.data.current?.type === 'Column';
+    if (activeIsColumn) {
       setBoard(produce(draft => {
         const oldIndex = draft.findIndex(c => c.id === activeId);
         const newIndex = draft.findIndex(c => c.id === overId);
-        
-        // Check if overId is a column ID before proceeding
-        const overColumn = findColumn(overId);
-        if (overColumn && oldIndex !== -1 && newIndex !== -1) {
+        if (oldIndex !== -1 && newIndex !== -1) {
             const [movedColumn] = draft.splice(oldIndex, 1);
             draft.splice(newIndex, 0, movedColumn);
         }
@@ -501,53 +487,59 @@ export default function CategoriesPage() {
       return;
     }
 
-
-    const isItemDrag = active.data.current?.type === 'Item';
-
-    if(isItemDrag) {
+    const activeIsItem = active.data.current?.type === 'Item';
+    if(activeIsItem) {
       setBoard(produce(draft => {
-        // Find active item and its original location
-        const { item: activeItem, parent: activeParent, column: activeColumn } = findItemData(activeId);
-        
-        if (!activeItem || !activeParent || !activeColumn) return;
+          let activeItem: Item | null = null;
+          let activeParent: Item[] | null = null;
 
-        // --- Find Drop Target ---
-        const { item: overItem, parent: overParent, column: overColumn, itemIndexInParent: overIndex } = findItemData(overId);
-
-        // Case 1: Dropping over a column (but not on an item)
-        const overColumnContainer = findColumn(overId);
-        if (overColumnContainer) {
-            const activeIndex = activeParent.findIndex(i => i.id === activeId);
-            activeParent.splice(activeIndex, 1);
-            overColumnContainer.items.push(activeItem);
-            return;
-        }
-
-        // If we are dropping over an item
-        if (overItem && overColumn) {
-          // Remove active item from its original position first
-          const activeIndex = activeParent.findIndex(i => i.id === activeId);
-          activeParent.splice(activeIndex, 1);
-          
-          // Logic to nest inside another item
-          if (!overItem.children) {
-              overItem.children = [];
+          // 1. Find and remove active item from its original position
+          for (const col of draft) {
+              const { item, parent } = findItemAndParent(activeId, col.items);
+              if (item && parent) {
+                  activeItem = { ...item };
+                  const itemIndex = parent.findIndex(i => i.id === activeId);
+                  parent.splice(itemIndex, 1);
+                  activeParent = parent;
+                  break;
+              }
           }
-          overItem.children.unshift(activeItem);
-        } else if (overParent && overColumn) {
-            // Case 2: Reorder within a list or move to another list
-            const activeIndex = activeParent.findIndex(i => i.id === activeId);
-            activeParent.splice(activeIndex, 1);
-            
-            const overIndex = overParent.findIndex(i => i.id === overId);
-            overParent.splice(overIndex + 1, 0, activeItem);
-        } else {
-             // Fallback to active column if something goes wrong
-             const originalCol = draft.find(c => c.id === activeColumn.id);
-             if (originalCol && !findItemData(activeId).item) { // Ensure it wasn't re-added
-                originalCol.items.push(activeItem);
-             }
-        }
+
+          if (!activeItem) return;
+
+          // 2. Find drop position and insert the item
+          let overParent: Item[] | null = null;
+          let overIndex: number = -1;
+
+          for (const col of draft) {
+              const { item: overItem, parent, index } = findItemAndParent(overId, col.items);
+              if (overItem) { // Dropped on another item
+                  overParent = overItem.children;
+                  overIndex = 0; // Insert at the beginning of children
+                  break;
+              } else if (parent) { // Dropped in a sortable list (could be root or nested)
+                  overParent = parent;
+                  overIndex = index + 1; // Insert after the item we dropped over
+                  break;
+              }
+          }
+          
+          // Dropped on a column directly
+          if (!overParent) {
+            const overCol = draft.find(c => c.id === overId);
+            if (overCol) {
+              overParent = overCol.items;
+              overIndex = overCol.items.length; // Insert at the end
+            }
+          }
+
+          if (overParent) {
+             overParent.splice(overIndex, 0, activeItem);
+          } else if (activeParent) {
+              // Fallback: if drop target is invalid, return to original position
+              const activeCol = draft.find(c => c.items === activeParent);
+              activeCol?.items.push(activeItem);
+          }
       }));
     }
   };
@@ -570,6 +562,7 @@ export default function CategoriesPage() {
           collisionDetection={closestCenter}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
+          onDragOver={handleDragOver}
         >
           <div className="flex gap-6 overflow-x-auto pb-4 items-start">
               <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
@@ -584,9 +577,6 @@ export default function CategoriesPage() {
                     onTitleChange={(e) => handleColumnNameChange(column.id, e.target.value)}
                     onTitleBlur={() => setEditingColumnId(null)}
                     onAddItem={() => handleAddNewItem(column.id)}
-                    editingItemId={editingItemId}
-                    setEditingItemId={setEditingItemId}
-                    handleItemNameChange={handleItemNameChange}
                     onDeleteColumn={handleDeleteColumn}
                     onDeleteItem={handleDeleteItem}
                     onSelect={setSelectedCategory}
@@ -594,6 +584,7 @@ export default function CategoriesPage() {
                     onToggleAddItem={() => handleToggleAddItem(column.id)}
                     newItemName={newItemName}
                     setNewItemName={setNewItemName}
+                    isDragging={!!activeItem}
                   />
                 ))}
               </SortableContext>
@@ -646,3 +637,5 @@ export default function CategoriesPage() {
     </>
   );
 }
+
+    
