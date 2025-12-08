@@ -31,6 +31,7 @@ import {
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '../ui/button';
+import { usePathname } from 'next/navigation';
 
 const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
 
@@ -89,6 +90,7 @@ const eMenuLogo = (
 );
 
 export function AppSidebar() {
+  const pathname = usePathname();
   return (
     <Sidebar variant="sidebar" collapsible="icon" className="border-r">
       <SidebarHeader className="p-4 justify-between">
@@ -101,7 +103,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Overview</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton href="#" isActive tooltip="Dashboard">
+              <SidebarMenuButton href="/dashboard" isActive={pathname.startsWith('/dashboard') && !pathname.includes('categories')} tooltip="Dashboard">
                 <PieChart />
                 <span>Dashboard</span>
               </SidebarMenuButton>
@@ -125,7 +127,7 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton href="#" tooltip="Categories">
+              <SidebarMenuButton href="/dashboard/categories" isActive={pathname.startsWith('/dashboard/categories')} tooltip="Categories">
                 <LayoutGrid />
                 <span>Categories</span>
               </SidebarMenuButton>
