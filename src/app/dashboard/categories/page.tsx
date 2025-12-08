@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, GripVertical, MoreHorizontal, CornerDownRight } from 'lucide-react';
+import { Plus, GripVertical, MoreHorizontal, CornerDownRight, X } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -32,6 +32,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { produce } from 'immer';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { CategorySheet } from './category-sheet';
 
@@ -170,6 +171,10 @@ function BoardColumn({
   onDeleteColumn,
   onDeleteItem,
   onSelect,
+  isAddingItem,
+  onToggleAddItem,
+  newItemName,
+  setNewItemName
 }: { 
   column: Column;
   isEditing: boolean;
@@ -183,6 +188,10 @@ function BoardColumn({
   onDeleteColumn: (columnId: UniqueIdentifier) => void;
   onDeleteItem: (itemId: UniqueIdentifier) => void;
   onSelect: (item: Column | Item) => void;
+  isAddingItem: boolean;
+  onToggleAddItem: () => void;
+  newItemName: string;
+  setNewItemName: (name: string) => void;
 }) {
   const {
     attributes,
@@ -277,10 +286,26 @@ function BoardColumn({
           </SortableContext>
         </CardContent>
         <CardFooter className="p-3 border-t">
-            <Button variant="ghost" className="w-full" onClick={onAddItem}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add new item
-            </Button>
+            {isAddingItem ? (
+              <div className="w-full space-y-2">
+                <Textarea 
+                  placeholder="Enter a title for this card..."
+                  rows={3}
+                  value={newItemName}
+                  onChange={(e) => setNewItemName(e.target.value)}
+                  autoFocus
+                />
+                <div className="flex items-center gap-2">
+                  <Button onClick={onAddItem}>Add Item</Button>
+                  <Button variant="ghost" size="icon" onClick={onToggleAddItem}><X className="h-4 w-4"/></Button>
+                </div>
+              </div>
+            ) : (
+              <Button variant="ghost" className="w-full" onClick={onToggleAddItem}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add new item
+              </Button>
+            )}
         </CardFooter>
       </Card>
     </div>
@@ -294,6 +319,8 @@ export default function CategoriesPage() {
   const [editingColumnId, setEditingColumnId] = useState<UniqueIdentifier | null>(null);
   const [editingItemId, setEditingItemId] = useState<UniqueIdentifier | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Column | Item | null>(null);
+  const [addingToColumnId, setAddingToColumnId] = useState<UniqueIdentifier | null>(null);
+  const [newItemName, setNewItemName] = useState('');
   
   const columnIds = useMemo(() => board.map(col => col.id), [board]);
 
@@ -410,19 +437,26 @@ export default function CategoriesPage() {
 
 
   const handleAddNewItem = (columnId: UniqueIdentifier) => {
+      if (!newItemName.trim()) return;
       const newItemId = `item-${Date.now()}`;
       setBoard(produce(draft => {
           const column = draft.find(c => c.id === columnId);
           if (column) {
               column.items.push({
                   id: newItemId,
-                  name: `New Item`,
+                  name: newItemName,
                   children: []
               });
           }
       }));
-      setEditingItemId(newItemId);
+      setNewItemName('');
+      setAddingToColumnId(null);
   }
+  
+  const handleToggleAddItem = (columnId: UniqueIdentifier) => {
+    setAddingToColumnId(currentId => (currentId === columnId ? null : columnId));
+    setNewItemName('');
+  };
 
   const handleDragStart = (event: DragStartEvent) => {
     setEditingColumnId(null);
@@ -472,70 +506,44 @@ export default function CategoriesPage() {
         
         if (!activeItem || !activeParent || !activeColumn) return;
 
-        // Remove active item from its original position
+        // Find where the active item is and remove it
         const activeIndex = activeParent.findIndex(i => i.id === activeId);
         activeParent.splice(activeIndex, 1);
+        
+        // --- Find Drop Target ---
 
-        // Case 1: Drop over a column to add to the end of its root items
-        const overIsColumn = draft.find(c => c.id === overId);
-        if (overIsColumn) {
-          overIsColumn.items.push(activeItem);
+        // Case 1: Drop over a column
+        const overColumn = draft.find(c => c.id === overId);
+        if (overColumn) {
+          overColumn.items.push(activeItem);
           return;
         }
 
         // Case 2: Drop over another item
-        const { item: overItem, parent: overParent, column: overColumn, itemIndexInParent: overIndex } = findItemData(overId);
+        const { item: overItem, parent: overParent, column: overItemColumn, itemIndexInParent: overIndex } = findItemData(overId);
         
-        if (overItem && overParent && overColumn) {
-            const isDroppingOnItem = over.data.current?.type === 'Item';
-            if (isDroppingOnItem) {
-                // Find the draft version of overItem
-                const findAndNest = (items: Item[]): boolean => {
-                    for (const item of items) {
-                        if (item.id === overId) {
-                            item.children.push(activeItem);
-                            return true;
-                        }
-                        if (item.children && findAndNest(item.children)) {
-                            return true;
-                        }
-                    }
-                    return false;
-                };
-
-                for (const col of draft) {
-                    if (findAndNest(col.items)) return;
-                }
-            }
+        if (overItem) {
+          // Logic to nest inside another item
+          if (!overItem.children) {
+              overItem.children = [];
+          }
+          overItem.children.unshift(activeItem);
         } else {
-             // Case 3: Reorder within the same list or move to a new list root
-            const targetColumn = draft.find(c => c.id === activeColumn.id); // Default to original column
-            
-            const findAndInsert = (items: Item[]): boolean => {
-                for(let i=0; i < items.length; i++) {
-                    if (items[i].id === overId) {
-                        items.splice(i + 1, 0, activeItem);
-                        return true;
-                    }
-                     if (items[i].children && findAndInsert(items[i].children)) {
-                        return true;
-                    }
+            // Case 3: Reorder within a list (or move to a different column's root)
+             const targetColumn = draft.find(c => c.items.some(item => findItemRecursive(overId, [item]).item));
+             if (targetColumn) {
+                const { parent: targetParent } = findItemRecursive(overId, targetColumn.items);
+                if (targetParent) {
+                    const overIndex = targetParent.findIndex(i => i.id === overId);
+                    targetParent.splice(overIndex + 1, 0, activeItem);
                 }
-                return false;
-            }
-
-            let inserted = false;
-            for(const col of draft) {
-                if (findAndInsert(col.items)) {
-                    inserted = true;
-                    break;
-                }
-            }
-
-            if (!inserted && targetColumn) {
-                 // Fallback: Add to root of original column
-                 targetColumn.items.push(activeItem);
-            }
+             } else {
+                 // Fallback to active column if something goes wrong
+                 const originalCol = draft.find(c => c.id === activeColumn.id);
+                 if (originalCol) {
+                    originalCol.items.push(activeItem);
+                 }
+             }
         }
       }));
     }
@@ -579,6 +587,10 @@ export default function CategoriesPage() {
                     onDeleteColumn={handleDeleteColumn}
                     onDeleteItem={handleDeleteItem}
                     onSelect={setSelectedCategory}
+                    isAddingItem={addingToColumnId === column.id}
+                    onToggleAddItem={() => handleToggleAddItem(column.id)}
+                    newItemName={newItemName}
+                    setNewItemName={setNewItemName}
                   />
                 ))}
               </SortableContext>
