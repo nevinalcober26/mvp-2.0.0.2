@@ -106,8 +106,10 @@ export function AppSidebar() {
             <SidebarMenuItem>
               <NextLink href="/dashboard" passHref>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard') && !pathname.includes('categories')} tooltip="Dashboard">
-                  <PieChart />
-                  <span>Dashboard</span>
+                  <a>
+                    <PieChart />
+                    <span>Dashboard</span>
+                  </a>
                 </SidebarMenuButton>
               </NextLink>
             </SidebarMenuItem>
@@ -132,8 +134,10 @@ export function AppSidebar() {
             <SidebarMenuItem>
               <NextLink href="/dashboard/categories" passHref>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/categories')} tooltip="Categories">
-                  <LayoutGrid />
-                  <span>Categories</span>
+                  <a>
+                    <LayoutGrid />
+                    <span>Categories</span>
+                  </a>
                 </SidebarMenuButton>
               </NextLink>
             </SidebarMenuItem>
