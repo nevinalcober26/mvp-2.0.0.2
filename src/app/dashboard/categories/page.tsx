@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -31,6 +31,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { produce } from 'immer';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 
 type Item = {
   id: UniqueIdentifier;
@@ -96,7 +97,19 @@ function SortableItem({ item }: { item: Item }) {
   );
 }
 
-function BoardColumn({ column }: { column: Column }) {
+function BoardColumn({ 
+  column, 
+  isEditing, 
+  onTitleClick, 
+  onTitleChange, 
+  onTitleBlur 
+}: { 
+  column: Column;
+  isEditing: boolean;
+  onTitleClick: () => void;
+  onTitleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onTitleBlur: () => void;
+}) {
   const {
     attributes,
     listeners,
@@ -104,7 +117,7 @@ function BoardColumn({ column }: { column: Column }) {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: column.id });
+  } = useSortable({ id: column.id, disabled: isEditing });
 
   const style = {
     transform: CSS.Translate.toString(transform),
@@ -113,12 +126,37 @@ function BoardColumn({ column }: { column: Column }) {
   };
   
   const itemIds = useMemo(() => column.items.map(i => i.id), [column.items]);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditing) {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }
+  }, [isEditing]);
 
   return (
     <div ref={setNodeRef} style={style} className="flex-shrink-0 w-80">
       <Card className="bg-muted/50">
         <CardHeader className="p-3 flex flex-row items-center justify-between border-b" {...attributes} {...listeners}>
-          <CardTitle className="text-base font-semibold cursor-grab">{column.name}</CardTitle>
+          {isEditing ? (
+             <Input
+                ref={inputRef}
+                value={column.name}
+                onChange={onTitleChange}
+                onBlur={onTitleBlur}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                        onTitleBlur();
+                    }
+                }}
+                className="text-base font-semibold border-2 border-primary"
+            />
+          ) : (
+            <CardTitle className="text-base font-semibold cursor-pointer" onClick={onTitleClick}>
+                {column.name}
+            </CardTitle>
+          )}
           <div className="flex items-center gap-2">
             <Badge variant="secondary">{column.items.length}</Badge>
             <Button variant="ghost" size="icon" className="h-7 w-7">
@@ -142,6 +180,7 @@ export default function CategoriesPage() {
   const [board, setBoard] = useState<Column[]>(initialBoardData);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
   const [activeItem, setActiveItem] = useState<Item | null>(null);
+  const [editingColumnId, setEditingColumnId] = useState<UniqueIdentifier | null>(null);
   
   const columnIds = useMemo(() => board.map(col => col.id), [board]);
 
@@ -157,16 +196,28 @@ export default function CategoriesPage() {
   const findColumnOfItem = (id: UniqueIdentifier) => board.find(col => col.items.some(item => item.id === id));
 
   const handleAddNewColumn = () => {
+    const newColumnId = `col-${Date.now()}`;
     setBoard(produce(board => {
         board.push({
-            id: `col-${Date.now()}`,
+            id: newColumnId,
             name: 'New Category',
             items: [],
         });
     }));
+    setEditingColumnId(newColumnId);
+  };
+  
+  const handleColumnNameChange = (columnId: UniqueIdentifier, newName: string) => {
+    setBoard(produce(board => {
+        const column = board.find(c => c.id === columnId);
+        if(column) {
+            column.name = newName;
+        }
+    }));
   };
 
   const handleDragStart = (event: DragStartEvent) => {
+    setEditingColumnId(null);
     const { active } = event;
     const activeId = active.id;
     const column = findColumn(activeId);
@@ -304,7 +355,14 @@ export default function CategoriesPage() {
           <div className="flex gap-6 overflow-x-auto pb-4">
               <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
                 {board.map((column) => (
-                  <BoardColumn key={column.id} column={column} />
+                  <BoardColumn 
+                    key={column.id} 
+                    column={column} 
+                    isEditing={editingColumnId === column.id}
+                    onTitleClick={() => setEditingColumnId(column.id)}
+                    onTitleChange={(e) => handleColumnNameChange(column.id, e.target.value)}
+                    onTitleBlur={() => setEditingColumnId(null)}
+                  />
                 ))}
               </SortableContext>
               <div className="flex-shrink-0 w-80">
