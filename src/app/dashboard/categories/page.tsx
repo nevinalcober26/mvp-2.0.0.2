@@ -3,6 +3,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   Card,
   CardContent,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -125,13 +126,15 @@ function BoardColumn({
   isEditing, 
   onTitleClick, 
   onTitleChange, 
-  onTitleBlur 
+  onTitleBlur,
+  onAddItem,
 }: { 
   column: Column;
   isEditing: boolean;
   onTitleClick: () => void;
   onTitleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onTitleBlur: () => void;
+  onAddItem: () => void;
 }) {
   const {
     attributes,
@@ -164,7 +167,7 @@ function BoardColumn({
 
   return (
     <div ref={setNodeRef} style={style} className="flex-shrink-0 w-80">
-      <Card className="bg-muted/50">
+      <Card className="bg-muted/50 flex flex-col h-full">
         <CardHeader className="p-3 flex flex-row items-center justify-between border-b" {...attributes}>
            <div className="flex-grow" onClick={onTitleClick}>
             {isEditing ? (
@@ -193,13 +196,19 @@ function BoardColumn({
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="p-3 min-h-[100px]">
+        <CardContent className="p-3 min-h-[100px] flex-grow">
           <SortableContext items={allItemIds} strategy={verticalListSortingStrategy}>
             {column.items.map((item) => (
               <SortableItem key={item.id} item={item} />
             ))}
           </SortableContext>
         </CardContent>
+        <CardFooter className="p-3 border-t">
+            <Button variant="ghost" className="w-full" onClick={onAddItem}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add new item
+            </Button>
+        </CardFooter>
       </Card>
     </div>
   );
@@ -220,8 +229,6 @@ export default function CategoriesPage() {
     })
   );
 
-  const findColumn = (id: UniqueIdentifier) => board.find(col => col.id === id);
-
   const findItemRecursive = (itemId: UniqueIdentifier, items: Item[]): {item: Item | null, parent: Item[] | null, index: number} => {
       for (let i = 0; i < items.length; i++) {
           const item = items[i];
@@ -236,19 +243,6 @@ export default function CategoriesPage() {
           }
       }
       return { item: null, parent: null, index: -1 };
-  };
-
-  const findContainer = (id: UniqueIdentifier) => {
-    if (board.some(col => col.id === id)) {
-        return board.find(col => col.id === id);
-    }
-    for (const column of board) {
-        const { item } = findItemRecursive(id, column.items);
-        if (item) {
-            return item;
-        }
-    }
-    return null;
   };
 
   const findItemData = (itemId: UniqueIdentifier) => {
@@ -282,6 +276,19 @@ export default function CategoriesPage() {
     }));
   };
 
+  const handleAddNewItem = (columnId: UniqueIdentifier) => {
+      setBoard(produce(draft => {
+          const column = draft.find(c => c.id === columnId);
+          if (column) {
+              column.items.push({
+                  id: `item-${Date.now()}`,
+                  name: `New Item`,
+                  children: []
+              });
+          }
+      }));
+  }
+
   const handleDragStart = (event: DragStartEvent) => {
     setEditingColumnId(null);
     const { active } = event;
@@ -305,12 +312,12 @@ export default function CategoriesPage() {
 
     if (activeId === overId) return;
 
-    // This handles item drags
-    if (active.data.current.type === 'Item') {
-      setBoard(produce(draft => {
-        // Find active item and its original location
+    if (active.data.current.type !== 'Item') return;
+
+    setBoard(produce(draft => {
         let activeItemData: Item | null = null;
         let sourceParent: Item[] | null = null;
+        let sourceColumn: Column | null = null;
         let sourceIndex = -1;
 
         for (const col of draft) {
@@ -318,6 +325,7 @@ export default function CategoriesPage() {
             if (item) {
                 activeItemData = item;
                 sourceParent = parent;
+                sourceColumn = col;
                 sourceIndex = index;
                 break;
             }
@@ -325,43 +333,41 @@ export default function CategoriesPage() {
 
         if (!activeItemData || !sourceParent) return;
 
-        // Find drop target
         let targetParent: Item[] | null = null;
-        let targetIndex = 0; // Default to start of list
+        let targetIndex = 0;
 
         const overIsColumn = draft.some(c => c.id === overId);
-        const overIsItem = !overIsColumn;
 
         if (overIsColumn) {
           const targetColumn = draft.find(c => c.id === overId);
-          if (targetColumn) {
+          if (targetColumn && targetColumn.id !== sourceColumn?.id) {
             targetParent = targetColumn.items;
-            targetIndex = targetParent.length; // Add to end of column
+            targetIndex = targetParent.length > 0 ? targetParent.length : 0;
           }
-        } else if (overIsItem) {
+        } else {
             for (const col of draft) {
                 const {item: overItem, parent: overItemParent, index: overItemIndex} = findItemRecursive(overId, col.items);
                 if(overItem) {
-                    const isDroppingOnItemItself = true; // Simplified for now
-                    if(isDroppingOnItemItself) {
-                        targetParent = overItem.children;
-                        targetIndex = overItem.children.length;
-                    } else {
-                        targetParent = overItemParent;
-                        targetIndex = overItemIndex;
+                    if (overItem.id !== activeId) {
+                      const isDroppingOnItemItself = true; 
+                        if(isDroppingOnItemItself) {
+                            targetParent = overItem.children;
+                            targetIndex = overItem.children.length;
+                        } else {
+                            targetParent = overItemParent;
+                            targetIndex = overItemIndex;
+                        }
                     }
                     break;
                 }
             }
         }
 
-        if (!targetParent) return;
-
-        // Perform the move
-        const [movedItem] = sourceParent.splice(sourceIndex, 1);
-        targetParent.splice(targetIndex, 0, movedItem);
-      }));
-    }
+        if (targetParent) {
+            const [movedItem] = sourceParent.splice(sourceIndex, 1);
+            targetParent.splice(targetIndex, 0, movedItem);
+        }
+    }));
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -388,7 +394,6 @@ export default function CategoriesPage() {
         }));
         return;
     }
-    
   };
   
   const flattenItems = (items: Item[]): Item[] => {
@@ -416,7 +421,7 @@ export default function CategoriesPage() {
           onDragEnd={handleDragEnd}
           measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
         >
-          <div className="flex gap-6 overflow-x-auto pb-4">
+          <div className="flex gap-6 overflow-x-auto pb-4 items-start">
               <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
                 {board.map((column) => (
                   <BoardColumn 
@@ -429,6 +434,7 @@ export default function CategoriesPage() {
                     }}
                     onTitleChange={(e) => handleColumnNameChange(column.id, e.target.value)}
                     onTitleBlur={() => setEditingColumnId(null)}
+                    onAddItem={() => handleAddNewItem(column.id)}
                   />
                 ))}
               </SortableContext>
