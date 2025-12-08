@@ -32,6 +32,7 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '../ui/button';
 import { usePathname } from 'next/navigation';
+import NextLink from 'next/link';
 
 const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
 
@@ -103,10 +104,12 @@ export function AppSidebar() {
           <SidebarGroupLabel>Overview</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/dashboard" isActive={pathname.startsWith('/dashboard') && !pathname.includes('categories')} tooltip="Dashboard">
-                <PieChart />
-                <span>Dashboard</span>
-              </SidebarMenuButton>
+              <NextLink href="/dashboard" passHref legacyBehavior>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard') && !pathname.includes('categories')} tooltip="Dashboard">
+                  <PieChart />
+                  <span>Dashboard</span>
+                </SidebarMenuButton>
+              </NextLink>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton href="#" tooltip="Reports">
@@ -127,10 +130,12 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/dashboard/categories" isActive={pathname.startsWith('/dashboard/categories')} tooltip="Categories">
-                <LayoutGrid />
-                <span>Categories</span>
-              </SidebarMenuButton>
+              <NextLink href="/dashboard/categories" passHref legacyBehavior>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/categories')} tooltip="Categories">
+                  <LayoutGrid />
+                  <span>Categories</span>
+                </SidebarMenuButton>
+              </NextLink>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
