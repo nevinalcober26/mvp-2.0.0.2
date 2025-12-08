@@ -220,7 +220,7 @@ function BoardColumn({
   
   return (
     <div ref={setNodeRef} style={style} className="flex-shrink-0 w-80">
-      <Card className="bg-muted/50 flex flex-col">
+      <Card className="bg-muted/50">
         <CardHeader {...attributes} className="p-3 flex flex-row items-center justify-between border-b" >
            <div className="flex-grow" onClick={(e) => { e.stopPropagation(); onTitleClick(); }}>
             {isEditing ? (
@@ -474,15 +474,16 @@ export default function CategoriesPage() {
       setBoard(produce(draft => {
           let activeItem: Item | null = null;
           let originalParent: Item[] | null = null;
+          let originalIndex = -1;
 
           // 1. Find and remove active item from its original position
           for (const col of draft) {
-              const { item, parent } = findItemAndParent(activeId, col.items);
+              const { item, parent, index } = findItemAndParent(activeId, col.items);
               if (item && parent) {
                   activeItem = { ...item };
                   originalParent = parent;
-                  const itemIndex = parent.findIndex(i => i.id === activeId);
-                  parent.splice(itemIndex, 1);
+                  originalIndex = index;
+                  parent.splice(index, 1);
                   break;
               }
           }
@@ -501,25 +502,28 @@ export default function CategoriesPage() {
               for (const col of draft) {
                   const { item: overItem, parent: overItemParent, index: overItemIndex } = findItemAndParent(overId, col.items);
                   if (overItem) {
-                      // Logic to drop on, before, or after another item.
-                      // For simplicity, let's try nesting first.
-                      const overRect = over.rect;
-                      const isDroppingOnItem = overRect && draggingRect && 
-                         draggingRect.top > overRect.top && draggingRect.bottom < overRect.bottom;
-
-                      if(isDroppingOnItem) { // Simple nesting
-                         overItem.children.push(activeItem);
-                      } else { // Reordering
-                        const isBelow = over && active.rect.current.translated && over.rect.top > active.rect.current.translated.top;
-                        overItemParent!.splice(overItemIndex + (isBelow ? 1 : 0), 0, activeItem);
-                      }
+                      // Simple nesting: drop inside another item
+                      overItem.children.push(activeItem);
                       foundOver = true;
                       break;
                   }
               }
+
+              // Dropped in a list (not on an item)
+              if (!foundOver) {
+                  for (const col of draft) {
+                      const { parent, index } = findItemAndParent(overId, col.items);
+                      if (parent) {
+                          parent.splice(index, 0, activeItem);
+                          foundOver = true;
+                          break;
+                      }
+                  }
+              }
+
               if (!foundOver && originalParent) {
                  // Fallback: couldn't find a drop target, put it back
-                 originalParent.push(activeItem);
+                 originalParent.splice(originalIndex, 0, activeItem);
               }
           }
       }));
