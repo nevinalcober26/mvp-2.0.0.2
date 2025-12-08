@@ -6,23 +6,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import {
-  Eye,
-  GripVertical,
-  Plus,
-  Trash2,
-  Pencil,
-  ArrowUpDown,
-} from 'lucide-react';
+import { Plus, Eye, Pencil, Trash2, GripVertical } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -32,30 +17,38 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { DashboardHeader } from '@/components/dashboard/header';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
-const categoriesData = [
-  { id: 1, sortOrder: 1, name: 'Menu', parent: '-' },
-  { id: 2, sortOrder: 2, name: 'Special Offer', parent: '-' },
-  { id: 3, sortOrder: 3, name: 'About Us', parent: '-' },
-  { id: 4, sortOrder: 4, name: 'Contact Us', parent: '-' },
-  { id: 5, sortOrder: 5, name: 'Feedback Form', parent: '-' },
-  { id: 6, sortOrder: 6, name: 'Food', parent: 'Menu' },
-  { id: 7, sortOrder: 7, name: 'Beverages', parent: 'Menu' },
-  { id: 11, sortOrder: 11, name: 'Breakfast', parent: 'Food' },
-  { id: 12, sortOrder: 12, name: 'Pancakes & French Toast', parent: 'Food' },
-  { id: 13, sortOrder: 13, name: 'Keto & Vegan', parent: 'Food' },
-  { id: 15, sortOrder: 15, name: 'Appetizers', parent: 'Food' },
-  { id: 16, sortOrder: 16, name: 'Soups', parent: 'Food' },
-  { id: 17, sortOrder: 17, name: 'Salads', parent: 'Food' },
-  { id: 18, sortOrder: 18, name: 'Warm Bowls', parent: 'Food' },
-  { id: 19, sortOrder: 19, name: 'Poke Bowls', parent: 'Food' },
+const initialCategoriesData = [
+  { id: '1', sortOrder: 1, name: 'Menu', parent: null },
+  { id: '2', sortOrder: 2, name: 'Special Offer', parent: null },
+  { id: '3', sortOrder: 3, name: 'About Us', parent: null },
+  { id: '4', sortOrder: 4, name: 'Contact Us', parent: null },
+  { id: '5', sortOrder: 5, name: 'Feedback Form', parent: null },
+  { id: '6', sortOrder: 6, name: 'Food', parent: 'Menu' },
+  { id: '7', sortOrder: 7, name: 'Beverages', parent: 'Menu' },
+  { id: '11', sortOrder: 11, name: 'Breakfast', parent: 'Food' },
+  { id: '12', sortOrder: 12, name: 'Pancakes & French Toast', parent: 'Food' },
+  { id: '13', sortOrder: 13, name: 'Keto & Vegan', parent: 'Food' },
+  { id: '15', sortOrder: 15, name: 'Appetizers', parent: 'Food' },
+  { id: '16', sortOrder: 16, name: 'Soups', parent: 'Food' },
+  { id: '17', sortOrder: 17, name: 'Salads', parent: 'Food' },
+  { id: '18', sortOrder: 18, name: 'Warm Bowls', parent: 'Food' },
+  { id: '19', sortOrder: 19, name: 'Poke Bowls', parent: 'Food' },
 ];
 
 export default function CategoriesPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [categories, setCategories] = useState(initialCategoriesData);
 
-  const filteredCategories = categoriesData.filter((category) =>
+  const filteredCategories = categories.filter((category) =>
     category.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -119,33 +112,22 @@ export default function CategoriesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-24">
-                    <Button variant="ghost" size="sm">
-                      Sort Order <ArrowUpDown className="h-4 w-4 ml-2" />
-                    </Button>
-                  </TableHead>
-                  <TableHead>
-                    <Button variant="ghost" size="sm">
-                      Name <ArrowUpDown className="h-4 w-4 ml-2" />
-                    </Button>
-                  </TableHead>
-                  <TableHead>
-                    <Button variant="ghost" size="sm">
-                      Parent <ArrowUpDown className="h-4 w-4 ml-2" />
-                    </Button>
-                  </TableHead>
+                  <TableHead className="w-12"></TableHead>
+                  <TableHead>Sort Order</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Parent</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredCategories.map((category) => (
                   <TableRow key={category.id}>
-                    <TableCell className="flex items-center gap-2">
-                      <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
-                      {category.sortOrder}
+                    <TableCell>
+                      <GripVertical className="h-5 w-5 text-muted-foreground" />
                     </TableCell>
+                    <TableCell>{category.sortOrder}</TableCell>
                     <TableCell className="font-medium">{category.name}</TableCell>
-                    <TableCell>{category.parent}</TableCell>
+                    <TableCell>{category.parent || '—'}</TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="icon" className="text-blue-600 hover:text-blue-700">
                         <Eye className="h-5 w-5" />
