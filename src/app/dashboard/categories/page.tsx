@@ -117,7 +117,7 @@ function BoardColumn({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: column.id, disabled: isEditing });
+  } = useSortable({ id: column.id, data: { type: 'Column' }, disabled: isEditing });
 
   const style = {
     transform: CSS.Translate.toString(transform),
@@ -139,27 +139,29 @@ function BoardColumn({
     <div ref={setNodeRef} style={style} className="flex-shrink-0 w-80">
       <Card className="bg-muted/50">
         <CardHeader className="p-3 flex flex-row items-center justify-between border-b" {...attributes} {...listeners}>
-          {isEditing ? (
-             <Input
-                ref={inputRef}
-                value={column.name}
-                onChange={onTitleChange}
-                onBlur={onTitleBlur}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                        onTitleBlur();
-                    }
-                }}
-                className="text-base font-semibold border-2 border-primary"
-            />
-          ) : (
-            <CardTitle className="text-base font-semibold cursor-pointer" onClick={onTitleClick}>
-                {column.name}
-            </CardTitle>
-          )}
+          <div className="flex-grow" onClick={onTitleClick}>
+            {isEditing ? (
+              <Input
+                  ref={inputRef}
+                  value={column.name}
+                  onChange={onTitleChange}
+                  onBlur={onTitleBlur}
+                  onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                          onTitleBlur();
+                      }
+                  }}
+                  className="text-base font-semibold border-2 border-primary h-8"
+              />
+            ) : (
+              <CardTitle className="text-base font-semibold cursor-pointer py-1 px-2">
+                  {column.name}
+              </CardTitle>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <Badge variant="secondary">{column.items.length}</Badge>
-            <Button variant="ghost" size="icon" className="h-7 w-7">
+            <Button variant="ghost" size="icon" className="h-7 w-7 cursor-grab">
                 <MoreHorizontal className="h-4 w-4" />
             </Button>
           </div>
@@ -278,7 +280,7 @@ export default function CategoriesPage() {
     const overId = over.id;
     if (activeId === overId) return;
     
-    const isColumnDrag = !!findColumn(activeId);
+    const isColumnDrag = active.data.current?.type === 'Column';
 
     // Dragging a column
     if (isColumnDrag) {
@@ -311,8 +313,9 @@ export default function CategoriesPage() {
         }
       }));
     } else {
-      // This case should be handled by onDragOver, but as a fallback:
-      setBoard(produce(board => {
+      // This case is handled by onDragOver, this is a fallback.
+      // It is also triggered when dropping an item into an empty column.
+        setBoard(produce(board => {
             const activeCol = board.find(c => c.id === activeContainerId)!;
             const overCol = board.find(c => c.id === overContainerId)!;
 
@@ -324,7 +327,14 @@ export default function CategoriesPage() {
                 overIndex = overCol.items.length;
             } else if (overIndex === -1) {
               // Fallback if not found
-              overIndex = 0;
+              const isDroppingInSameColumn = activeContainerId === overContainerId;
+              const overContainer = findColumn(overId);
+              if (overContainer) { // dropping on a column
+                overIndex = overContainer.items.length;
+              } else { // dropping on an item
+                const overItemContainer = findColumnOfItem(overId)!;
+                overIndex = overItemContainer.items.findIndex(i => i.id === overId);
+              }
             }
 
             overCol.items.splice(overIndex, 0, movedItem);
@@ -359,7 +369,9 @@ export default function CategoriesPage() {
                     key={column.id} 
                     column={column} 
                     isEditing={editingColumnId === column.id}
-                    onTitleClick={() => setEditingColumnId(column.id)}
+                    onTitleClick={() => {
+                        if (!isEditing) setEditingColumnId(column.id);
+                    }}
                     onTitleChange={(e) => handleColumnNameChange(column.id, e.target.value)}
                     onTitleBlur={() => setEditingColumnId(null)}
                   />
