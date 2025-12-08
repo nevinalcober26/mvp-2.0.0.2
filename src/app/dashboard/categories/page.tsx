@@ -112,8 +112,8 @@ function unflattenCategories(
   });
 
   flattenedCategories.forEach((item) => {
-    if (item.parentId) {
-      mapped[item.parentId]?.children.push(mapped[item.id]);
+    if (item.parentId && mapped[item.parentId]) {
+      mapped[item.parentId].children.push(mapped[item.id]);
     } else {
       tree.push(mapped[item.id]);
     }
@@ -157,10 +157,8 @@ function SortableCategoryItem({ item }: { item: FlattenedCategory }) {
           <span className="text-sm text-muted-foreground">
             {item.depth > 0 ? 'Sub-item' : 'Category'}
           </span>
-          <AccordionTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <ChevronDown className="h-4 w-4" />
-            </Button>
+          <AccordionTrigger className="p-2 hover:no-underline rounded-md hover:bg-accent [&[data-state=open]>svg]:rotate-180">
+            <ChevronDown className="h-4 w-4" />
           </AccordionTrigger>
         </div>
       </div>
