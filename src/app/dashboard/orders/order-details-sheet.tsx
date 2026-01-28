@@ -174,7 +174,7 @@ export function OrderDetailsSheet({
                       <Package className="h-5 w-5" />
                     )}
                     <span>
-                      Payment split <strong>{order.splitType === 'equally' ? 'equally by guest' : 'by item'}</strong>.
+                      Payment split <strong>{order.splitType === 'equally' ? 'equally' : 'by item'}</strong>.
                     </span>
                   </div>
                 ) : order.paymentState === 'Partial' ? (

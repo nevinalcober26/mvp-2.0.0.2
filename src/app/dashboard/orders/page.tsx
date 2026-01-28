@@ -394,8 +394,10 @@ export default function OrdersPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={getStatusBadgeVariant(order.paymentState)}>
+                       <Badge variant={getStatusBadgeVariant(order.paymentState)}>
                         {order.paymentState}
+                        {order.paymentState === 'Partial' && order.splitType === 'equally' && ' (Equally)'}
+                        {order.paymentState === 'Partial' && order.splitType === 'byItem' && ' (By Item)'}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right font-mono">${order.totalAmount.toFixed(2)}</TableCell>
