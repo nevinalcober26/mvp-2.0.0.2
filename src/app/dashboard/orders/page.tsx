@@ -182,7 +182,7 @@ const generateMockOrders = (count: number): Order[] => {
     let customerAvatar = '';
 
     // About 25% of orders will have customer details
-    if (i % 4 === 0) {
+    if (i % 4 !== 0) {
       const assignedName = names[Math.floor(i / 4) % names.length];
       customerName = assignedName;
       customerEmail = `${assignedName
@@ -478,7 +478,9 @@ export default function OrdersPage() {
                   <TableHead>
                     <SortableHeader tKey="orderId" label="Order" />
                   </TableHead>
-                  <TableHead>Customer</TableHead>
+                  <TableHead>
+                    <SortableHeader tKey="table" label="Table" />
+                  </TableHead>
                   <TableHead>
                     <SortableHeader tKey="orderTimestamp" label="Date" />
                   </TableHead>
@@ -503,31 +505,7 @@ export default function OrdersPage() {
                     <TableCell className="font-medium">
                       {order.orderId}
                     </TableCell>
-                    <TableCell>
-                      {order.customerName !== 'Guest' ? (
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-9 w-9">
-                            <AvatarImage
-                              src={order.customerAvatar}
-                              alt={order.customerName}
-                            />
-                            <AvatarFallback>
-                              {order.customerName.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="grid gap-0.5">
-                            <span className="font-medium truncate">
-                              {order.customerName}
-                            </span>
-                            <span className="text-xs text-muted-foreground truncate">
-                              {order.customerEmail}
-                            </span>
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">Guest</span>
-                      )}
-                    </TableCell>
+                    <TableCell>{order.table}</TableCell>
                     <TableCell>{order.orderDate}</TableCell>
                     <TableCell>{order.branch}</TableCell>
                     <TableCell>
