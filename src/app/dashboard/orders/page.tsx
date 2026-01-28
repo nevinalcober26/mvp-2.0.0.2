@@ -91,7 +91,7 @@ type Order = {
   items: OrderItem[];
   customerName: string;
   customerEmail: string;
--  customerAvatar: string;
+  customerAvatar: string;
   orderDate: string;
   orderTimestamp: number;
   payments: Payment[];
