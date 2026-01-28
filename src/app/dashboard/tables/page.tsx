@@ -20,7 +20,6 @@ import {
   Circle,
   Hourglass,
   CirclePercent,
-  Dot,
 } from 'lucide-react';
 
 type Status =
@@ -88,13 +87,13 @@ const statusConfig: Record<
   },
 };
 
-const filterOptions = [
-  { name: 'All', color: 'text-muted-foreground' },
-  { name: 'Vacant', color: 'text-green-700' },
-  { name: 'Occupied', color: 'text-orange-600' },
-  { name: 'Unpaid', status: 'Occupied - Unpaid', color: 'text-red-700' },
-  { name: 'Partial', status: 'Occupied - Partially Paid', color: 'text-yellow-700' },
-  { name: 'Paid', status: 'Occupied - Fully Paid', color: 'text-blue-700' },
+const filterOptions: {name: string, status?: Status, color: string}[] = [
+  { name: 'All', color: 'bg-muted' },
+  { name: 'Vacant', color: 'bg-green-500' },
+  { name: 'Occupied', color: 'bg-chart-5' },
+  { name: 'Unpaid', status: 'Occupied - Unpaid', color: 'bg-red-500' },
+  { name: 'Partial', status: 'Occupied - Partially Paid', color: 'bg-yellow-500' },
+  { name: 'Paid', status: 'Occupied - Fully Paid', color: 'bg-blue-500' },
 ];
 
 const TableCard = ({ table }: { table: Table }) => {
@@ -178,16 +177,14 @@ export default function TablesPage() {
                   variant={activeFilter === option.name ? "secondary" : "ghost"}
                   className="gap-2 px-3"
                 >
-                  <Dot
-                    className={cn('h-6 w-6 -ml-2', option.color, activeFilter === option.name ? 'opacity-100' : 'opacity-50')}
-                  />
+                  <div className={cn('h-3 w-3 rounded-full', option.color)} />
                   <span>{option.name}</span>
                 </Button>
               ))}
             </div>
         </Card>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-5 gap-4">
           {filteredTables.map((table) => (
             <TableCard key={table.id} table={table} />
           ))}
