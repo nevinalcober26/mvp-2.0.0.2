@@ -71,7 +71,7 @@ export const generateMockOrders = (count: number): Order[] => {
         guestName: 'Guest 1',
       });
     } else if (paymentState === 'Partial') {
-      splitType = i % 2 === 0 ? 'byGuest' : 'byItem';
+      splitType = i % 2 === 0 ? 'equally' : 'byItem';
       const numSplits = Math.floor(Math.random() * 2) + 2; // 2 or 3 splits
       let totalPaid = totalAmount * (Math.random() * 0.5 + 0.2); // Pay 20% to 70%
       paidAmount = totalPaid;

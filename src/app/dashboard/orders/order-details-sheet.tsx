@@ -168,13 +168,13 @@ export function OrderDetailsSheet({
                 
                 {order.splitType ? (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3 p-3 bg-secondary rounded-md border">
-                    {order.splitType === 'byGuest' ? (
+                    {order.splitType === 'equally' ? (
                       <Users className="h-5 w-5" />
                     ) : (
                       <Package className="h-5 w-5" />
                     )}
                     <span>
-                      Payment split <strong>by {order.splitType === 'byGuest' ? 'Guest' : 'Item'}</strong>.
+                      Payment split <strong>{order.splitType === 'equally' ? 'equally by guest' : 'by item'}</strong>.
                     </span>
                   </div>
                 ) : order.paymentState === 'Partial' ? (

@@ -26,5 +26,5 @@ export type Order = {
   orderDate: string;
   orderTimestamp: number;
   payments: Payment[];
-  splitType?: 'byGuest' | 'byItem';
+  splitType?: 'byItem' | 'equally';
 };
