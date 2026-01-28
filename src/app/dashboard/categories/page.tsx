@@ -49,6 +49,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { DashboardHeader } from '@/components/dashboard/header';
 
 
 export type Item = {
@@ -681,11 +682,10 @@ export default function CategoriesPage() {
     const newCategory: Item = { id: newItemId, name, children: [] };
 
     setBoard(produce(draft => {
-      if (parentId === 'none') {
+      if (parentId === 'none' || !parentId) {
         // Create a new top-level category (column)
-        const newColumnId = `col-${Date.now()}`;
         draft.push({
-          id: newColumnId,
+          id: `col-${Date.now()}`,
           name: name,
           items: [],
         });
@@ -844,27 +844,36 @@ export default function CategoriesPage() {
   
   return (
     <>
-      <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-card px-4 sm:px-6 lg:px-8 justify-between">
-        <h1 className="text-xl font-semibold flex items-center gap-2">
-          Menu Board Editor
-          <Badge variant="destructive">BLOOMSBURY'S (RAS AL KHAIMAH)</Badge>
-        </h1>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1 rounded-md bg-muted p-1">
-              <Button variant={view === 'board' ? 'secondary' : 'ghost'} size="sm" onClick={() => setView('board')}>
-                  <LayoutGrid className="h-4 w-4" />
-                  <span className="ml-2 hidden sm:inline">Board</span>
-              </Button>
-              <Button variant={view === 'list' ? 'secondary' : 'ghost'} size="sm" onClick={() => setView('list')}>
-                  <List className="h-4 w-4" />
-                  <span className="ml-2 hidden sm:inline">List</span>
-              </Button>
-          </div>
-          <Button variant="secondary">PUBLISH</Button>
-        </div>
-      </header>
-
+      <DashboardHeader />
       <main className="p-4 sm:p-6 lg:p-8 flex-grow">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-xl font-semibold flex items-center gap-2">
+            Menu Board Editor
+            <Badge variant="destructive">BLOOMSBURY'S (RAS AL KHAIMAH)</Badge>
+          </h1>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1 rounded-md bg-muted p-1">
+              <Button
+                variant={view === 'board' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setView('board')}
+              >
+                <LayoutGrid className="h-4 w-4" />
+                <span className="ml-2 hidden sm:inline">Board</span>
+              </Button>
+              <Button
+                variant={view === 'list' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setView('list')}
+              >
+                <List className="h-4 w-4" />
+                <span className="ml-2 hidden sm:inline">List</span>
+              </Button>
+            </div>
+            <Button variant="secondary">PUBLISH</Button>
+          </div>
+        </div>
+
         {view === 'board' ? (
           <DndContext
             sensors={sensors}
@@ -874,71 +883,80 @@ export default function CategoriesPage() {
             onDragOver={handleDragOver}
           >
             <div className="flex gap-6 overflow-x-auto pb-4 items-start">
-                <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
-                  {board.map((column) => (
-                    <BoardColumn 
-                      key={column.id} 
-                      column={column} 
-                      isEditing={editingColumnId === column.id}
-                      onTitleClick={() => {
-                        setEditingColumnId(column.id);
-                        setSelectedCategory(null);
-                      }}
-                      onTitleChange={(e) => handleColumnNameChange(column.id, e.target.value)}
-                      onTitleBlur={() => setEditingColumnId(null)}
-                      onAddItem={() => handleAddNewItem(column.id)}
-                      onDeleteColumn={handleDeleteColumn}
-                      onDeleteItem={handleDeleteItem}
-                      onSelect={(item) => {
-                        setEditingColumnId(null);
-                        setSelectedCategory(item);
-                      }}
-                      isAddingItem={addingToColumnId === column.id}
-                      onToggleAddItem={() => handleToggleAddItem(column.id)}
-                      newItemName={newItemName}
-                      setNewItemName={setNewItemName}
-                      isDragging={!!activeItem}
-                    />
-                  ))}
-                </SortableContext>
-                <div className="flex-shrink-0 w-80">
-                    <Button
-                        variant="outline"
-                        className="w-full h-full border-dashed flex-col py-12"
-                        onClick={handleAddNewColumn}
-                    >
-                        <Plus className="h-8 w-8 mb-2" />
-                        Add New Category
-                    </Button>
-                </div>
+              <SortableContext
+                items={columnIds}
+                strategy={horizontalListSortingStrategy}
+              >
+                {board.map((column) => (
+                  <BoardColumn
+                    key={column.id}
+                    column={column}
+                    isEditing={editingColumnId === column.id}
+                    onTitleClick={() => {
+                      setEditingColumnId(column.id);
+                      setSelectedCategory(null);
+                    }}
+                    onTitleChange={(e) =>
+                      handleColumnNameChange(column.id, e.target.value)
+                    }
+                    onTitleBlur={() => setEditingColumnId(null)}
+                    onAddItem={() => handleAddNewItem(column.id)}
+                    onDeleteColumn={handleDeleteColumn}
+                    onDeleteItem={handleDeleteItem}
+                    onSelect={(item) => {
+                      setEditingColumnId(null);
+                      setSelectedCategory(item);
+                    }}
+                    isAddingItem={addingToColumnId === column.id}
+                    onToggleAddItem={() => handleToggleAddItem(column.id)}
+                    newItemName={newItemName}
+                    setNewItemName={setNewItemName}
+                    isDragging={!!activeItem}
+                  />
+                ))}
+              </SortableContext>
+              <div className="flex-shrink-0 w-80">
+                <Button
+                  variant="outline"
+                  className="w-full h-full border-dashed flex-col py-12"
+                  onClick={handleAddNewColumn}
+                >
+                  <Plus className="h-8 w-8 mb-2" />
+                  Add New Category
+                </Button>
+              </div>
             </div>
             <DragOverlay>
               {activeColumn ? (
-                  <div className="flex-shrink-0 w-80">
-                      <Card className="bg-card opacity-90 shadow-2xl">
-                          <CardHeader className="p-3 flex flex-row items-center justify-between border-b">
-                            <CardTitle className="text-base font-semibold">{activeColumn.name}</CardTitle>
-                          </CardHeader>
-                          <CardContent className="p-3 min-h-[100px]">
-                              {/* Overlay doesn't need full sortable context */}
-                          </CardContent>
-                      </Card>
-                  </div>
+                <div className="flex-shrink-0 w-80">
+                  <Card className="bg-card opacity-90 shadow-2xl">
+                    <CardHeader className="p-3 flex flex-row items-center justify-between border-b">
+                      <CardTitle className="text-base font-semibold">
+                        {activeColumn.name}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-3 min-h-[100px]">
+                      {/* Overlay doesn't need full sortable context */}
+                    </CardContent>
+                  </Card>
+                </div>
               ) : null}
               {activeItem ? (
-                  <Card>
-                      <CardContent className="p-2 flex items-center justify-between">
-                           <div className="flex items-center gap-2">
-                              <GripVertical className="h-5 w-5 text-muted-foreground" />
-                              <span className="font-medium text-sm">{activeItem.name}</span>
-                          </div>
-                      </CardContent>
-                  </Card>
+                <Card>
+                  <CardContent className="p-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <GripVertical className="h-5 w-5 text-muted-foreground" />
+                      <span className="font-medium text-sm">
+                        {activeItem.name}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
               ) : null}
             </DragOverlay>
           </DndContext>
         ) : (
-          <ListView 
+          <ListView
             board={board}
             onSelect={setSelectedCategory}
             onDeleteItem={handleDeleteItem}
@@ -956,14 +974,12 @@ export default function CategoriesPage() {
         category={selectedCategory}
         board={board}
       />
-        <AddCategoryDialog
-          open={isAddCategoryDialogOpen}
-          onOpenChange={setIsAddCategoryDialogOpen}
-          onAddCategory={handleAddCategoryFromDialog}
-          board={board}
-        />
+      <AddCategoryDialog
+        open={isAddCategoryDialogOpen}
+        onOpenChange={setIsAddCategoryDialogOpen}
+        onAddCategory={handleAddCategoryFromDialog}
+        board={board}
+      />
     </>
   );
 }
-
-    
