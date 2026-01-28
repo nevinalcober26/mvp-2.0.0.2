@@ -22,6 +22,7 @@ import {
   CreditCard,
   Info,
   Printer,
+  Check,
 } from 'lucide-react';
 import type { Order } from './types';
 import { getStatusBadgeVariant } from './utils';
@@ -166,27 +167,46 @@ export function OrderDetailsSheet({
                       Payment has been split by {order.payments.length} guests.
                     </p>
                   )}
-                <div className="space-y-4">
-                  {order.payments.length > 0 ? (
-                    order.payments.map((payment, index) => (
-                      <div key={index} className="flex items-center">
-                        <div className="flex-grow">
-                          <p className="font-medium">
-                            Paid ${payment.amount} via {payment.method}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {payment.guestName} - {payment.date}
-                          </p>
-                        </div>
-                        <Badge variant="default">Success</Badge>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      No payments have been made for this order yet.
-                    </p>
-                  )}
-                </div>
+                
+                {order.payments.length > 0 ? (
+                  <div className="flow-root">
+                    <ul className="-mb-8">
+                      {order.payments.map((payment, index) => (
+                        <li key={index}>
+                          <div className="relative pb-8">
+                            {index !== order.payments.length - 1 ? (
+                              <span className="absolute left-2.5 top-4 -ml-px h-full w-0.5 bg-border" aria-hidden="true" />
+                            ) : null}
+                            <div className="relative flex items-start space-x-3">
+                              <div>
+                                <span className="h-5 w-5 rounded-full bg-primary flex items-center justify-center ring-4 ring-background">
+                                  <Check className="h-3 w-3 text-primary-foreground" />
+                                </span>
+                              </div>
+                              <div className="min-w-0 flex-1 flex justify-between items-center">
+                                <div>
+                                  <p className="font-medium text-sm">
+                                    Paid ${payment.amount} via {payment.method}
+                                  </p>
+                                  <p className="mt-0.5 text-sm text-muted-foreground">
+                                    {payment.guestName} - {payment.date}
+                                  </p>
+                                </div>
+                                <Badge variant="outline" className="bg-green-100 text-green-700 border-transparent">
+                                  Success
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No payments have been made for this order yet.
+                  </p>
+                )}
               </CardContent>
             </Card>
           </div>
