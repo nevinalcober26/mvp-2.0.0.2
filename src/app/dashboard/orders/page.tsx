@@ -91,7 +91,7 @@ type Order = {
   items: OrderItem[];
   customerName: string;
   customerEmail: string;
-  customerAvatar: string;
+-  customerAvatar: string;
   orderDate: string;
   orderTimestamp: number;
   payments: Payment[];
@@ -167,7 +167,7 @@ const generateMockOrders = (count: number): Order[] => {
     if (paymentState === 'Fully Paid') {
       paidAmount = totalAmount;
     } else if (paymentState === 'Partial') {
-      paidAmount = totalAmount / 2;
+      paidAmount = totalAmount * (Math.random() * 0.5 + 0.2); // Pay 20% to 70%
     }
 
     if (orderStatus === 'Refunded') {
@@ -181,9 +181,9 @@ const generateMockOrders = (count: number): Order[] => {
     let customerEmail = '—';
     let customerAvatar = '';
 
-    // About 25% of orders will have customer details
-    if (i % 4 !== 0) {
-      const assignedName = names[Math.floor(i / 4) % names.length];
+    // Majority of orders will be from Guests
+    if (i % 5 === 0) {
+      const assignedName = names[Math.floor(i / 5) % names.length];
       customerName = assignedName;
       customerEmail = `${assignedName
         .toLowerCase()
@@ -475,24 +475,16 @@ export default function OrdersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>
-                    <SortableHeader tKey="orderId" label="Order" />
-                  </TableHead>
-                  <TableHead>
-                    <SortableHeader tKey="table" label="Table" />
-                  </TableHead>
-                  <TableHead>
-                    <SortableHeader tKey="orderTimestamp" label="Date" />
-                  </TableHead>
-                  <TableHead>Branch</TableHead>
-                  <TableHead>Order Status</TableHead>
-                  <TableHead>Payment State</TableHead>
-                  <TableHead className="text-right">
-                    <SortableHeader tKey="totalAmount" label="Total" />
-                  </TableHead>
-                  <TableHead>
-                    <span className="sr-only">Actions</span>
-                  </TableHead>
+                  <TableHead><SortableHeader tKey="orderId" label="Order ID" /></TableHead>
+                  <TableHead><SortableHeader tKey="branch" label="Branch" /></TableHead>
+                  <TableHead><SortableHeader tKey="table" label="Table" /></TableHead>
+                  <TableHead><SortableHeader tKey="orderType" label="Order Type" /></TableHead>
+                  <TableHead><SortableHeader tKey="orderStatus" label="Order Status" /></TableHead>
+                  <TableHead><SortableHeader tKey="paymentState" label="Payment State" /></TableHead>
+                  <TableHead className="text-right"><SortableHeader tKey="totalAmount" label="Total" /></TableHead>
+                  <TableHead className="text-right"><SortableHeader tKey="paidAmount" label="Paid" /></TableHead>
+                  <TableHead className="text-right">Pending</TableHead>
+                  <TableHead><span className="sr-only">Actions</span></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -502,12 +494,10 @@ export default function OrdersPage() {
                     onClick={() => handleViewDetails(order)}
                     className="cursor-pointer"
                   >
-                    <TableCell className="font-medium">
-                      {order.orderId}
-                    </TableCell>
-                    <TableCell>{order.table}</TableCell>
-                    <TableCell>{order.orderDate}</TableCell>
+                    <TableCell className="font-medium">{order.orderId}</TableCell>
                     <TableCell>{order.branch}</TableCell>
+                    <TableCell>{order.table}</TableCell>
+                    <TableCell>{order.orderType}</TableCell>
                     <TableCell>
                       <Badge variant={getStatusBadgeVariant(order.orderStatus)}>
                         {order.orderStatus}
@@ -518,9 +508,9 @@ export default function OrdersPage() {
                         {order.paymentState}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
-                      ${order.totalAmount.toFixed(2)}
-                    </TableCell>
+                    <TableCell className="text-right font-mono">${order.totalAmount.toFixed(2)}</TableCell>
+                    <TableCell className="text-right font-mono text-green-600">${order.paidAmount.toFixed(2)}</TableCell>
+                    <TableCell className="text-right font-mono text-red-600">${(order.totalAmount - order.paidAmount).toFixed(2)}</TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
