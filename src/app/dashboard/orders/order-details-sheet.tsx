@@ -163,26 +163,26 @@ export function OrderDetailsSheet({
                 </div>
 
                 <Separator className="my-4" />
-                <div className="grid grid-cols-2 gap-4">
-                  <Button variant="outline">
-                    <Users className="mr-2 h-4 w-4" />
-                    Split by Guest
-                  </Button>
-                  <Button variant="outline">
-                    <Package className="mr-2 h-4 w-4" />
-                    Split by Item
-                  </Button>
-                </div>
-                <Separator className="my-4" />
                 
                 <h4 className="font-semibold mb-3">Payment History</h4>
-                {order.paymentState === 'Partial' &&
-                  order.payments.length > 1 && (
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Payment has been split by {order.payments.length} guests.
-                    </p>
-                  )}
                 
+                {order.splitType ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3 p-3 bg-secondary rounded-md border">
+                    {order.splitType === 'byGuest' ? (
+                      <Users className="h-5 w-5" />
+                    ) : (
+                      <Package className="h-5 w-5" />
+                    )}
+                    <span>
+                      Payment split <strong>by {order.splitType === 'byGuest' ? 'Guest' : 'Item'}</strong>.
+                    </span>
+                  </div>
+                ) : order.paymentState === 'Partial' ? (
+                     <p className="text-sm text-muted-foreground mb-3">
+                      A partial payment was made.
+                    </p>
+                ) : null }
+
                 {order.payments.length > 0 ? (
                   <div className="flow-root">
                     <ul className="-mb-8">
