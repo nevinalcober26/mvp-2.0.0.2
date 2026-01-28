@@ -213,7 +213,7 @@ export function OrderDetailsSheet({
                                     <Check className="h-3 w-3 text-primary-foreground" />
                                   </span>
                                 </div>
-                                <div className="min-w-0 flex-1 flex justify-between items-center">
+                                <div className="min-w-0 flex-1 flex justify-between items-start">
                                   <div>
                                     <p className="font-medium text-sm">
                                       Paid ${payment.amount} via {payment.method === 'Credit Card' ? 'Credit Card (Network International)' : payment.method}
@@ -241,7 +241,7 @@ export function OrderDetailsSheet({
                                     <Hourglass className="h-3 w-3 text-destructive-foreground" />
                                   </span>
                                 </div>
-                                <div className="min-w-0 flex-1 flex justify-between items-center">
+                                <div className="min-w-0 flex-1 flex justify-between items-start">
                                   <div>
                                     <p className="font-medium text-sm text-red-600">
                                       Pending Amount
