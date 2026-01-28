@@ -42,8 +42,8 @@ export const EMenuIcon = () => (
   <svg
     version="1.0"
     viewBox="0 0 1896 592"
-    width="122"
-    height="38"
+    width="250"
+    height="78"
     xmlns="http://www.w3.org/2000/svg"
   >
     <path fill="teal" d="M474 167v19h42v-38h-42zm69 0v19h310v-38H543zm-69 89.5V275h42v-37h-42zm69 0V275h152v-37H543zm-69 90V365h42v-37h-42zm69 0V365h76v-37h-76z"/>
