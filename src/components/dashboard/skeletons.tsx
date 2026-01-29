@@ -378,27 +378,24 @@ export function OrdersPageSkeleton() {
   );
 }
 
-export function CategoriesBoardViewSkeleton() {
+export function CategoriesGalleryViewSkeleton() {
   return (
-    <div className="flex gap-6 overflow-x-auto pb-4 items-start">
-      {[...Array(3)].map((_, i) => (
-        <Card key={i} className="flex-shrink-0 w-80">
-          <CardHeader className="p-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+      {[...Array(9)].map((_, i) => (
+        <Card key={i}>
+          <CardHeader>
             <Skeleton className="h-6 w-3/4" />
           </CardHeader>
-          <CardContent className="p-3 space-y-2">
-            <Skeleton className="h-16 w-full" />
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-16 w-full" />
+          <CardContent>
+            <Skeleton className="aspect-video w-full rounded-md mb-4" />
+            <Skeleton className="h-6 w-2/3" />
           </CardContent>
-          <CardFooter className="p-3 border-t">
-            <Skeleton className="h-9 w-full" />
+          <CardFooter>
+            <Skeleton className="h-4 w-1/3" />
           </CardFooter>
         </Card>
       ))}
-      <div className="flex-shrink-0 w-80">
-        <Skeleton className="w-full h-[300px]" />
-      </div>
+      <Skeleton className="w-full h-full aspect-[4/5] sm:aspect-auto" />
     </div>
   );
 }
@@ -458,7 +455,7 @@ export function CategoriesListTableSkeleton() {
   );
 }
 
-export function CategoriesPageSkeleton({ view }: { view: 'board' | 'list' }) {
+export function CategoriesPageSkeleton({ view }: { view: 'gallery' | 'list' }) {
   return (
     <>
       <DashboardHeader />
@@ -473,8 +470,8 @@ export function CategoriesPageSkeleton({ view }: { view: 'board' | 'list' }) {
           </div>
         </div>
 
-        {view === 'board' ? (
-          <CategoriesBoardViewSkeleton />
+        {view === 'gallery' ? (
+          <CategoriesGalleryViewSkeleton />
         ) : (
           <CategoriesListTableSkeleton />
         )}
