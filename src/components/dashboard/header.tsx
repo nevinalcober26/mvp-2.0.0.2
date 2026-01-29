@@ -1,5 +1,6 @@
 'use client';
 import Image from 'next/image';
+import React, { useState, useEffect } from 'react';
 import {
   Bell,
   Search,
@@ -23,10 +24,38 @@ import {
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { SidebarTrigger } from '../ui/sidebar';
 import { PosSyncStatus } from './pos-sync-status';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
 
 export function DashboardHeader() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return (
+      <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-card px-4 sm:px-6 lg:px-8">
+        <div className="md:hidden">
+          <Skeleton className="h-7 w-7" />
+        </div>
+
+        <div className="flex-1 flex items-center justify-start gap-4">
+          <Skeleton className="h-9 w-full max-w-md rounded-lg" />
+          <Skeleton className="h-9 w-36 rounded-lg" />
+        </div>
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-9 w-28 rounded-md" />
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <Skeleton className="h-10 w-10 rounded-full" />
+        </div>
+      </header>
+    );
+  }
+
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-card px-4 sm:px-6 lg:px-8">
       <div className="md:hidden">
