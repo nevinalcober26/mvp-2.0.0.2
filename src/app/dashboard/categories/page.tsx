@@ -12,12 +12,12 @@ import {
   DragEndEvent,
   UniqueIdentifier,
   KeyboardSensor,
-  sortableKeyboardCoordinates,
 } from '@dnd-kit/core';
 import {
   SortableContext,
   arrayMove,
   verticalListSortingStrategy,
+  sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import { produce } from 'immer';
 import Image from 'next/image';
