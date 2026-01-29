@@ -8,6 +8,7 @@ import type { Item } from '@/app/dashboard/categories/page';
 import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type ContainerProps = {
   id: UniqueIdentifier;
@@ -15,6 +16,8 @@ type ContainerProps = {
   items: Item[];
   onItemClick: (item: Item) => void;
   onAddItem: (containerId: UniqueIdentifier) => void;
+  activeId: UniqueIdentifier | null;
+  overId: UniqueIdentifier | null;
 };
 
 const getDescendantIds = (items: Item[]): UniqueIdentifier[] => {
@@ -28,8 +31,8 @@ const getDescendantIds = (items: Item[]): UniqueIdentifier[] => {
     return ids;
 }
 
-export function Container({ id, label, items, onItemClick, onAddItem }: ContainerProps) {
-  const { setNodeRef, transform, transition } = useSortable({ id });
+export function Container({ id, label, items, onItemClick, onAddItem, activeId, overId }: ContainerProps) {
+  const { setNodeRef, transform, transition, isOver } = useSortable({ id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -38,11 +41,13 @@ export function Container({ id, label, items, onItemClick, onAddItem }: Containe
   
   const allItemIds = useMemo(() => getDescendantIds(items), [items]);
 
+  const isOverContainer = isOver || (overId && items.some(item => item.id === overId));
+
   return (
     <Card
       ref={setNodeRef}
       style={style}
-      className="w-80 flex-shrink-0 flex flex-col"
+      className={cn("w-80 flex-shrink-0 flex flex-col transition-shadow", isOverContainer && "shadow-lg ring-2 ring-primary")}
     >
       <CardHeader>
         <CardTitle>{label}</CardTitle>
@@ -50,7 +55,13 @@ export function Container({ id, label, items, onItemClick, onAddItem }: Containe
       <CardContent className="flex flex-col gap-2 flex-grow">
         <SortableContext items={allItemIds} strategy={verticalListSortingStrategy}>
           {items.map((item) => (
-            <SortableItem key={item.id} item={item} onItemClick={onItemClick}/>
+            <SortableItem 
+              key={item.id} 
+              item={item} 
+              onItemClick={onItemClick}
+              activeId={activeId}
+              overId={overId}
+            />
           ))}
         </SortableContext>
       </CardContent>

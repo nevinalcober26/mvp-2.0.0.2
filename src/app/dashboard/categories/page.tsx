@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   DndContext,
   DragOverlay,
-  closestCorners,
+  closestCenter,
   PointerSensor,
   useSensor,
   useSensors,
@@ -15,7 +15,6 @@ import {
 } from '@dnd-kit/core';
 import {
   SortableContext,
-  arrayMove,
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import { produce } from 'immer';
@@ -47,6 +46,7 @@ import {
 } from '@/components/ui/select';
 import { Container } from '@/components/dashboard/dnd/Container';
 import { Item as ItemComponent } from '@/components/dashboard/dnd/Item';
+import { arrayMove } from '@dnd-kit/sortable';
 
 export type Item = {
   id: UniqueIdentifier;
@@ -91,6 +91,48 @@ const initialBoardData: Column[] = [
     items: [],
   },
 ];
+
+// Helper functions for tree operations
+function findContainer(board: Column[], id: UniqueIdentifier) {
+  if (board.some(c => c.id === id)) {
+    return id;
+  }
+  const findRecursive = (items: Item[]): UniqueIdentifier | undefined => {
+    for (const item of items) {
+      if (item.id === id) {
+        return findContainer(board, item.id);
+      }
+      if (item.children.length) {
+        const childContainer = findRecursive(item.children);
+        if (childContainer) {
+          return childContainer;
+        }
+      }
+    }
+  };
+  for (const column of board) {
+    const container = findRecursive(column.items);
+    if(container) return container
+  }
+}
+
+function findItem(columns: Column[], itemId: UniqueIdentifier): Item | null {
+  for (const column of columns) {
+      const search = (items: Item[]): Item | null => {
+          for (const item of items) {
+              if (item.id === itemId) return item;
+              if (item.children) {
+                  const found = search(item.children);
+                  if (found) return found;
+              }
+          }
+          return null;
+      };
+      const found = search(column.items);
+      if (found) return found;
+  }
+  return null;
+}
 
 const AddCategoryDialog = ({
   open,
@@ -177,6 +219,7 @@ export default function CategoriesPage() {
   const [board, setBoard] = useState<Column[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+  const [overId, setOverId] = useState<UniqueIdentifier | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Column | Item | null>(
     null
   );
@@ -201,43 +244,78 @@ export default function CategoriesPage() {
     })
   );
 
-  const findItem = (id: UniqueIdentifier, columns: Column[]): Item | null => {
-    for (const column of columns) {
-      const search = (items: Item[]): Item | null => {
-        for (const item of items) {
-          if (item.id === id) return item;
-          if (item.children) {
-            const found = search(item.children);
-            if (found) return found;
-          }
-        }
-        return null;
-      };
-      const found = search(column.items);
-      if (found) return found;
-    }
-    return null;
-  };
-
-  const activeItem = useMemo(() => activeId ? findItem(activeId, board) : null, [activeId, board]);
+  const activeItem = useMemo(() => activeId ? findItem(board, activeId) : null, [activeId, board]);
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id);
+    setOverId(null);
   };
   
+  const handleDragOver = (event: DragOverEvent) => {
+    setOverId(event.over?.id ?? null);
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
     setActiveId(null);
-    if (!over || active.id === over.id) return;
+    setOverId(null);
   
-    setBoard(board => produce(board, draft => {
-        // Helper to find the list and index of an item by its ID
-        const findLocation = (id: UniqueIdentifier): { list: Item[], index: number } | null => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) {
+      return;
+    }
+  
+    setBoard((board) => produce(board, (draft) => {
+        let activeItem: Item | null = null;
+  
+        // Helper to find and remove an item from anywhere in the tree
+        const findAndRemove = (id: UniqueIdentifier, items: Item[]): Item | null => {
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].id === id) {
+                    return items.splice(i, 1)[0];
+                }
+                if (items[i].children) {
+                    const found = findAndRemove(id, items[i].children);
+                    if (found) return found;
+                }
+            }
+            return null;
+        };
+  
+        for (const column of draft) {
+            activeItem = findAndRemove(active.id, column.items);
+            if (activeItem) break;
+        }
+  
+        if (!activeItem) return;
+  
+        // Helper to insert an item at a specific location
+        const findAndInsert = (
+            id: UniqueIdentifier,
+            items: Item[],
+            itemToInsert: Item
+        ): boolean => {
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].id === id) {
+                    // Dropping ON an item to nest it
+                    if (!items[i].children) items[i].children = [];
+                    items[i].children.unshift(itemToInsert); // Add to the beginning of children
+                    return true;
+                }
+                if (items[i].children) {
+                    if (findAndInsert(id, items[i].children, itemToInsert)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        };
+        
+        // Find where the 'over' item is to determine drop position
+        const findOverLocation = (id: UniqueIdentifier): { list: Item[], index: number } | null => {
             for (const column of draft) {
                 const search = (items: Item[]): { list: Item[], index: number } | null => {
                     const index = items.findIndex(item => item.id === id);
                     if (index !== -1) return { list: items, index };
-                    
                     for (const item of items) {
                         if (item.children) {
                             const found = search(item.children);
@@ -252,30 +330,40 @@ export default function CategoriesPage() {
             return null;
         };
 
-        const activeLocation = findLocation(active.id);
-        if (!activeLocation) return;
+
+        // Is the drop target a container column?
+        const overColumn = draft.find((col) => col.id === over.id);
+        if (overColumn) {
+            overColumn.items.push(activeItem);
+            return;
+        }
         
-        // Remove item from its original position
-        const [movedItem] = activeLocation.list.splice(activeLocation.index, 1);
-        
-        // Find drop target
-        const overLocation = findLocation(over.id);
+        // Is the drop target another item?
+        const overLocation = findOverLocation(over.id);
         if (overLocation) {
-            // Drop is over an existing item, insert it into that list.
-            overLocation.list.splice(overLocation.index, 0, movedItem);
+            // Dropping between items (reordering)
+            overLocation.list.splice(overLocation.index, 0, activeItem);
         } else {
-            // Drop is over a column container
-            const overColumn = draft.find(c => c.id === over.id);
-            if (overColumn) {
-                overColumn.items.push(movedItem);
-            } else {
-                // Invalid drop, put item back
-                activeLocation.list.splice(activeLocation.index, 0, movedItem);
+            // Attempt to drop ON an item (nesting)
+            let dropped = false;
+            for(const col of draft) {
+                if(findAndInsert(over.id, col.items, activeItem)) {
+                    dropped = true;
+                    break;
+                }
             }
+            // If nesting fails, it might be a drop on the empty part of a column
+            // This case is already handled by `overColumn` logic. If we are here, something is off.
+            // As a fallback, we could add it back, but this might not be desired.
         }
     }));
   };
   
+  const handleDragCancel = () => {
+    setActiveId(null);
+    setOverId(null);
+  }
+
   const addItemToParent = (items: Item[], parentId: UniqueIdentifier, newItem: Item): boolean => {
     for(const item of items) {
         if(item.id === parentId) {
@@ -360,9 +448,11 @@ export default function CategoriesPage() {
         <div className="flex-grow p-4 sm:p-6 lg:p-8 overflow-x-auto" style={{width: "100vw"}}>
           <DndContext
             sensors={sensors}
-            collisionDetection={closestCorners}
+            collisionDetection={closestCenter}
             onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
+            onDragCancel={handleDragCancel}
           >
             <div className="flex items-start gap-6 pb-4">
               {board.map((column) => (
@@ -373,6 +463,8 @@ export default function CategoriesPage() {
                   items={column.items}
                   onItemClick={setSelectedCategory}
                   onAddItem={() => handleOpenAddDialog(column.id)}
+                  activeId={activeId}
+                  overId={overId}
                 />
               ))}
               <div className="w-80 flex-shrink-0">
