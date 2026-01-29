@@ -363,10 +363,9 @@ export function OrdersPageSkeleton() {
   return (
     <>
       <DashboardHeader />
-      <main className="p-4 sm:p-6 lg:p-8">
-        <div className="mb-6">
-          <StatCardsSkeleton />
-        </div>
+      <main className="p-4 sm:p-6 lg:p-8 space-y-6">
+        <Skeleton className="h-20 w-full" />
+        <StatCardsSkeleton />
         <OrdersTableSkeleton />
       </main>
     </>
@@ -482,31 +481,34 @@ export function TablesPageSkeleton() {
   return (
     <>
       <DashboardHeader />
-      <main className="p-4 sm:p-6 lg:p-8">
-        <div className="mb-6">
-          <Skeleton className="h-8 w-48 mb-1" />
-          <Skeleton className="h-4 w-96" />
-        </div>
-
-        <Card className="p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Skeleton className="h-5 w-12" />
-            <Skeleton className="h-10 w-44" />
+      <main className="p-4 sm:p-6 lg:p-8 space-y-6">
+        <Skeleton className="h-20 w-full" />
+        <div>
+          <div className="mb-6">
+            <Skeleton className="h-8 w-48 mb-1" />
+            <Skeleton className="h-4 w-96" />
           </div>
-          <Skeleton className="h-10 w-96" />
-        </Card>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {[...Array(10)].map((_, i) => (
-            <Card key={i}>
-              <CardContent className="p-4 flex flex-col items-center justify-center aspect-square text-center space-y-2">
-                <Skeleton className="h-12 w-12 rounded-full" />
-                <Skeleton className="h-8 w-12" />
-                <Skeleton className="h-4 w-16" />
-                <Skeleton className="h-3 w-20" />
-              </CardContent>
-            </Card>
-          ))}
+          <Card className="p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-5 w-12" />
+              <Skeleton className="h-10 w-44" />
+            </div>
+            <Skeleton className="h-10 w-96" />
+          </Card>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {[...Array(10)].map((_, i) => (
+              <Card key={i}>
+                <CardContent className="p-4 flex flex-col items-center justify-center aspect-square text-center space-y-2">
+                  <Skeleton className="h-12 w-12 rounded-full" />
+                  <Skeleton className="h-8 w-12" />
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-3 w-20" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </main>
     </>

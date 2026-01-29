@@ -17,6 +17,7 @@ import { OrderDetailsSheet } from '@/app/dashboard/orders/order-details-sheet';
 import { generateMockOrders } from '@/app/dashboard/orders/mock';
 import type { Order } from '@/app/dashboard/orders/types';
 import { TablesPageSkeleton } from '@/components/dashboard/skeletons';
+import { AiSummary } from '@/components/dashboard/ai-summary';
 
 type Status =
   | 'Vacant'
@@ -213,56 +214,59 @@ export default function TablesPage() {
   return (
     <>
       <DashboardHeader />
-      <main className="p-4 sm:p-6 lg:p-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">Live Table View</h1>
-          <p className="text-muted-foreground">
-            Monitor the real-time status of all tables across your locations.
-          </p>
-        </div>
-
-        <Card className="p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-muted-foreground">
-              Floor:
-            </span>
-            <Select value={activeFloor} onValueChange={setActiveFloor}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select a floor" />
-              </SelectTrigger>
-              <SelectContent>
-                {floors.map((floor) => (
-                  <SelectItem key={floor} value={floor}>
-                    {floor}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      <main className="p-4 sm:p-6 lg:p-8 space-y-6">
+        <AiSummary data={filteredTables} context="live table status" />
+        <div>
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-800">Live Table View</h1>
+            <p className="text-muted-foreground">
+              Monitor the real-time status of all tables across your locations.
+            </p>
           </div>
-          <div className="flex items-center flex-wrap gap-1 bg-muted p-1 rounded-lg">
-            {filterOptions.map((option) => (
-              <Button
-                key={option.name}
-                size="sm"
-                onClick={() => setActiveFilter(option.name)}
-                variant={activeFilter === option.name ? 'secondary' : 'ghost'}
-                className="gap-2 px-3"
-              >
-                <div className={cn('h-3 w-3 rounded-full', option.color)} />
-                <span>{option.name}</span>
-              </Button>
+
+          <Card className="p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-medium text-muted-foreground">
+                Floor:
+              </span>
+              <Select value={activeFloor} onValueChange={setActiveFloor}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select a floor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {floors.map((floor) => (
+                    <SelectItem key={floor} value={floor}>
+                      {floor}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center flex-wrap gap-1 bg-muted p-1 rounded-lg">
+              {filterOptions.map((option) => (
+                <Button
+                  key={option.name}
+                  size="sm"
+                  onClick={() => setActiveFilter(option.name)}
+                  variant={activeFilter === option.name ? 'secondary' : 'ghost'}
+                  className="gap-2 px-3"
+                >
+                  <div className={cn('h-3 w-3 rounded-full', option.color)} />
+                  <span>{option.name}</span>
+                </Button>
+              ))}
+            </div>
+          </Card>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {filteredTables.map((table) => (
+              <TableCard
+                key={table.id}
+                table={table}
+                onClick={() => handleTableClick(table)}
+              />
             ))}
           </div>
-        </Card>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {filteredTables.map((table) => (
-            <TableCard
-              key={table.id}
-              table={table}
-              onClick={() => handleTableClick(table)}
-            />
-          ))}
         </div>
       </main>
       <OrderDetailsSheet

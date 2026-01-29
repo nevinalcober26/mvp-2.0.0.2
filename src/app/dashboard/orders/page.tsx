@@ -62,6 +62,7 @@ import { generateMockOrders } from './mock';
 import { getStatusBadgeVariant } from './utils';
 import { OrderDetailsSheet } from './order-details-sheet';
 import { OrdersPageSkeleton } from '@/components/dashboard/skeletons';
+import { AiSummary } from '@/components/dashboard/ai-summary';
 
 export default function OrdersPage() {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
@@ -258,10 +259,9 @@ export default function OrdersPage() {
   return (
     <>
       <DashboardHeader />
-      <main className="p-4 sm:p-6 lg:p-8">
-        <div className="mb-6">
-          <StatCards cards={kpiCards} />
-        </div>
+      <main className="p-4 sm:p-6 lg:p-8 space-y-6">
+        <AiSummary data={filteredAndSortedOrders} context="daily restaurant orders" />
+        <StatCards cards={kpiCards} />
         <Card>
           <CardHeader>
             <CardTitle>Orders</CardTitle>
