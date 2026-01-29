@@ -59,10 +59,14 @@ import {
   Trash,
   Video,
   HelpCircle,
+  Wand,
+  RefreshCw,
 } from 'lucide-react';
 import type { Product, Variation } from './types';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+import { generateProductDescription } from '@/ai/flows/generate-product-description-flow';
 
 const productSchema = z.object({
   name: z.string().min(1, 'Product name is required'),
@@ -120,6 +124,10 @@ export function ProductSheet({
 }) {
   const [activeTab, setActiveTab] = useState('basic-info');
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const { toast } = useToast();
+  const [isGenerating, setIsGenerating] = useState<'short' | 'long' | null>(
+    null
+  );
 
   const defaultValues = useMemo(() => {
     return {
@@ -161,6 +169,8 @@ export function ProductSheet({
   });
 
   const { isDirty, isValid, errors } = form.formState;
+  const productName = form.watch('name');
+  const productCategory = form.watch('category');
 
   useEffect(() => {
     // When the `product` prop changes, the `defaultValues` are re-calculated.
@@ -183,6 +193,51 @@ export function ProductSheet({
     setShowUnsavedDialog(false);
     onOpenChange(false);
     form.reset(defaultValues);
+  };
+
+  const handleGenerateDescription = async (type: 'short' | 'long') => {
+    setIsGenerating(type);
+
+    if (!productName || !productCategory) {
+      toast({
+        variant: 'destructive',
+        title: 'Product Name and Category Required',
+        description:
+          'Please enter a product name and select a category first.',
+      });
+      setIsGenerating(null);
+      return;
+    }
+
+    try {
+      const result = await generateProductDescription({
+        productName,
+        productCategory,
+        descriptionType: type,
+      });
+
+      const fieldToUpdate =
+        type === 'short' ? 'smallDescription' : 'description';
+      form.setValue(fieldToUpdate, result.description, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+
+      toast({
+        title: 'AI Description Generated',
+        description: `Your ${type} description has been filled in.`,
+      });
+    } catch (error) {
+      console.error('AI Description Generation Error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'AI Generation Failed',
+        description:
+          'Could not generate a description at this time. Please try again later.',
+      });
+    } finally {
+      setIsGenerating(null);
+    }
   };
 
   const onSubmit = (data: ProductFormValues) => {
@@ -223,7 +278,10 @@ export function ProductSheet({
 
   // Tab validation status
   const isBasicInfoComplete =
-    !errors.name && !errors.category && form.getValues('name') && form.getValues('category');
+    !errors.name &&
+    !errors.category &&
+    form.getValues('name') &&
+    form.getValues('category');
   const isPricingComplete = !errors.price && form.getValues('price') > 0;
   const areVariationsComplete = !errors.variations;
 
@@ -312,21 +370,63 @@ export function ProductSheet({
                                   Small Description
                                   <Tooltip delayDuration={100}>
                                     <TooltipTrigger asChild>
-                                      <button type="button" onClick={(e) => e.preventDefault()}>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => e.preventDefault()}
+                                      >
                                         <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
                                       </button>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                      <p>A short, catchy description for product cards and list views.</p>
+                                      <p>
+                                        A short, catchy description for product
+                                        cards and list views.
+                                      </p>
                                     </TooltipContent>
                                   </Tooltip>
                                 </FormLabel>
                                 <FormControl>
-                                  <Textarea
-                                    placeholder="A short, catchy line for your product."
-                                    rows={2}
-                                    {...field}
-                                  />
+                                  <div className="relative">
+                                    <Textarea
+                                      placeholder="A short, catchy line for your product."
+                                      rows={2}
+                                      {...field}
+                                    />
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          type="button"
+                                          size="icon"
+                                          variant="ghost"
+                                          className="absolute bottom-2 right-2 h-7 w-7"
+                                          onClick={() =>
+                                            handleGenerateDescription('short')
+                                          }
+                                          disabled={
+                                            isGenerating !== null ||
+                                            !productName ||
+                                            !productCategory
+                                          }
+                                        >
+                                          {isGenerating === 'short' ? (
+                                            <RefreshCw className="h-4 w-4 animate-spin" />
+                                          ) : (
+                                            <Wand className="h-4 w-4" />
+                                          )}
+                                          <span className="sr-only">
+                                            Generate with AI
+                                          </span>
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>
+                                          {!productName || !productCategory
+                                            ? 'Enter name and category first'
+                                            : 'Generate with AI'}
+                                        </p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </div>
                                 </FormControl>
                               </FormItem>
                             )}
@@ -338,11 +438,47 @@ export function ProductSheet({
                               <FormItem>
                                 <FormLabel>Description</FormLabel>
                                 <FormControl>
-                                  <Textarea
-                                    placeholder="Detailed description including ingredients, allergens, etc."
-                                    rows={5}
-                                    {...field}
-                                  />
+                                  <div className="relative">
+                                    <Textarea
+                                      placeholder="Detailed description including ingredients, allergens, etc."
+                                      rows={5}
+                                      {...field}
+                                    />
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          type="button"
+                                          size="icon"
+                                          variant="ghost"
+                                          className="absolute bottom-2 right-2 h-7 w-7"
+                                          onClick={() =>
+                                            handleGenerateDescription('long')
+                                          }
+                                          disabled={
+                                            isGenerating !== null ||
+                                            !productName ||
+                                            !productCategory
+                                          }
+                                        >
+                                          {isGenerating === 'long' ? (
+                                            <RefreshCw className="h-4 w-4 animate-spin" />
+                                          ) : (
+                                            <Wand className="h-4 w-4" />
+                                          )}
+                                          <span className="sr-only">
+                                            Generate with AI
+                                          </span>
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>
+                                          {!productName || !productCategory
+                                            ? 'Enter name and category first'
+                                            : 'Generate with AI'}
+                                        </p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </div>
                                 </FormControl>
                               </FormItem>
                             )}
@@ -408,12 +544,18 @@ export function ProductSheet({
                               Discount %
                               <Tooltip delayDuration={100}>
                                 <TooltipTrigger asChild>
-                                  <button type="button" onClick={(e) => e.preventDefault()}>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => e.preventDefault()}
+                                  >
                                     <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
                                   </button>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                  <p>Calculated automatically from the Price and Discounted Price.</p>
+                                  <p>
+                                    Calculated automatically from the Price and
+                                    Discounted Price.
+                                  </p>
                                 </TooltipContent>
                               </Tooltip>
                             </FormLabel>
@@ -431,14 +573,20 @@ export function ProductSheet({
                                 <div className="space-y-0.5">
                                   <FormLabel className="flex items-center gap-1.5">
                                     Recommend
-                                     <Tooltip delayDuration={100}>
+                                    <Tooltip delayDuration={100}>
                                       <TooltipTrigger asChild>
-                                        <button type="button" onClick={(e) => e.preventDefault()}>
+                                        <button
+                                          type="button"
+                                          onClick={(e) => e.preventDefault()}
+                                        >
                                           <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
                                         </button>
                                       </TooltipTrigger>
                                       <TooltipContent>
-                                        <p>Feature this item as a "Recommended" product on your menu.</p>
+                                        <p>
+                                          Feature this item as a "Recommended"
+                                          product on your menu.
+                                        </p>
                                       </TooltipContent>
                                     </Tooltip>
                                   </FormLabel>
@@ -459,7 +607,9 @@ export function ProductSheet({
                             render={({ field }) => (
                               <FormItem className="flex items-center justify-between rounded-lg border p-4">
                                 <div className="space-y-0.5">
-                                  <FormLabel>Mark as Out of Stock</FormLabel>
+                                  <FormLabel>
+                                    Mark as Out of Stock
+                                  </FormLabel>
                                 </div>
                                 <FormControl>
                                   <Switch
@@ -543,31 +693,49 @@ export function ProductSheet({
                           <Label>Product Variations</Label>
                           <div className="p-4 border rounded-lg space-y-4">
                             <div className="grid grid-cols-[1fr,1fr,100px,auto,auto] gap-2 items-center text-sm font-medium text-muted-foreground px-1">
-                                <Label>Value*</Label>
-                                <Label className="flex items-center gap-1.5">
-                                    Matrix ID
-                                    <Tooltip delayDuration={100}>
-                                        <TooltipTrigger asChild>
-                                            <button type="button" onClick={(e) => e.preventDefault()}><HelpCircle className="h-4 w-4 cursor-help" /></button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>Optional identifier for your Point of Sale (POS) system integration.</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </Label>
-                                <Label className="flex items-center gap-1.5">
-                                    Price*
-                                     <Tooltip delayDuration={100}>
-                                        <TooltipTrigger asChild>
-                                            <button type="button" onClick={(e) => e.preventDefault()}><HelpCircle className="h-4 w-4 cursor-help" /></button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>This price will override the product's base price for this variation.</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </Label>
-                                <Label className="text-center">Visible</Label>
-                                <div><span className="sr-only">Actions</span></div>
+                              <Label>Value*</Label>
+                              <Label className="flex items-center gap-1.5">
+                                Matrix ID
+                                <Tooltip delayDuration={100}>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => e.preventDefault()}
+                                    >
+                                      <HelpCircle className="h-4 w-4 cursor-help" />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>
+                                      Optional identifier for your Point of Sale
+                                      (POS) system integration.
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </Label>
+                              <Label className="flex items-center gap-1.5">
+                                Price*
+                                <Tooltip delayDuration={100}>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => e.preventDefault()}
+                                    >
+                                      <HelpCircle className="h-4 w-4 cursor-help" />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>
+                                      This price will override the product's
+                                      base price for this variation.
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </Label>
+                              <Label className="text-center">Visible</Label>
+                              <div>
+                                <span className="sr-only">Actions</span>
+                              </div>
                             </div>
                             {variationFields.map((field, index) => (
                               <div
