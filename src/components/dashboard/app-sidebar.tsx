@@ -66,7 +66,6 @@ export const EMenuIcon = () => (
       d="M853.4 167c0 10.7.2 15.1.3 9.7.2-5.3.2-14.1 0-19.5-.1-5.3-.3-.9-.3 9.8m-369.1 70.7c5.9.2 15.5.2 21.5 0 5.9-.1 1-.3-10.8-.3s-16.7.2-10.7.3m96.5 0c21 .2 55.4.2 76.5 0 21-.1 3.8-.2-38.3-.2s-59.3.1-38.2.2m-96.5 128c5.9.2 15.5.2 21.5 0 5.9-.1 1-.3-10.8-.3s-16.7.2-10.7.3m77.5 0c10.5.2 27.9.2 38.5 0 10.5-.1 1.9-.2-19.3-.2s-29.8.1-19.2.2"
     />
     <path
-      fill="teal"
       fillOpacity=".3"
       d="M484.3 186.7c5.9.2 15.5.2 21.5 0 5.9-.1 1-.3-10.8-.3s-16.7.2-10.7.3m136 0c42.7.2 112.7.2 155.5 0 42.7-.1 7.7-.2-77.8-.2s-120.5.1-77.7.2"
     />
@@ -138,9 +137,10 @@ export function AppSidebar() {
                 asChild
                 isActive={
                   pathname.startsWith('/dashboard') &&
-                  !pathname.includes('categories') &&
-                  !pathname.includes('orders') &&
-                  !pathname.includes('tables')
+                  !pathname.startsWith('/dashboard/categories') &&
+                  !pathname.startsWith('/dashboard/orders') &&
+                  !pathname.startsWith('/dashboard/tables') &&
+                  !pathname.startsWith('/dashboard/products')
                 }
                 tooltip="Dashboard"
               >
@@ -163,9 +163,15 @@ export function AppSidebar() {
           <SidebarGroupLabel>Catalog</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton href="#" tooltip="Products">
-                <Box />
-                <span>Products</span>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith('/dashboard/products')}
+                tooltip="Products"
+              >
+                <NextLink href="/dashboard/products">
+                  <Box />
+                  <span>Products</span>
+                </NextLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
