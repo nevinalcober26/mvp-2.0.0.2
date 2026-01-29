@@ -472,21 +472,14 @@ export default function OrdersPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Orders</h1>
         </div>
-        <AiSummary data={filteredAndSortedOrders} context="daily restaurant orders" />
-        <StatCards cards={kpiCards} />
-        <Card>
-          <CardHeader className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <CardTitle>All Orders</CardTitle>
-                <CardDescription>
-                  View and manage all recent orders from this branch.
-                </CardDescription>
-              </div>
-               <div className="flex items-center gap-2">
+        <div className="flex items-start justify-between gap-4">
+            <div className="flex-grow">
+                <AiSummary data={filteredAndSortedOrders} context="daily restaurant orders" />
+            </div>
+            <div className="flex items-center gap-2">
                 <Button variant="outline" onClick={() => setIsExportDialogOpen(true)}>
-                  <Download className="mr-2 h-4 w-4" />
-                  Export
+                    <Download className="mr-2 h-4 w-4" />
+                    Export
                 </Button>
                 {permission !== 'granted' && (
                   <Button
@@ -501,7 +494,16 @@ export default function OrdersPage() {
                       : 'Enable Notifications'}
                   </Button>
                 )}
-              </div>
+            </div>
+        </div>
+        <StatCards cards={kpiCards} />
+        <Card>
+          <CardHeader className="space-y-4">
+            <div>
+              <CardTitle>All Orders</CardTitle>
+              <CardDescription>
+                View and manage all recent orders from this branch.
+              </CardDescription>
             </div>
             <div className="flex flex-wrap items-center justify-between gap-2">
                <Input
