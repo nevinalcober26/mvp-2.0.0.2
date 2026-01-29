@@ -3,6 +3,7 @@ export type OrderItem = {
   name: string;
   quantity: number;
   price: number;
+  category: string;
 };
 
 export type Payment = {
@@ -12,6 +13,12 @@ export type Payment = {
   transactionId: string;
   guestName: string;
 };
+
+export type Customer = {
+  name: string;
+  email: string;
+  phone: string;
+}
 
 export type Order = {
   orderId: string;
@@ -28,4 +35,6 @@ export type Order = {
   orderTimestamp: number;
   payments: Payment[];
   splitType?: 'equally' | 'byItem';
+  customer: Customer;
+  orderComments?: string;
 };

@@ -45,6 +45,7 @@ import {
   FileText,
   Sheet as SheetIcon, // Aliased to avoid conflict
   BellRing,
+  Settings,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -203,6 +204,21 @@ const ExportDialog = ({
   );
 };
 
+const allColumns = [
+    { id: 'customerName', label: 'Customer Name', defaultVisible: false },
+    { id: 'email', label: 'Email', defaultVisible: false },
+    { id: 'phoneNumber', label: 'Phone Number', defaultVisible: false },
+    { id: 'items', label: 'Items', defaultVisible: false },
+    { id: 'categories', label: 'Categories', defaultVisible: false },
+    { id: 'orderComments', label: 'Order Comments', defaultVisible: false },
+    { id: 'paymentMethod', label: 'Payment Method', defaultVisible: false },
+    { id: 'orderType', label: 'Order Type', defaultVisible: true },
+    { id: 'paymentState', label: 'Payment State', defaultVisible: true },
+    { id: 'total', label: 'Total', defaultVisible: true },
+] as const;
+
+type ColumnId = typeof allColumns[number]['id'];
+
 export default function OrdersPage() {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -215,6 +231,15 @@ export default function OrdersPage() {
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const { toast } = useToast();
   const [permission, setPermission] = useState('default');
+
+  const [visibleColumns, setVisibleColumns] = useState<Record<ColumnId, boolean>>(() => {
+    const initialState: Record<string, boolean> = {};
+    allColumns.forEach(col => {
+      initialState[col.id] = col.defaultVisible;
+    });
+    return initialState as Record<ColumnId, boolean>;
+  });
+
 
   const [filters, setFilters] = useState({
     search: '',
@@ -499,11 +524,37 @@ export default function OrdersPage() {
         <StatCards cards={kpiCards} />
         <Card>
           <CardHeader className="space-y-4">
-            <div>
-              <CardTitle>All Orders</CardTitle>
-              <CardDescription>
-                View and manage all recent orders from this branch.
-              </CardDescription>
+            <div className="flex items-start justify-between">
+              <div>
+                <CardTitle>All Orders</CardTitle>
+                <CardDescription>
+                  View and manage all recent orders from this branch.
+                </CardDescription>
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="ml-auto">
+                    <Settings className="h-4 w-4" />
+                    <span className="sr-only">Toggle columns</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[200px]">
+                  <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {allColumns.map(column => (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={visibleColumns[column.id]}
+                      onCheckedChange={(value) =>
+                        setVisibleColumns(prev => ({ ...prev, [column.id]: !!value }))
+                      }
+                    >
+                      {column.label}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             <div className="flex flex-wrap items-center justify-between gap-2">
                <Input
@@ -638,11 +689,18 @@ export default function OrdersPage() {
                     <TableHead><SortableHeader tKey="orderId" label="Order ID" /></TableHead>
                     <TableHead><SortableHeader tKey="branch" label="Branch" /></TableHead>
                     <TableHead><SortableHeader tKey="table" label="Table" /></TableHead>
-                    <TableHead><SortableHeader tKey="orderType" label="Order Type" /></TableHead>
-                    <TableHead><SortableHeader tKey="orderStatus" label="Order Status" /></TableHead>
-                    <TableHead><SortableHeader tKey="paymentState" label="Payment State" /></TableHead>
-                    <TableHead className="text-right"><SortableHeader tKey="totalAmount" label="Total" /></TableHead>
-                    <TableHead className="text-right"><SortableHeader tKey="paidAmount" label="Paid" /></TableHead>
+                    {visibleColumns.customerName && <TableHead>Customer Name</TableHead>}
+                    {visibleColumns.email && <TableHead>Email</TableHead>}
+                    {visibleColumns.phoneNumber && <TableHead>Phone Number</TableHead>}
+                    {visibleColumns.items && <TableHead>Items</TableHead>}
+                    {visibleColumns.categories && <TableHead>Categories</TableHead>}
+                    {visibleColumns.orderComments && <TableHead>Comments</TableHead>}
+                    {visibleColumns.orderType && <TableHead><SortableHeader tKey="orderType" label="Order Type" /></TableHead>}
+                    <TableHead>Order Status</TableHead>
+                    {visibleColumns.paymentState && <TableHead><SortableHeader tKey="paymentState" label="Payment State" /></TableHead>}
+                    {visibleColumns.paymentMethod && <TableHead>Payment Method</TableHead>}
+                    {visibleColumns.total && <TableHead className="text-right"><SortableHeader tKey="totalAmount" label="Total" /></TableHead>}
+                    <TableHead className="text-right">Paid</TableHead>
                     <TableHead className="text-right">Pending</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -657,20 +715,29 @@ export default function OrdersPage() {
                       <TableCell className="font-medium">{order.orderId}</TableCell>
                       <TableCell>{order.branch}</TableCell>
                       <TableCell>{order.table}</TableCell>
-                      <TableCell>{order.orderType}</TableCell>
+                      {visibleColumns.customerName && <TableCell>{order.customer.name}</TableCell>}
+                      {visibleColumns.email && <TableCell>{order.customer.email}</TableCell>}
+                      {visibleColumns.phoneNumber && <TableCell>{order.customer.phone}</TableCell>}
+                      {visibleColumns.items && <TableCell className="max-w-[200px] truncate">{order.items.map(item => `${item.name} (x${item.quantity})`).join(', ')}</TableCell>}
+                      {visibleColumns.categories && <TableCell>{[...new Set(order.items.map(item => item.category))].join(', ')}</TableCell>}
+                      {visibleColumns.orderComments && <TableCell className="max-w-[150px] truncate">{order.orderComments}</TableCell>}
+                      {visibleColumns.orderType && <TableCell>{order.orderType}</TableCell>}
                       <TableCell>
                         <Badge variant={getStatusBadgeVariant(order.orderStatus)}>
                           {order.orderStatus}
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusBadgeVariant(order.paymentState)}>
-                          {order.paymentState}
-                          {order.paymentState === 'Partial' && order.splitType === 'equally' && ' (Equally)'}
-                          {order.paymentState === 'Partial' && order.splitType === 'byItem' && ' (By Item)'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right font-mono">${order.totalAmount.toFixed(2)}</TableCell>
+                      {visibleColumns.paymentState && (
+                        <TableCell>
+                          <Badge variant={getStatusBadgeVariant(order.paymentState)}>
+                            {order.paymentState}
+                            {order.paymentState === 'Partial' && order.splitType === 'equally' && ' (Equally)'}
+                            {order.paymentState === 'Partial' && order.splitType === 'byItem' && ' (By Item)'}
+                          </Badge>
+                        </TableCell>
+                      )}
+                      {visibleColumns.paymentMethod && <TableCell>{[...new Set(order.payments.map(p => p.method))].join(', ')}</TableCell>}
+                      {visibleColumns.total && <TableCell className="text-right font-mono">${order.totalAmount.toFixed(2)}</TableCell>}
                       <TableCell className="text-right font-mono text-green-600">${order.paidAmount.toFixed(2)}</TableCell>
                       <TableCell className="text-right font-mono text-red-600">${(order.totalAmount - order.paidAmount).toFixed(2)}</TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>

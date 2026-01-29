@@ -1,6 +1,6 @@
 'use client';
 
-import type { Order } from './types';
+import type { Order, OrderItem } from './types';
 
 export const generateMockOrders = (count: number): Order[] => {
   const statuses: Order['orderStatus'][] = [
@@ -17,15 +17,24 @@ export const generateMockOrders = (count: number): Order[] => {
   ];
   const branches: Order['branch'][] = ['Ras Al Khaimah', 'Dubai Mall'];
   const staffNames = ['Alex', 'Maria', 'John', 'Sarah', 'David'];
+  const customerNames = ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank', 'Grace', 'Henry'];
+  const comments = [
+    'Customer requested extra napkins.',
+    'Allergy alert: No nuts.',
+    'Birthday celebration at the table.',
+    null,
+    'Guest is in a hurry.',
+  ];
+
   const menuItems = [
-    { id: '1', name: 'Classic Pancakes', price: 12.5 },
-    { id: '2', name: 'Orange Juice', price: 5.0 },
-    { id: '3', name: 'Espresso', price: 3.5 },
-    { id: '4', name: 'Avocado Toast', price: 15.0 },
-    { id: '5', name: 'Latte', price: 5.5 },
-    { id: '6', name: 'Ribeye Steak', price: 45.0 },
-    { id: '7', name: 'Margherita Pizza', price: 20.0 },
-    { id: '8', name: 'Cheesecake', price: 8.9 },
+    { id: '1', name: 'Classic Pancakes', price: 12.5, category: 'Breakfast' },
+    { id: '2', name: 'Orange Juice', price: 5.0, category: 'Beverages' },
+    { id: '3', name: 'Espresso', price: 3.5, category: 'Beverages' },
+    { id: '4', name: 'Avocado Toast', price: 15.0, category: 'Breakfast' },
+    { id: '5', name: 'Latte', price: 5.5, category: 'Beverages' },
+    { id: '6', name: 'Ribeye Steak', price: 45.0, category: 'Mains' },
+    { id: '7', name: 'Margherita Pizza', price: 20.0, category: 'Mains' },
+    { id: '8', name: 'Cheesecake', price: 8.9, category: 'Desserts' },
   ];
 
   const orders: Order[] = [];
@@ -46,12 +55,14 @@ export const generateMockOrders = (count: number): Order[] => {
       paymentState = 'Partial';
 
     const orderItemsCount = Math.floor(Math.random() * 3) + 1;
-    const currentItems = Array.from({ length: orderItemsCount }, (_, j) => {
+    const currentItems: OrderItem[] = Array.from({ length: orderItemsCount }, (_, j) => {
       const item = menuItems[Math.floor(Math.random() * menuItems.length)];
       return {
-        ...item,
         id: `${item.id}-${i}-${j}`,
+        name: item.name,
         quantity: Math.floor(Math.random() * 2) + 1,
+        price: item.price,
+        category: item.category,
       };
     });
 
@@ -119,6 +130,7 @@ export const generateMockOrders = (count: number): Order[] => {
 
     const orderTimestamp = Date.now() - i * 3600000;
     const orderDate = new Date(orderTimestamp);
+    const customerName = customerNames[i % customerNames.length];
 
     orders.push({
       orderId: `#${3210 + i}`,
@@ -141,6 +153,12 @@ export const generateMockOrders = (count: number): Order[] => {
       items: currentItems,
       payments,
       splitType,
+      customer: {
+        name: customerName,
+        email: `${customerName.toLowerCase().replace(' ', '.')}@example.com`,
+        phone: `555-01${String(i).padStart(2, '0')}`,
+      },
+      orderComments: comments[i % comments.length] || undefined,
     });
   }
   return orders;
