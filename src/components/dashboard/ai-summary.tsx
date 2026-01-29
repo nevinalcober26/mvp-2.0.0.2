@@ -1,7 +1,7 @@
 'use client';
 
 import { Lightbulb, RefreshCw, Wand } from 'lucide-react';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { summarizeData } from '@/ai/flows/summarize-data-flow';
 import { Button } from '@/components/ui/button';
 
@@ -14,11 +14,13 @@ export function AiSummary({ data, context }: AiSummaryProps) {
   const [summary, setSummary] = useState('');
   const [error, setError] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const isLoadingRef = useRef(false);
 
   const generateSummary = useCallback(() => {
-    if (status === 'loading') return; // Prevent multiple requests
+    if (isLoadingRef.current) return;
 
     if (data.length > 0) {
+      isLoadingRef.current = true;
       setStatus('loading');
       setError('');
       setSummary('');
@@ -37,12 +39,16 @@ export function AiSummary({ data, context }: AiSummaryProps) {
             setError(`Could not generate summary. The AI may be temporarily unavailable.`);
           }
           setStatus('error');
+        })
+        .finally(() => {
+            isLoadingRef.current = false;
         });
     } else {
         setError(`Not enough data to generate a summary for ${context}.`);
         setStatus('error');
+        isLoadingRef.current = false;
     }
-  }, [data, context, status]);
+  }, [data, context]);
 
   const renderSummaryWithBold = (text: string) => {
     if (!text) return null;
