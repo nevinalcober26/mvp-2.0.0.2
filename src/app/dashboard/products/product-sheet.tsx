@@ -361,44 +361,39 @@ export function ProductSheet({
                               </FormItem>
                             )}
                           />
-                          <FormField
+                           <FormField
                             control={form.control}
                             name="smallDescription"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel className="flex items-center gap-1.5">
-                                  Small Description
-                                  <Tooltip delayDuration={100}>
-                                    <TooltipTrigger asChild>
-                                      <button
-                                        type="button"
-                                        onClick={(e) => e.preventDefault()}
-                                      >
-                                        <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                                      </button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>
-                                        A short, catchy description for product
-                                        cards and list views.
-                                      </p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </FormLabel>
-                                <FormControl>
-                                  <div className="relative">
-                                    <Textarea
-                                      placeholder="A short, catchy line for your product."
-                                      rows={2}
-                                      {...field}
-                                    />
-                                    <Tooltip>
+                                <div className="flex justify-between items-center">
+                                  <FormLabel className="flex items-center gap-1.5">
+                                    Small Description
+                                    <Tooltip delayDuration={100}>
                                       <TooltipTrigger asChild>
+                                        <button
+                                          type="button"
+                                          onClick={(e) => e.preventDefault()}
+                                        >
+                                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                                        </button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>
+                                          A short, catchy description for product
+                                          cards and list views.
+                                        </p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </FormLabel>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      {/* The div is needed to make the tooltip work on a disabled button */}
+                                      <div>
                                         <Button
                                           type="button"
-                                          size="icon"
+                                          size="sm"
                                           variant="ghost"
-                                          className="absolute bottom-2 right-2 h-7 w-7"
                                           onClick={() =>
                                             handleGenerateDescription('short')
                                           }
@@ -407,26 +402,32 @@ export function ProductSheet({
                                             !productName ||
                                             !productCategory
                                           }
+                                          className="gap-1.5"
                                         >
                                           {isGenerating === 'short' ? (
                                             <RefreshCw className="h-4 w-4 animate-spin" />
                                           ) : (
                                             <Wand className="h-4 w-4" />
                                           )}
-                                          <span className="sr-only">
-                                            Generate with AI
-                                          </span>
+                                          Generate
                                         </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>
-                                          {!productName || !productCategory
-                                            ? 'Enter name and category first'
-                                            : 'Generate with AI'}
-                                        </p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </div>
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>
+                                        {!productName || !productCategory
+                                          ? 'Enter name and category first'
+                                          : 'Generate with AI'}
+                                      </p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </div>
+                                <FormControl>
+                                  <Textarea
+                                    placeholder="A short, catchy line for your product."
+                                    rows={2}
+                                    {...field}
+                                  />
                                 </FormControl>
                               </FormItem>
                             )}
@@ -436,21 +437,16 @@ export function ProductSheet({
                             name="description"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Description</FormLabel>
-                                <FormControl>
-                                  <div className="relative">
-                                    <Textarea
-                                      placeholder="Detailed description including ingredients, allergens, etc."
-                                      rows={5}
-                                      {...field}
-                                    />
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
+                                <div className="flex justify-between items-center">
+                                  <FormLabel>Description</FormLabel>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      {/* The div is needed to make the tooltip work on a disabled button */}
+                                      <div>
                                         <Button
                                           type="button"
-                                          size="icon"
+                                          size="sm"
                                           variant="ghost"
-                                          className="absolute bottom-2 right-2 h-7 w-7"
                                           onClick={() =>
                                             handleGenerateDescription('long')
                                           }
@@ -459,26 +455,32 @@ export function ProductSheet({
                                             !productName ||
                                             !productCategory
                                           }
+                                          className="gap-1.5"
                                         >
                                           {isGenerating === 'long' ? (
                                             <RefreshCw className="h-4 w-4 animate-spin" />
                                           ) : (
                                             <Wand className="h-4 w-4" />
                                           )}
-                                          <span className="sr-only">
-                                            Generate with AI
-                                          </span>
+                                          Generate
                                         </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>
-                                          {!productName || !productCategory
-                                            ? 'Enter name and category first'
-                                            : 'Generate with AI'}
-                                        </p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </div>
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>
+                                        {!productName || !productCategory
+                                          ? 'Enter name and category first'
+                                          : 'Generate with AI'}
+                                      </p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </div>
+                                <FormControl>
+                                  <Textarea
+                                    placeholder="Detailed description including ingredients, allergens, etc."
+                                    rows={5}
+                                    {...field}
+                                  />
                                 </FormControl>
                               </FormItem>
                             )}
