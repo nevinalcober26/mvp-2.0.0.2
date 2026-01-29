@@ -721,7 +721,7 @@ export default function OrdersPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="w-full overflow-x-auto">
+            <div className="w-full overflow-x-auto" style={{ width: '1280px' }}>
               {view === 'list' ? (
                   <Table style={{ width: '1280px' }}>
                     <TableHeader className="sticky top-0 bg-background z-10">
