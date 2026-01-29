@@ -55,6 +55,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuCheckboxItem,
+  DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu';
 import { DashboardHeader } from '@/components/dashboard/header';
 import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
@@ -205,16 +206,16 @@ const ExportDialog = ({
 };
 
 const allColumns = [
-    { id: 'customerName', label: 'Customer Name', defaultVisible: false },
-    { id: 'email', label: 'Email', defaultVisible: false },
-    { id: 'phoneNumber', label: 'Phone Number', defaultVisible: false },
-    { id: 'items', label: 'Items', defaultVisible: false },
-    { id: 'categories', label: 'Categories', defaultVisible: false },
-    { id: 'orderComments', label: 'Order Comments', defaultVisible: false },
-    { id: 'paymentMethod', label: 'Payment Method', defaultVisible: false },
-    { id: 'orderType', label: 'Order Type', defaultVisible: true },
-    { id: 'paymentState', label: 'Payment State', defaultVisible: true },
-    { id: 'total', label: 'Total', defaultVisible: true },
+    { id: 'customerName', label: 'Customer Name', defaultVisible: false, category: 'Customer' },
+    { id: 'email', label: 'Email', defaultVisible: false, category: 'Customer' },
+    { id: 'phoneNumber', label: 'Phone Number', defaultVisible: false, category: 'Customer' },
+    { id: 'orderType', label: 'Order Type', defaultVisible: true, category: 'Order' },
+    { id: 'items', label: 'Items', defaultVisible: false, category: 'Order' },
+    { id: 'categories', label: 'Categories', defaultVisible: false, category: 'Order' },
+    { id: 'orderComments', label: 'Order Comments', defaultVisible: false, category: 'Order' },
+    { id: 'paymentState', label: 'Payment State', defaultVisible: true, category: 'Payment' },
+    { id: 'paymentMethod', label: 'Payment Method', defaultVisible: false, category: 'Payment' },
+    { id: 'total', label: 'Total', defaultVisible: true, category: 'Payment' },
 ] as const;
 
 type ColumnId = typeof allColumns[number]['id'];
@@ -231,6 +232,7 @@ export default function OrdersPage() {
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const { toast } = useToast();
   const [permission, setPermission] = useState('default');
+  const [columnSearch, setColumnSearch] = useState('');
 
   const [visibleColumns, setVisibleColumns] = useState<Record<ColumnId, boolean>>(() => {
     const initialState: Record<string, boolean> = {};
@@ -437,6 +439,24 @@ export default function OrdersPage() {
     ];
   }, [allOrders]);
 
+  const searchableColumns = useMemo(() => {
+    return allColumns.filter(column => 
+      column.label.toLowerCase().includes(columnSearch.toLowerCase())
+    );
+  }, [columnSearch]);
+
+  const groupedColumns = useMemo(() => {
+    return searchableColumns.reduce((acc, column) => {
+      const category = column.category || 'General';
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(column);
+      return acc;
+    }, {} as Record<string, typeof searchableColumns>);
+  }, [searchableColumns]);
+
+
   const handleStatusChange = (
     orderId: string,
     newStatus: Order['orderStatus']
@@ -538,21 +558,40 @@ export default function OrdersPage() {
                     <span className="sr-only">Toggle columns</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[200px]">
-                  <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+                <DropdownMenuContent align="end" className="w-[250px]">
+                   <div className="p-2" onClick={(e) => e.stopPropagation()}>
+                      <Input
+                        autoFocus
+                        placeholder="Search columns..."
+                        value={columnSearch}
+                        onChange={(e) => setColumnSearch(e.target.value)}
+                        className="h-8"
+                      />
+                    </div>
                   <DropdownMenuSeparator />
-                  {allColumns.map(column => (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={visibleColumns[column.id]}
-                      onCheckedChange={(value) =>
-                        setVisibleColumns(prev => ({ ...prev, [column.id]: !!value }))
-                      }
-                    >
-                      {column.label}
-                    </DropdownMenuCheckboxItem>
-                  ))}
+                  
+                  {Object.keys(groupedColumns).length > 0 ? (
+                      Object.entries(groupedColumns).map(([category, columns]) => (
+                      <DropdownMenuGroup key={category}>
+                          <DropdownMenuLabel className="px-2 py-1.5 text-xs font-semibold">{category}</DropdownMenuLabel>
+                          {columns.map(column => (
+                              <DropdownMenuCheckboxItem
+                              key={column.id}
+                              className="capitalize"
+                              checked={visibleColumns[column.id]}
+                              onCheckedChange={(value) =>
+                                  setVisibleColumns(prev => ({ ...prev, [column.id]: !!value }))
+                              }
+                              onSelect={(e) => e.preventDefault()}
+                              >
+                              {column.label}
+                              </DropdownMenuCheckboxItem>
+                          ))}
+                      </DropdownMenuGroup>
+                      ))
+                  ) : (
+                      <p className="p-4 text-sm text-muted-foreground text-center">No columns found.</p>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
