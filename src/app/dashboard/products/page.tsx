@@ -1,5 +1,5 @@
 'use client';
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import {
   DndContext,
@@ -43,6 +43,7 @@ import {
   ListFilter,
   FileDown,
   Image as ImageIcon,
+  ChevronDown,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -58,6 +59,8 @@ import type { Product } from './types';
 import { generateMockProducts } from './mock-data';
 import { ProductSheet } from './product-sheet';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useToast } from '@/hooks/use-toast';
 
 const getStatusBadgeVariant = (status: Product['status']) => {
   switch (status) {
@@ -77,9 +80,13 @@ const getStatusBadgeVariant = (status: Product['status']) => {
 const SortableProductRow = ({
   product,
   onEdit,
+  isSelected,
+  onRowSelect,
 }: {
   product: Product;
   onEdit: (product: Product) => void;
+  isSelected: boolean;
+  onRowSelect: (id: string) => void;
 }) => {
   const {
     attributes,
@@ -99,7 +106,7 @@ const SortableProductRow = ({
   };
 
   return (
-    <TableRow ref={setNodeRef} style={style}>
+    <TableRow ref={setNodeRef} style={style} data-state={isSelected ? "selected" : undefined}>
       <TableCell className="w-12 px-2">
         <Button
           variant="ghost"
@@ -111,6 +118,13 @@ const SortableProductRow = ({
           <GripVertical className="h-5 w-5 text-muted-foreground" />
           <span className="sr-only">Drag to reorder</span>
         </Button>
+      </TableCell>
+      <TableCell onClick={(e) => e.stopPropagation()} className="px-4">
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={() => onRowSelect(product.id)}
+          aria-label="Select row"
+        />
       </TableCell>
       <TableCell className="w-16 p-2">
         {product.mainImage ? (
@@ -166,6 +180,8 @@ export default function ProductsPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [search, setSearch] = useState('');
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Simulate fetching data
@@ -181,6 +197,12 @@ export default function ProductsPage() {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  const filteredProducts = useMemo(() => {
+    return allProducts.filter((product) =>
+      product.name.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [allProducts, search]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -219,11 +241,44 @@ export default function ProductsPage() {
     }
   };
 
-  const filteredProducts = useMemo(() => {
-    return allProducts.filter((product) =>
-      product.name.toLowerCase().includes(search.toLowerCase())
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedRows(filteredProducts.map((p) => p.id));
+    } else {
+      setSelectedRows([]);
+    }
+  };
+
+  const handleRowSelect = (rowId: string) => {
+    setSelectedRows((prev) =>
+      prev.includes(rowId)
+        ? prev.filter((id) => id !== rowId)
+        : [...prev, rowId]
     );
-  }, [allProducts, search]);
+  };
+
+  const handleBulkDelete = () => {
+    setAllProducts((products) =>
+      products.filter((p) => !selectedRows.includes(p.id))
+    );
+    toast({
+      title: `${selectedRows.length} products deleted.`,
+    });
+    setSelectedRows([]);
+  };
+
+  const handleBulkSetStatus = (status: Product['status']) => {
+    setAllProducts((products) =>
+      products.map((p) =>
+        selectedRows.includes(p.id) ? { ...p, status } : p
+      )
+    );
+    toast({
+      title: `${selectedRows.length} products updated to "${status}".`,
+    });
+    setSelectedRows([]);
+  };
+
 
   return (
     <>
@@ -238,16 +293,50 @@ export default function ProductsPage() {
                   Manage your menu items and their variations.
                 </CardDescription>
               </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm">
-                  <FileDown className="mr-2 h-4 w-4" />
-                  Export
-                </Button>
-                <Button onClick={handleAddProduct} size="sm">
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Add Product
-                </Button>
-              </div>
+               {selectedRows.length > 0 ? (
+                <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">
+                        {selectedRows.length} selected
+                    </span>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline">
+                                Actions
+                                <ChevronDown className="ml-2 h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleBulkSetStatus('Draft')}>
+                                Set to Draft
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleBulkSetStatus('Active')}>
+                                Set to Active
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleBulkSetStatus('Archived')}>
+                                Deactivate (Archive)
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={handleBulkDelete}
+                            >
+                                Delete products
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+                ) : (
+                <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm">
+                    <FileDown className="mr-2 h-4 w-4" />
+                    Export
+                    </Button>
+                    <Button onClick={handleAddProduct} size="sm">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Product
+                    </Button>
+                </div>
+                )}
             </div>
             <div className="pt-4 flex items-center justify-between">
               <Input
@@ -275,6 +364,13 @@ export default function ProductsPage() {
                       <TableHead className="w-12 px-2">
                         <span className="sr-only">Drag Handle</span>
                       </TableHead>
+                      <TableHead className="w-12 px-4">
+                        <Checkbox
+                            checked={filteredProducts.length > 0 && selectedRows.length === filteredProducts.length}
+                            onCheckedChange={(value) => handleSelectAll(!!value)}
+                            aria-label="Select all"
+                        />
+                      </TableHead>
                       <TableHead className="w-16 p-2">
                         <span className="sr-only">Image</span>
                       </TableHead>
@@ -296,7 +392,7 @@ export default function ProductsPage() {
                       {isLoading ? (
                         [...Array(5)].map((_, i) => (
                           <TableRow key={i}>
-                            {[...Array(8)].map((_, j) => (
+                            {[...Array(9)].map((_, j) => (
                               <TableCell key={j}>
                                 <div className="h-4 bg-muted rounded animate-pulse"></div>
                               </TableCell>
@@ -309,12 +405,14 @@ export default function ProductsPage() {
                             key={product.id}
                             product={product}
                             onEdit={handleEditProduct}
+                            isSelected={selectedRows.includes(product.id)}
+                            onRowSelect={handleRowSelect}
                           />
                         ))
                       ) : (
                         <TableRow>
                           <TableCell
-                            colSpan={8}
+                            colSpan={9}
                             className="h-24 text-center text-muted-foreground"
                           >
                             No products found.
