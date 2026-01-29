@@ -38,6 +38,8 @@ import {
   XCircle,
   ArrowUpDown,
   ChevronDown,
+  LayoutGrid,
+  List,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -64,9 +66,77 @@ import { OrderDetailsSheet } from './order-details-sheet';
 import { OrdersPageSkeleton } from '@/components/dashboard/skeletons';
 import { AiSummary } from '@/components/dashboard/ai-summary';
 
+const OrderCard = ({
+  order,
+  onViewDetails,
+}: {
+  order: Order;
+  onViewDetails: (order: Order) => void;
+}) => {
+  return (
+    <Card
+      onClick={() => onViewDetails(order)}
+      className="cursor-pointer hover:shadow-md transition-shadow"
+    >
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base font-semibold flex justify-between items-center">
+          <span>{order.orderId}</span>
+          <Badge variant={getStatusBadgeVariant(order.orderStatus)}>
+            {order.orderStatus}
+          </Badge>
+        </CardTitle>
+        <CardDescription className="flex items-center gap-2 pt-1">
+          <span>{order.table}</span>
+          <span className="text-muted-foreground">&bull;</span>
+          <span>{order.staffName}</span>
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2 pb-4">
+        <div className="flex justify-between text-sm font-mono">
+          <span className="text-muted-foreground">Total:</span>
+          <span className="font-semibold">${order.totalAmount.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between text-sm font-mono">
+          <span className="text-muted-foreground">Paid:</span>
+          <span className="text-green-600">${order.paidAmount.toFixed(2)}</span>
+        </div>
+      </CardContent>
+      <CardFooter className="pb-4">
+        <Badge
+          variant={getStatusBadgeVariant(order.paymentState)}
+          className="w-full justify-center"
+        >
+          {order.paymentState}
+        </Badge>
+      </CardFooter>
+    </Card>
+  );
+};
+
+const OrderGalleryView = ({
+  orders,
+  onViewDetails,
+}: {
+  orders: Order[];
+  onViewDetails: (order: Order) => void;
+}) => {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {orders.map((order) => (
+        <OrderCard
+          key={order.orderId}
+          order={order}
+          onViewDetails={onViewDetails}
+        />
+      ))}
+    </div>
+  );
+};
+
 export default function OrdersPage() {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [view, setView] = useState<'list' | 'gallery'>('list');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -253,7 +323,7 @@ export default function OrdersPage() {
   }, [allOrders]);
 
   if (isLoading) {
-    return <OrdersPageSkeleton />;
+    return <OrdersPageSkeleton view={view} />;
   }
 
   return (
@@ -369,122 +439,148 @@ export default function OrdersPage() {
                   />
                 </PopoverContent>
               </Popover>
+              <div className="flex-grow" />
+              <div className="flex items-center gap-1 rounded-md bg-muted p-1">
+                <Button
+                  variant={view === 'gallery' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setView('gallery')}
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                  <span className="ml-2 hidden sm:inline">Gallery</span>
+                </Button>
+                <Button
+                  variant={view === 'list' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setView('list')}
+                >
+                  <List className="h-4 w-4" />
+                  <span className="ml-2 hidden sm:inline">List</span>
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead><SortableHeader tKey="orderId" label="Order ID" /></TableHead>
-                  <TableHead><SortableHeader tKey="branch" label="Branch" /></TableHead>
-                  <TableHead><SortableHeader tKey="table" label="Table" /></TableHead>
-                  <TableHead><SortableHeader tKey="orderType" label="Order Type" /></TableHead>
-                  <TableHead><SortableHeader tKey="orderStatus" label="Order Status" /></TableHead>
-                  <TableHead><SortableHeader tKey="paymentState" label="Payment State" /></TableHead>
-                  <TableHead className="text-right"><SortableHeader tKey="totalAmount" label="Total" /></TableHead>
-                  <TableHead className="text-right"><SortableHeader tKey="paidAmount" label="Paid" /></TableHead>
-                  <TableHead className="text-right">Pending</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedOrders.map((order) => (
-                  <TableRow
-                    key={order.orderId}
-                    onClick={() => handleViewDetails(order)}
-                    className="cursor-pointer"
-                  >
-                    <TableCell className="font-medium">{order.orderId}</TableCell>
-                    <TableCell>{order.branch}</TableCell>
-                    <TableCell>{order.table}</TableCell>
-                    <TableCell>{order.orderType}</TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusBadgeVariant(order.orderStatus)}>
-                        {order.orderStatus}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                       <Badge variant={getStatusBadgeVariant(order.paymentState)}>
-                        {order.paymentState}
-                        {order.paymentState === 'Partial' && order.splitType === 'equally' && ' (Equally)'}
-                        {order.paymentState === 'Partial' && order.splitType === 'byItem' && ' (By Item)'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-mono">${order.totalAmount.toFixed(2)}</TableCell>
-                    <TableCell className="text-right font-mono text-green-600">${order.paidAmount.toFixed(2)}</TableCell>
-                    <TableCell className="text-right font-mono text-red-600">${(order.totalAmount - order.paidAmount).toFixed(2)}</TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleViewDetails(order)}
-                        >
-                          View
-                        </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              aria-haspopup="true"
-                              size="icon"
-                              variant="ghost"
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Toggle menu</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Set Order Status</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={() =>
-                                handleStatusChange(order.orderId, 'Draft')
-                              }
-                            >
-                              Draft
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                handleStatusChange(order.orderId, 'Open')
-                              }
-                            >
-                              Open
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                handleStatusChange(order.orderId, 'Paid')
-                              }
-                            >
-                              Paid
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                handleStatusChange(
-                                  order.orderId,
-                                  'Cancelled'
-                                )
-                              }
-                            >
-                              Cancelled
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                handleStatusChange(
-                                  order.orderId,
-                                  'Refunded'
-                                )
-                              }
-                            >
-                              Refunded
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </TableCell>
+            {view === 'list' ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead><SortableHeader tKey="orderId" label="Order ID" /></TableHead>
+                    <TableHead><SortableHeader tKey="branch" label="Branch" /></TableHead>
+                    <TableHead><SortableHeader tKey="table" label="Table" /></TableHead>
+                    <TableHead><SortableHeader tKey="orderType" label="Order Type" /></TableHead>
+                    <TableHead><SortableHeader tKey="orderStatus" label="Order Status" /></TableHead>
+                    <TableHead><SortableHeader tKey="paymentState" label="Payment State" /></TableHead>
+                    <TableHead className="text-right"><SortableHeader tKey="totalAmount" label="Total" /></TableHead>
+                    <TableHead className="text-right"><SortableHeader tKey="paidAmount" label="Paid" /></TableHead>
+                    <TableHead className="text-right">Pending</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {paginatedOrders.map((order) => (
+                    <TableRow
+                      key={order.orderId}
+                      onClick={() => handleViewDetails(order)}
+                      className="cursor-pointer"
+                    >
+                      <TableCell className="font-medium">{order.orderId}</TableCell>
+                      <TableCell>{order.branch}</TableCell>
+                      <TableCell>{order.table}</TableCell>
+                      <TableCell>{order.orderType}</TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusBadgeVariant(order.orderStatus)}>
+                          {order.orderStatus}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusBadgeVariant(order.paymentState)}>
+                          {order.paymentState}
+                          {order.paymentState === 'Partial' && order.splitType === 'equally' && ' (Equally)'}
+                          {order.paymentState === 'Partial' && order.splitType === 'byItem' && ' (By Item)'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-mono">${order.totalAmount.toFixed(2)}</TableCell>
+                      <TableCell className="text-right font-mono text-green-600">${order.paidAmount.toFixed(2)}</TableCell>
+                      <TableCell className="text-right font-mono text-red-600">${(order.totalAmount - order.paidAmount).toFixed(2)}</TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewDetails(order)}
+                          >
+                            View
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                aria-haspopup="true"
+                                size="icon"
+                                variant="ghost"
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Toggle menu</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Set Order Status</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleStatusChange(order.orderId, 'Draft')
+                                }
+                              >
+                                Draft
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleStatusChange(order.orderId, 'Open')
+                                }
+                              >
+                                Open
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleStatusChange(order.orderId, 'Paid')
+                                }
+                              >
+                                Paid
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleStatusChange(
+                                    order.orderId,
+                                    'Cancelled'
+                                  )
+                                }
+                              >
+                                Cancelled
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleStatusChange(
+                                    order.orderId,
+                                    'Refunded'
+                                  )
+                                }
+                              >
+                                Refunded
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <OrderGalleryView
+                orders={paginatedOrders}
+                onViewDetails={handleViewDetails}
+              />
+            )}
           </CardContent>
           <CardFooter className="flex items-center justify-between">
             <div className="text-sm text-muted-foreground">

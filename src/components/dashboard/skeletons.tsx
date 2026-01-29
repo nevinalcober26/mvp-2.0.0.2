@@ -359,7 +359,66 @@ export function OrdersTableSkeleton() {
   );
 }
 
-export function OrdersPageSkeleton() {
+function OrdersGallerySkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-6 w-32 mb-2" />
+        <Skeleton className="h-4 w-64" />
+        <div className="mt-4 flex flex-wrap items-center gap-4">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-10 w-44" />
+          <Skeleton className="h-10 w-44" />
+          <Skeleton className="h-10 w-44" />
+          <Skeleton className="h-10 w-72" />
+          <div className="flex-grow" />
+          <Skeleton className="h-9 w-40" />
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {[...Array(8)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-center">
+                  <Skeleton className="h-6 w-20" />
+                  <Skeleton className="h-6 w-16 rounded-full" />
+                </div>
+                <Skeleton className="h-4 w-24 mt-1" />
+              </CardHeader>
+              <CardContent className="space-y-2 pb-4">
+                <div className="flex justify-between">
+                  <Skeleton className="h-4 w-12" />
+                  <Skeleton className="h-4 w-16" />
+                </div>
+                <div className="flex justify-between">
+                  <Skeleton className="h-4 w-10" />
+                  <Skeleton className="h-4 w-16" />
+                </div>
+              </CardContent>
+              <CardFooter className="pb-4">
+                <Skeleton className="h-6 w-full rounded-full" />
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      </CardContent>
+      <CardFooter className="flex items-center justify-between">
+        <Skeleton className="h-6 w-48" />
+        <div className="flex items-center space-x-2">
+          <Skeleton className="h-9 w-24" />
+          <Skeleton className="h-9 w-24" />
+        </div>
+      </CardFooter>
+    </Card>
+  );
+}
+
+export function OrdersPageSkeleton({
+  view = 'list',
+}: {
+  view?: 'list' | 'gallery';
+}) {
   return (
     <>
       <DashboardHeader />
@@ -367,12 +426,12 @@ export function OrdersPageSkeleton() {
         <div className="flex items-start gap-4 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-100 p-4 text-sm border border-blue-200/50 shadow-sm">
           <Skeleton className="h-5 w-5 flex-shrink-0 rounded-full bg-blue-200 mt-0.5" />
           <div className="flex-grow space-y-2">
-              <Skeleton className="h-4 w-40 bg-blue-200" />
-              <Skeleton className="h-3 w-20 bg-blue-200" />
+            <Skeleton className="h-4 w-40 bg-blue-200" />
+            <Skeleton className="h-3 w-20 bg-blue-200" />
           </div>
         </div>
         <StatCardsSkeleton />
-        <OrdersTableSkeleton />
+        {view === 'list' ? <OrdersTableSkeleton /> : <OrdersGallerySkeleton />}
       </main>
     </>
   );
