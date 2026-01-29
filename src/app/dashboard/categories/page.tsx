@@ -46,8 +46,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Container } from '@/components/dashboard/dnd/Container';
-import { SortableItem } from '@/components/dashboard/dnd/SortableItem';
-import { Item } from '@/components/dashboard/dnd/Item';
+import { Item as ItemComponent } from '@/components/dashboard/dnd/Item';
 
 export type Item = {
   id: UniqueIdentifier;
@@ -93,62 +92,34 @@ const initialBoardData: Column[] = [
   },
 ];
 
-const findItemRecursive = (
-  items: Item[],
-  itemId: UniqueIdentifier
-): { item: Item; parent: Item[] } | undefined => {
-  for (const item of items) {
-    if (item.id === itemId) return { item, parent: items };
-    if (item.children.length) {
-      const found = findItemRecursive(item.children, itemId);
-      if (found) return found;
-    }
-  }
-  return undefined;
-};
-
-const findContainer = (
-  id: UniqueIdentifier,
-  containers: Column[]
-): Column | undefined => {
-  return containers.find((container) => container.id === id);
-};
-
-const findItemContainerId = (
-  id: UniqueIdentifier,
-  containers: Column[]
-): UniqueIdentifier | undefined => {
-  for (const container of containers) {
-    if (container.items.some((item) => item.id === id)) {
-      return container.id;
-    }
-    // This simple implementation doesn't check nested children for top-level moves
-  }
-  return undefined;
-};
-
-
 const AddCategoryDialog = ({
   open,
   onOpenChange,
   onAddCategory,
   board,
+  initialParentId = 'none',
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAddCategory: (name: string, parentId: UniqueIdentifier | 'none') => void;
   board: Column[];
+  initialParentId?: UniqueIdentifier | 'none';
 }) => {
   const [name, setName] = useState('');
-  const [parentId, setParentId] = useState<string>('none');
+  const [parentId, setParentId] = useState<string>(initialParentId.toString());
   const categoryOptions = useMemo(() => getCategoryOptions(board), [board]);
+
+  useEffect(() => {
+    if (open) {
+      setName('');
+      setParentId(initialParentId.toString());
+    }
+  }, [open, initialParentId]);
 
   const handleSave = () => {
     if (name.trim()) {
       onAddCategory(name, parentId);
       onOpenChange(false);
-      setName('');
-      setParentId('none');
     }
   };
 
@@ -178,7 +149,7 @@ const AddCategoryDialog = ({
                 <SelectValue placeholder="Select a parent category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">None (Top-level)</SelectItem>
+                <SelectItem value="none">None (New Top-level Column)</SelectItem>
                 {categoryOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     <span style={{ paddingLeft: `${option.depth * 1.5}rem` }}>
@@ -202,13 +173,17 @@ const AddCategoryDialog = ({
   );
 };
 
-
 export default function CategoriesPage() {
   const [board, setBoard] = useState<Column[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<Column | Item | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Column | Item | null>(
+    null
+  );
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
+  const [addCategoryParent, setAddCategoryParent] = useState<
+    UniqueIdentifier | 'none'
+  >('none');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -226,17 +201,54 @@ export default function CategoriesPage() {
     })
   );
 
-  const findItem = (id: UniqueIdentifier) => {
-    for (const col of board) {
-        const foundInItems = col.items.find(i => i.id === id);
-        if (foundInItems) return foundInItems;
-        // Simplified: doesn't find nested items for top-level drag
+  const findItem = (id: UniqueIdentifier, columns: Column[]): Item | null => {
+    for (const column of columns) {
+      const search = (items: Item[]): Item | null => {
+        for (const item of items) {
+          if (item.id === id) return item;
+          if (item.children) {
+            const found = search(item.children);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+      const found = search(column.items);
+      if (found) return found;
+    }
+    return null;
+  };
+
+  const activeItem = useMemo(() => activeId ? findItem(activeId, board) : null, [activeId, board]);
+
+  const findItemContainerId = (id: UniqueIdentifier, columns: Column[]): UniqueIdentifier | undefined => {
+    for (const column of columns) {
+      const search = (items: Item[]): boolean => {
+        for (const item of items) {
+          if (item.id === id) return true;
+          if (item.children && search(item.children)) return true;
+        }
+        return false;
+      };
+      if (search(column.items)) return column.id;
+    }
+    return undefined;
+  };
+  
+  const findAndRemove = (items: Item[], id: UniqueIdentifier): Item | null => {
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.id === id) {
+            // Found it, remove and return
+            return items.splice(i, 1)[0];
+        }
+        if (item.children) {
+            const found = findAndRemove(item.children, id);
+            if (found) return found;
+        }
     }
     return null;
   }
-  
-  const activeItem = activeId ? findItem(activeId) : null;
-
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id);
@@ -245,38 +257,31 @@ export default function CategoriesPage() {
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
+  
+    setBoard(produce((draft) => {
+        const activeContainerId = findItemContainerId(active.id, draft);
+        const overContainerId = over.data.current?.sortable?.containerId || over.id;
 
-    const activeContainerId = findItemContainerId(active.id, board);
-    const overContainerId = over.data.current?.sortable?.containerId || over.id;
-
-    if (!activeContainerId || !overContainerId || activeContainerId === overContainerId) {
-      return;
-    }
-
-    setBoard(
-      produce((draft) => {
-        const activeContainer = draft.find((c) => c.id === activeContainerId);
-        const overContainer = draft.find((c) => c.id === overContainerId);
-
-        if (!activeContainer || !overContainer) return;
-
-        const activeItemIndex = activeContainer.items.findIndex((i) => i.id === active.id);
-        const overItemIndex = overContainer.items.findIndex((i) => i.id === over.id);
-
-        let newIndex: number;
-        if (over.id in overContainer.items.map(i => i.id)) {
-            newIndex = overContainer.items.length + 1;
-        } else {
-            const isBelow = over && active.rect.current.translated && active.rect.current.translated.top > over.rect.top + over.rect.height;
-            const modifier = isBelow ? 1: 0;
-            newIndex = overItemIndex >= 0 ? overItemIndex + modifier : overContainer.items.length + 1;
+        if (!activeContainerId || !overContainerId || activeContainerId === overContainerId) {
+            return;
         }
-
-        const [movedItem] = activeContainer.items.splice(activeItemIndex, 1);
-        overContainer.items.splice(newIndex, 0, movedItem);
-      })
-    );
+  
+        const overContainer = draft.find(c => c.id === overContainerId);
+        if (!overContainer) return;
+  
+        let activeItem: Item | null = null;
+        const activeContainer = draft.find(c => c.id === activeContainerId);
+        if (activeContainer) {
+            activeItem = findAndRemove(activeContainer.items, active.id);
+        }
+  
+        if (activeItem) {
+          // Add to the new container's top-level items
+          overContainer.items.push(activeItem);
+        }
+    }));
   };
+  
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -286,29 +291,44 @@ export default function CategoriesPage() {
     }
 
     if (active.id !== over.id) {
-      const activeContainerId = findItemContainerId(active.id, board);
-      const overContainerId = over.data.current?.sortable?.containerId || over.id;
-      
-      if (activeContainerId && overContainerId && activeContainerId === overContainerId) {
-          const container = board.find(c => c.id === activeContainerId);
-          if (container) {
-              const oldIndex = container.items.findIndex(i => i.id === active.id);
-              const newIndex = container.items.findIndex(i => i.id === over.id);
-              if (oldIndex !== -1 && newIndex !== -1) {
-                  setBoard(produce(draft => {
-                      const targetContainer = draft.find(c => c.id === activeContainerId);
-                      if (targetContainer) {
-                          targetContainer.items = arrayMove(targetContainer.items, oldIndex, newIndex);
-                      }
-                  }));
-              }
-          }
-      }
+        const activeContainerId = findItemContainerId(active.id, board);
+        const overContainerId = over.data.current?.sortable?.containerId || over.id;
+
+        if (activeContainerId && overContainerId && activeContainerId === overContainerId) {
+            setBoard(produce(draft => {
+                const container = draft.find(c => c.id === activeContainerId);
+                if (container) {
+                    const oldIndex = container.items.findIndex(i => i.id === active.id);
+                    const newIndex = container.items.findIndex(i => i.id === over.id);
+
+                    if (oldIndex !== -1 && newIndex !== -1) {
+                        container.items = arrayMove(container.items, oldIndex, newIndex);
+                    }
+                    // Note: This does not handle reordering of nested children yet
+                }
+            }));
+        }
     }
-    
+
     setActiveId(null);
   };
   
+  const addItemToParent = (items: Item[], parentId: UniqueIdentifier, newItem: Item): boolean => {
+    for(const item of items) {
+        if(item.id === parentId) {
+            if (!item.children) item.children = [];
+            item.children.push(newItem);
+            return true;
+        }
+        if (item.children) {
+            if (addItemToParent(item.children, parentId, newItem)) {
+                return true;
+            }
+        }
+    }
+    return false;
+  }
+
   const handleAddCategoryFromDialog = (
     name: string,
     parentId: UniqueIdentifier | 'none'
@@ -318,20 +338,24 @@ export default function CategoriesPage() {
 
     setBoard(
       produce((draft) => {
-        if (parentId === 'none' || !parentId) {
-          // Create a new top-level category (column)
+        if (parentId === 'none') {
           draft.push({
             id: `col-${Date.now()}`,
             name: name,
             items: [],
           });
         } else {
-          // Find parent and add as sub-category
-          const parentColumn = draft.find((col) => col.id === parentId);
-          if (parentColumn) {
-            parentColumn.items.push(newCategory);
+          const isColumn = draft.some(col => col.id === parentId);
+          if (isColumn) {
+            const parentColumn = draft.find((col) => col.id === parentId);
+            parentColumn?.items.push(newCategory);
           } else {
-             // simplified: does not handle nested adding
+            // It's a nested item. Find it across all columns.
+            for (const column of draft) {
+                if (addItemToParent(column.items, parentId, newCategory)) {
+                    break;
+                }
+            }
           }
         }
       })
@@ -342,6 +366,11 @@ export default function CategoriesPage() {
     });
   };
 
+  const handleOpenAddDialog = (parentId: UniqueIdentifier | 'none' = 'none') => {
+    setAddCategoryParent(parentId);
+    setIsAddCategoryDialogOpen(true);
+  };
+
   if (isLoading) {
     return <CategoriesPageSkeleton view="gallery" />;
   }
@@ -350,25 +379,22 @@ export default function CategoriesPage() {
     <>
       <DashboardHeader />
       <div className="flex flex-col h-[calc(100vh-4rem)]">
-        <div className="p-4 sm:p-6 lg:p-8 border-b bg-background z-10">
+        <div className="p-4 sm:p-6 lg:p-8 border-b bg-background z-10 sticky top-16">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-semibold flex items-center gap-2">
               Categories
               <Badge variant="destructive">BLOOMSBURY'S (RAS AL KHAIMAH)</Badge>
             </h1>
             <div className="flex items-center gap-4">
-              <Button onClick={() => setIsAddCategoryDialogOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" /> Add Category
+              <Button onClick={() => handleOpenAddDialog('none')}>
+                <Plus className="mr-2 h-4 w-4" /> Add Category Column
               </Button>
               <Button variant="secondary">PUBLISH</Button>
             </div>
           </div>
         </div>
 
-        <div
-          className="flex-grow p-4 sm:p-6 lg:p-8 overflow-x-auto"
-          style={{ width: '1430px', overflowX: 'scroll' }}
-        >
+        <div className="flex-grow p-4 sm:p-6 lg:p-8 overflow-x-auto">
           <DndContext
             sensors={sensors}
             collisionDetection={closestCorners}
@@ -384,20 +410,23 @@ export default function CategoriesPage() {
                   label={column.name}
                   items={column.items}
                   onItemClick={setSelectedCategory}
+                  onAddItem={() => handleOpenAddDialog(column.id)}
                 />
               ))}
               <div className="w-80 flex-shrink-0">
                 <button
-                  onClick={() => setIsAddCategoryDialogOpen(true)}
+                  onClick={() => handleOpenAddDialog('none')}
                   className="w-full h-full rounded-lg border-2 border-dashed border-muted-foreground/50 bg-card p-6 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5 transition-colors"
                 >
                   <Plus className="h-8 w-8" />
-                  <span className="font-semibold">Add Category</span>
+                  <span className="font-semibold">Add Category Column</span>
                 </button>
               </div>
             </div>
             <DragOverlay>
-              {activeItem ? <Item id={activeItem.id} name={activeItem.name} /> : null}
+              {activeItem ? (
+                <ItemComponent id={activeItem.id} name={activeItem.name} />
+              ) : null}
             </DragOverlay>
           </DndContext>
         </div>
@@ -417,6 +446,7 @@ export default function CategoriesPage() {
         onOpenChange={setIsAddCategoryDialogOpen}
         onAddCategory={handleAddCategoryFromDialog}
         board={board}
+        initialParentId={addCategoryParent}
       />
     </>
   );

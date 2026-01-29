@@ -1,32 +1,47 @@
 'use client';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Item } from './Item';
-import { UniqueIdentifier } from '@dnd-kit/core';
+import { Item as ItemComponent } from './Item';
+import type { Item as ItemData } from '@/app/dashboard/categories/page';
+import React from 'react';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 
 type SortableItemProps = {
-  id: UniqueIdentifier;
-  name: string;
-  onClick: () => void;
+  item: ItemData;
+  onItemClick: (item: ItemData) => void;
 };
 
-export function SortableItem({ id, name, onClick }: SortableItemProps) {
+export function SortableItem({ item, onItemClick }: SortableItemProps) {
   const {
     attributes,
     listeners,
     setNodeRef,
     transform,
     transition,
-  } = useSortable({ id });
+    isDragging,
+  } = useSortable({ id: item.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    opacity: isDragging ? 0.5 : 1,
   };
 
+  const hasChildren = item.children && item.children.length > 0;
+  
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-        <Item id={id} name={name} onClick={onClick} />
+    <div ref={setNodeRef} style={style} className="flex flex-col gap-2" {...attributes} {...listeners}>
+        <ItemComponent id={item.id} name={item.name} onClick={() => onItemClick(item)} />
+        {hasChildren && (
+             <div className="ml-4 pl-4 border-l border-dashed space-y-2">
+                {item.children.map(child => (
+                    <SortableItem key={child.id} item={child} onItemClick={onItemClick} />
+                ))}
+             </div>
+        )}
     </div>
   );
 }
