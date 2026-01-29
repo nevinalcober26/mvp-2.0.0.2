@@ -221,96 +221,59 @@ export default function CategoriesPage() {
 
   const activeItem = useMemo(() => activeId ? findItem(activeId, board) : null, [activeId, board]);
 
-  const findItemContainerId = (id: UniqueIdentifier, columns: Column[]): UniqueIdentifier | undefined => {
-    for (const column of columns) {
-      const search = (items: Item[]): boolean => {
-        for (const item of items) {
-          if (item.id === id) return true;
-          if (item.children && search(item.children)) return true;
-        }
-        return false;
-      };
-      if (search(column.items)) return column.id;
-    }
-    return undefined;
-  };
-  
-  const findAndRemove = (items: Item[], id: UniqueIdentifier): Item | null => {
-    for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        if (item.id === id) {
-            // Found it, remove and return
-            return items.splice(i, 1)[0];
-        }
-        if (item.children) {
-            const found = findAndRemove(item.children, id);
-            if (found) return found;
-        }
-    }
-    return null;
-  }
-
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id);
   };
-
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
   
-    setBoard(produce((draft) => {
-        const activeContainerId = findItemContainerId(active.id, draft);
-        const overContainerId = over.data.current?.sortable?.containerId || over.id;
-
-        if (!activeContainerId || !overContainerId || activeContainerId === overContainerId) {
-            return;
-        }
-  
-        const overContainer = draft.find(c => c.id === overContainerId);
-        if (!overContainer) return;
-  
-        let activeItem: Item | null = null;
-        const activeContainer = draft.find(c => c.id === activeContainerId);
-        if (activeContainer) {
-            activeItem = findAndRemove(activeContainer.items, active.id);
-        }
-  
-        if (activeItem) {
-          // Add to the new container's top-level items
-          overContainer.items.push(activeItem);
-        }
-    }));
-  };
-  
-
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (!over) {
-      setActiveId(null);
-      return;
-    }
-
-    if (active.id !== over.id) {
-        const activeContainerId = findItemContainerId(active.id, board);
-        const overContainerId = over.data.current?.sortable?.containerId || over.id;
-
-        if (activeContainerId && overContainerId && activeContainerId === overContainerId) {
-            setBoard(produce(draft => {
-                const container = draft.find(c => c.id === activeContainerId);
-                if (container) {
-                    const oldIndex = container.items.findIndex(i => i.id === active.id);
-                    const newIndex = container.items.findIndex(i => i.id === over.id);
-
-                    if (oldIndex !== -1 && newIndex !== -1) {
-                        container.items = arrayMove(container.items, oldIndex, newIndex);
-                    }
-                    // Note: This does not handle reordering of nested children yet
-                }
-            }));
-        }
-    }
-
     setActiveId(null);
+    if (!over || active.id === over.id) return;
+  
+    setBoard(board => produce(board, draft => {
+        // Helper to find the list and index of an item by its ID
+        const findLocation = (id: UniqueIdentifier): { list: Item[], index: number } | null => {
+            for (const column of draft) {
+                const search = (items: Item[]): { list: Item[], index: number } | null => {
+                    const index = items.findIndex(item => item.id === id);
+                    if (index !== -1) return { list: items, index };
+                    
+                    for (const item of items) {
+                        if (item.children) {
+                            const found = search(item.children);
+                            if (found) return found;
+                        }
+                    }
+                    return null;
+                }
+                const found = search(column.items);
+                if (found) return found;
+            }
+            return null;
+        };
+
+        const activeLocation = findLocation(active.id);
+        if (!activeLocation) return;
+        
+        // Remove item from its original position
+        const [movedItem] = activeLocation.list.splice(activeLocation.index, 1);
+        
+        // Find drop target
+        const overLocation = findLocation(over.id);
+        if (overLocation) {
+            // Drop is over an existing item, insert it into that list.
+            overLocation.list.splice(overLocation.index, 0, movedItem);
+        } else {
+            // Drop is over a column container
+            const overColumn = draft.find(c => c.id === over.id);
+            if (overColumn) {
+                overColumn.items.push(movedItem);
+            } else {
+                // Invalid drop, put item back
+                activeLocation.list.splice(activeLocation.index, 0, movedItem);
+            }
+        }
+    }));
   };
   
   const addItemToParent = (items: Item[], parentId: UniqueIdentifier, newItem: Item): boolean => {
@@ -394,12 +357,11 @@ export default function CategoriesPage() {
           </div>
         </div>
 
-        <div className="flex-grow p-4 sm:p-6 lg:p-8 overflow-x-auto">
+        <div className="flex-grow p-4 sm:p-6 lg:p-8 overflow-x-auto" style={{width: "100vw"}}>
           <DndContext
             sensors={sensors}
             collisionDetection={closestCorners}
             onDragStart={handleDragStart}
-            onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
           >
             <div className="flex items-start gap-6 pb-4">
