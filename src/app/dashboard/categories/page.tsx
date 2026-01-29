@@ -371,7 +371,7 @@ export default function CategoriesPage() {
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex gap-6 overflow-x-auto pb-4">
+          <div className="flex items-stretch gap-6 overflow-x-auto pb-4">
             {board.map((column) => (
               <Container
                 key={column.id}
@@ -381,6 +381,15 @@ export default function CategoriesPage() {
                 onItemClick={setSelectedCategory}
               />
             ))}
+            <div className="w-80 flex-shrink-0">
+              <button
+                onClick={() => setIsAddCategoryDialogOpen(true)}
+                className="w-full h-full rounded-lg border-2 border-dashed border-muted-foreground/50 bg-card p-6 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5 transition-colors"
+              >
+                <Plus className="h-8 w-8" />
+                <span className="font-semibold">Add Category</span>
+              </button>
+            </div>
           </div>
           <DragOverlay>
             {activeItem ? <Item id={activeItem.id} name={activeItem.name} /> : null}
