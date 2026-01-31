@@ -56,8 +56,9 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs';
 import {
-  Bar,
-  BarChart,
+  Area,
+  AreaChart,
+  CartesianGrid,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -157,7 +158,7 @@ export default function PaymentsReportPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [date, setDate] = useState<Date | undefined>();
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
-  const [view, setView] = useState<'table' | 'chart'>('table');
+  const [view, setView] = useState<'table' | 'chart'>('chart');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
@@ -385,8 +386,8 @@ export default function PaymentsReportPage() {
         >
           <div className="flex justify-between items-center mb-4">
             <TabsList>
-              <TabsTrigger value="table">Table View</TabsTrigger>
               <TabsTrigger value="chart">Chart View</TabsTrigger>
+              <TabsTrigger value="table">Table View</TabsTrigger>
             </TabsList>
             <Button variant="outline">
               <Download className="mr-2 h-4 w-4" />
@@ -565,7 +566,30 @@ export default function PaymentsReportPage() {
               </CardHeader>
               <CardContent>
                 <ChartContainer config={chartConfig} className="h-[400px] w-full">
-                  <BarChart data={chartData}>
+                  <AreaChart
+                    data={chartData}
+                    margin={{
+                      top: 10,
+                      right: 30,
+                      left: 0,
+                      bottom: 0,
+                    }}
+                  >
+                    <defs>
+                      <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                        <stop
+                          offset="5%"
+                          stopColor="var(--color-sales)"
+                          stopOpacity={0.8}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="var(--color-sales)"
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis
                       dataKey="date"
                       tickLine={false}
@@ -574,21 +598,25 @@ export default function PaymentsReportPage() {
                       fontSize={12}
                     />
                     <YAxis
-                      tickFormatter={(value) => `$${value}`}
+                      tickFormatter={(value) => `$${Number(value) / 1000}k`}
                       tickLine={false}
                       axisLine={false}
                       fontSize={12}
+                      domain={[0, 'dataMax + 1000']}
                     />
                     <Tooltip
-                      cursor={false}
+                      cursor={{ strokeDasharray: '3 3' }}
                       content={<ChartTooltipContent indicator="dot" />}
                     />
-                    <Bar
+                    <Area
+                      type="monotone"
                       dataKey="sales"
-                      fill="var(--color-sales)"
-                      radius={4}
+                      stroke="var(--color-sales)"
+                      fillOpacity={1}
+                      fill="url(#colorSales)"
+                      strokeWidth={2}
                     />
-                  </BarChart>
+                  </AreaChart>
                 </ChartContainer>
               </CardContent>
             </Card>
