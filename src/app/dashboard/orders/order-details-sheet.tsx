@@ -68,13 +68,13 @@ export function OrderDetailsSheet({
           </SheetHeader>
           <div className="flex-grow overflow-y-auto p-6 space-y-6">
             <Card>
-              <CardHeader>
+              <CardHeader className="p-8">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <User className="h-5 w-5" />
                   {order.customer ? 'Customer Details' : 'Guest Details'}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6 text-sm space-y-4">
+              <CardContent className="p-8 pt-0 text-sm space-y-4">
                 <div className="flex justify-between items-center">
                   <p className="text-muted-foreground">Name</p>
                   <p className="font-medium">
@@ -93,13 +93,13 @@ export function OrderDetailsSheet({
             </Card>
             
             <Card>
-              <CardHeader>
+              <CardHeader className="p-8">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Info className="h-5 w-5" />
                   Order Summary
                 </CardTitle>
               </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-x-4 gap-y-6 pt-6 text-sm">
+              <CardContent className="p-8 pt-0 grid grid-cols-2 gap-x-4 gap-y-6 text-sm">
                  <div className="space-y-1">
                   <p className="text-muted-foreground">Branch</p>
                   <p className="font-medium">{order.branch}</p>
@@ -120,12 +120,12 @@ export function OrderDetailsSheet({
             </Card>
 
             <Card>
-              <CardHeader>
+              <CardHeader className="p-8">
                 <CardTitle className="text-lg">
                   Items Ordered ({order.items.length})
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-8 pt-0">
                 <div className="space-y-4">
                   {order.items.map((item) => (
                     <div
@@ -148,13 +148,13 @@ export function OrderDetailsSheet({
             </Card>
 
             <Card>
-              <CardHeader>
+              <CardHeader className="p-8">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <CreditCard className="h-5 w-5" />
                   Payment Details
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-8 pt-0">
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal</span>
