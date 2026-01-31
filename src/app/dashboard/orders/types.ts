@@ -35,6 +35,6 @@ export type Order = {
   orderTimestamp: number;
   payments: Payment[];
   splitType?: 'equally' | 'byItem';
-  customer: Customer;
+  customer?: Customer;
   orderComments?: string;
 };

@@ -96,6 +96,31 @@ export function OrderDetailsSheet({
 
             <Card>
               <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Customer Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 text-sm space-y-4">
+                <div className="flex justify-between items-center">
+                  <p className="text-muted-foreground">Name</p>
+                  <p className="font-medium">
+                    {order.customer?.name || 'Guest Customer'}
+                  </p>
+                </div>
+                <div className="flex justify-between items-center">
+                  <p className="text-muted-foreground">Email</p>
+                  <p className="font-medium">{order.customer?.email || 'N/A'}</p>
+                </div>
+                <div className="flex justify-between items-center">
+                  <p className="text-muted-foreground">Phone</p>
+                  <p className="font-medium">{order.customer?.phone || 'N/A'}</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
                 <CardTitle className="text-lg">
                   Items Ordered ({order.items.length})
                 </CardTitle>

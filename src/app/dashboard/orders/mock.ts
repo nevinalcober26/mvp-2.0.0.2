@@ -131,6 +131,7 @@ export const generateMockOrders = (count: number): Order[] => {
     const orderTimestamp = Date.now() - i * 3600000;
     const orderDate = new Date(orderTimestamp);
     const customerName = customerNames[i % customerNames.length];
+    const hasCustomer = i % 4 !== 0; // ~25% of orders will be from guests
 
     orders.push({
       orderId: `#${3210 + i}`,
@@ -153,11 +154,13 @@ export const generateMockOrders = (count: number): Order[] => {
       items: currentItems,
       payments,
       splitType,
-      customer: {
-        name: customerName,
-        email: `${customerName.toLowerCase().replace(' ', '.')}@example.com`,
-        phone: `555-01${String(i).padStart(2, '0')}`,
-      },
+      customer: hasCustomer
+        ? {
+            name: customerName,
+            email: `${customerName.toLowerCase().replace(' ', '.')}@example.com`,
+            phone: `555-01${String(i).padStart(2, '0')}`,
+          }
+        : undefined,
       orderComments: comments[i % comments.length] || undefined,
     });
   }

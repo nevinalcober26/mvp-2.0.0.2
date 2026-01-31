@@ -749,9 +749,23 @@ export default function OrdersPage() {
                           <TableCell className="font-medium">{order.orderId}</TableCell>
                           {visibleColumns.customer && (
                             <TableCell>
-                              <div className="font-medium">{order.customer.name}</div>
-                              <div className="text-xs text-muted-foreground">{order.customer.email}</div>
-                              <div className="text-xs text-muted-foreground">{order.customer.phone}</div>
+                              {order.customer ? (
+                                <div>
+                                  <div className="font-medium">
+                                    {order.customer.name}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {order.customer.email}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {order.customer.phone}
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="text-xs italic text-muted-foreground">
+                                  Guest
+                                </div>
+                              )}
                             </TableCell>
                           )}
                           <TableCell>{order.branch}</TableCell>
