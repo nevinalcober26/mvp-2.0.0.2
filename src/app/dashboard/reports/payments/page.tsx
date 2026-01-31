@@ -33,6 +33,7 @@ import {
   Download,
   TrendingUp,
   Users,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -70,7 +71,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { format, isSameDay } from 'date-fns';
+import { format, isSameDay, differenceInDays } from 'date-fns';
 
 type Transaction = {
   id: string;
@@ -85,6 +86,8 @@ type Transaction = {
   branch: 'Ras Al Khaimah' | 'Dubai Mall';
   table: string;
   splitMethod?: 'Equal' | 'Item-based' | 'Custom';
+  lastPaymentAttempt: number;
+  closeType: 'Auto' | 'Manual';
 };
 
 const generateMockTransactions = (count: number): Transaction[] => {
@@ -100,6 +103,8 @@ const generateMockTransactions = (count: number): Transaction[] => {
     'Ras Al Khaimah',
     'Dubai Mall',
   ];
+  const closeTypes: Transaction['closeType'][] = ['Auto', 'Manual'];
+
 
   for (let i = 0; i < count; i++) {
     const totalAmount = parseFloat((Math.random() * 200 + 10).toFixed(2));
@@ -121,12 +126,13 @@ const generateMockTransactions = (count: number): Transaction[] => {
         const splitMethods: Transaction['splitMethod'][] = ['Equal', 'Item-based', 'Custom'];
         splitMethod = splitMethods[i % splitMethods.length];
     }
+    const timestamp = Date.now() - i * 3600000 * 3;
 
 
     transactions.push({
       id: `txn_${12345 + i}`,
       orderId: `#${3210 + i}`,
-      timestamp: Date.now() - i * 3600000 * 3, // 3 hour intervals
+      timestamp: timestamp,
       totalAmount,
       paidAmount,
       outstandingAmount: totalAmount - paidAmount,
@@ -136,6 +142,8 @@ const generateMockTransactions = (count: number): Transaction[] => {
       branch: branches[i % branches.length],
       table: `T${(i % 24) + 1}`,
       splitMethod,
+      lastPaymentAttempt: timestamp + Math.random() * 3600000,
+      closeType: closeTypes[i % closeTypes.length],
     });
   }
   return transactions;
@@ -274,6 +282,12 @@ export default function PaymentsReportPage() {
   const splitTransactions = useMemo(() => filteredAndSortedTransactions.filter(t => t.payers > 1 || t.splitMethod), [filteredAndSortedTransactions]);
   const splitAdoptionRate = transactions.length > 0 ? (transactions.filter(t => t.payers > 1).length / transactions.length) * 100 : 0;
   const avgPayers = splitTransactions.length > 0 ? splitTransactions.reduce((acc, t) => acc + t.payers, 0) / splitTransactions.length : 1;
+  
+  const outstandingTransactions = useMemo(() => {
+    return filteredAndSortedTransactions.filter(
+        (t) => t.paymentStatus === 'Partial' || t.paymentStatus === 'Unpaid'
+    );
+  }, [filteredAndSortedTransactions]);
 
 
   const requestSort = (key: keyof Transaction) => {
@@ -826,10 +840,49 @@ export default function PaymentsReportPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <Card>
                 <CardHeader>
-                <CardTitle>Outstanding / Partial Payments</CardTitle>
+                    <CardTitle>Outstanding / Partial Payments</CardTitle>
+                    <CardDescription>
+                        Monitor orders with pending payments to manage risk and collections.
+                    </CardDescription>
                 </CardHeader>
                 <CardContent>
-                <p className="text-muted-foreground">Content coming soon...</p>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Order ID</TableHead>
+                                <TableHead>Total</TableHead>
+                                <TableHead>Paid</TableHead>
+                                <TableHead>Remaining</TableHead>
+                                <TableHead>Days Open</TableHead>
+                                <TableHead>Last Attempt</TableHead>
+                                <TableHead>Close Type</TableHead>
+                                <TableHead><span className="sr-only">Warning</span></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {outstandingTransactions.slice(0, 5).map((t) => {
+                                const daysOutstanding = differenceInDays(new Date(), new Date(t.timestamp));
+                                const isHighRisk = t.outstandingAmount > 50;
+                                return (
+                                    <TableRow key={t.id} className={cn(isHighRisk && 'bg-red-50/50 border-l-4 border-red-500')}>
+                                        <TableCell className="font-medium">{t.orderId}</TableCell>
+                                        <TableCell>${t.totalAmount.toFixed(2)}</TableCell>
+                                        <TableCell className="text-green-600">${t.paidAmount.toFixed(2)}</TableCell>
+                                        <TableCell className="font-semibold text-red-600">${t.outstandingAmount.toFixed(2)}</TableCell>
+                                        <TableCell>{daysOutstanding} day(s)</TableCell>
+                                        <TableCell>{new Date(t.lastPaymentAttempt).toLocaleDateString()}</TableCell>
+                                        <TableCell>{t.closeType}</TableCell>
+                                        <TableCell className="text-right">
+                                            {isHighRisk && <AlertTriangle className="h-5 w-5 text-red-500" />}
+                                        </TableCell>
+                                    </TableRow>
+                                )
+                            })}
+                        </TableBody>
+                    </Table>
+                     {outstandingTransactions.length === 0 && (
+                        <p className="text-center text-muted-foreground py-8">No outstanding payments match the current filters.</p>
+                    )}
                 </CardContent>
             </Card>
             <Card>
