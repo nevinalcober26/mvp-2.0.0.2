@@ -188,8 +188,7 @@ export function OrderDetailsSheet({
 
                 <Separator className="my-4" />
                 
-                <div className="overflow-y-auto pr-4">
-
+                <div>
                   <h4 className="font-semibold mb-3">Payment History</h4>
                   
                   {order.splitType ? (
