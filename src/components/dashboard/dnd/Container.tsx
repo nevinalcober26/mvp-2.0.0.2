@@ -60,7 +60,7 @@ export function Container({ id, label, items, onItemClick, onAddItem, activeId, 
             <CardHeader>
                 <CardTitle>{label}</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col gap-2 flex-grow min-h-[50px]">
+            <CardContent className={cn("flex flex-col gap-2", items.length > 0 ? 'flex-grow' : 'p-0')}>
                 <SortableContext items={allItemIds} strategy={verticalListSortingStrategy}>
                 {items.map((item) => (
                     <SortableItem 
