@@ -37,9 +37,9 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '../ui/button';
 import { usePathname } from 'next/navigation';
-import NextLink from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import NextLink from 'next/link';
 
 const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
 
@@ -91,21 +91,36 @@ export const EMenuIcon = () => (
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const [isCatalogOpen, setIsCatalogOpen] = useState(
-    pathname.startsWith('/dashboard/products') ||
+
+  const getInitialOpenMenu = () => {
+    if (
+      pathname.startsWith('/dashboard/products') ||
       pathname.startsWith('/dashboard/categories')
-  );
-  const [isOperationsOpen, setIsOperationsOpen] = useState(
-    pathname.startsWith('/dashboard/tables') ||
+    ) {
+      return 'catalog';
+    }
+    if (
+      pathname.startsWith('/dashboard/tables') ||
       pathname.startsWith('/dashboard/reports/staff-performance')
-  );
-  const [isOrdersOpen, setIsOrdersOpen] = useState(
-    pathname.startsWith('/dashboard/orders') ||
+    ) {
+      return 'operations';
+    }
+    if (
+      pathname.startsWith('/dashboard/orders') ||
       pathname.startsWith('/dashboard/reports/payments')
+    ) {
+      return 'orders';
+    }
+    return null;
+  };
+
+  const [activeMenu, setActiveMenu] = useState<string | null>(
+    getInitialOpenMenu()
   );
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isIntegrationsOpen, setIsIntegrationsOpen] = useState(false);
-  const [isSystemOpen, setIsSystemOpen] = useState(false);
+
+  const handleMenuToggle = (menu: string) => {
+    setActiveMenu((prev) => (prev === menu ? null : menu));
+  };
 
   return (
     <Sidebar variant="sidebar" collapsible="icon" className="border-r">
@@ -163,10 +178,13 @@ export function AppSidebar() {
           <SidebarGroupLabel>Management</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
-              <Collapsible open={isCatalogOpen} onOpenChange={setIsCatalogOpen}>
+              <Collapsible
+                open={activeMenu === 'catalog'}
+                onOpenChange={() => handleMenuToggle('catalog')}
+              >
                 <CollapsibleTrigger asChild className="w-full">
                   <SidebarMenuButton
-                    isActive={isCatalogOpen}
+                    isActive={activeMenu === 'catalog'}
                     tooltip="Catalog"
                     className="w-full justify-between"
                   >
@@ -174,7 +192,11 @@ export function AppSidebar() {
                       <BookOpen />
                       <span>Catalog</span>
                     </div>
-                    {isCatalogOpen ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                    {activeMenu === 'catalog' ? (
+                      <Minus className="h-4 w-4" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -219,12 +241,12 @@ export function AppSidebar() {
 
             <SidebarMenuItem>
               <Collapsible
-                open={isOperationsOpen}
-                onOpenChange={setIsOperationsOpen}
+                open={activeMenu === 'operations'}
+                onOpenChange={() => handleMenuToggle('operations')}
               >
                 <CollapsibleTrigger asChild className="w-full">
                   <SidebarMenuButton
-                    isActive={isOperationsOpen}
+                    isActive={activeMenu === 'operations'}
                     tooltip="Operations"
                     className="w-full justify-between"
                   >
@@ -232,7 +254,11 @@ export function AppSidebar() {
                       <Briefcase />
                       <span>Operations</span>
                     </div>
-                    {isOperationsOpen ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                    {activeMenu === 'operations' ? (
+                      <Minus className="h-4 w-4" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -280,10 +306,13 @@ export function AppSidebar() {
             </SidebarMenuItem>
 
             <SidebarMenuItem>
-              <Collapsible open={isOrdersOpen} onOpenChange={setIsOrdersOpen}>
+              <Collapsible
+                open={activeMenu === 'orders'}
+                onOpenChange={() => handleMenuToggle('orders')}
+              >
                 <CollapsibleTrigger asChild className="w-full">
                   <SidebarMenuButton
-                    isActive={isOrdersOpen}
+                    isActive={activeMenu === 'orders'}
                     tooltip="Orders"
                     className="w-full justify-between"
                   >
@@ -291,7 +320,11 @@ export function AppSidebar() {
                       <ClipboardList />
                       <span>Orders</span>
                     </div>
-                    {isOrdersOpen ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                    {activeMenu === 'orders' ? (
+                      <Minus className="h-4 w-4" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -339,12 +372,12 @@ export function AppSidebar() {
           <SidebarMenu>
             <SidebarMenuItem>
               <Collapsible
-                open={isSettingsOpen}
-                onOpenChange={setIsSettingsOpen}
+                open={activeMenu === 'settings'}
+                onOpenChange={() => handleMenuToggle('settings')}
               >
                 <CollapsibleTrigger asChild className="w-full">
                   <SidebarMenuButton
-                    isActive={isSettingsOpen}
+                    isActive={activeMenu === 'settings'}
                     tooltip="Settings"
                     className="w-full justify-between"
                   >
@@ -352,7 +385,11 @@ export function AppSidebar() {
                       <Settings />
                       <span>Settings</span>
                     </div>
-                    {isSettingsOpen ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                    {activeMenu === 'settings' ? (
+                      <Minus className="h-4 w-4" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -404,12 +441,12 @@ export function AppSidebar() {
 
             <SidebarMenuItem>
               <Collapsible
-                open={isIntegrationsOpen}
-                onOpenChange={setIsIntegrationsOpen}
+                open={activeMenu === 'integrations'}
+                onOpenChange={() => handleMenuToggle('integrations')}
               >
                 <CollapsibleTrigger asChild className="w-full">
                   <SidebarMenuButton
-                    isActive={isIntegrationsOpen}
+                    isActive={activeMenu === 'integrations'}
                     tooltip="Integrations"
                     className="w-full justify-between"
                   >
@@ -417,7 +454,11 @@ export function AppSidebar() {
                       <Plug />
                       <span>Integrations</span>
                     </div>
-                    {isIntegrationsOpen ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                    {activeMenu === 'integrations' ? (
+                      <Minus className="h-4 w-4" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -443,10 +484,13 @@ export function AppSidebar() {
             </SidebarMenuItem>
 
             <SidebarMenuItem>
-              <Collapsible open={isSystemOpen} onOpenChange={setIsSystemOpen}>
+              <Collapsible
+                open={activeMenu === 'system'}
+                onOpenChange={() => handleMenuToggle('system')}
+              >
                 <CollapsibleTrigger asChild className="w-full">
                   <SidebarMenuButton
-                    isActive={isSystemOpen}
+                    isActive={activeMenu === 'system'}
                     tooltip="System"
                     className="w-full justify-between"
                   >
@@ -454,7 +498,11 @@ export function AppSidebar() {
                       <SlidersHorizontal />
                       <span>System</span>
                     </div>
-                    {isSystemOpen ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                    {activeMenu === 'system' ? (
+                      <Minus className="h-4 w-4" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -508,7 +556,7 @@ export function AppSidebar() {
               <span className="text-xs text-gray-400">john@domain.com</span>
             </div>
           </div>
-          {isSystemOpen ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+          <Plus className="h-4 w-4 group-data-[collapsible=icon]:hidden" />
         </Button>
       </SidebarFooter>
     </Sidebar>
