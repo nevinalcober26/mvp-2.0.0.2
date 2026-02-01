@@ -216,9 +216,6 @@ const initialFilterState = {
   paymentStatus: 'all',
   paymentMethod: 'all',
   table: 'all',
-  splitMethod: 'all',
-  closeType: 'all',
-  staffName: 'all',
 };
 
 const ExportDialog = ({
@@ -306,7 +303,9 @@ export default function PaymentsReportPage() {
       description: `Your transactions are being prepared for a ${format} download.`,
     });
     // In a real app, you would implement the actual export logic here
-    console.log(`Exporting ${filteredAndSortedTransactions.length} transactions as ${format}...`);
+    console.log(
+      `Exporting ${filteredAndSortedTransactions.length} transactions as ${format}...`
+    );
   };
 
   const {
@@ -416,25 +415,13 @@ export default function PaymentsReportPage() {
         transaction.paymentMethod === filters.paymentMethod;
       const matchesTable =
         filters.table === 'all' || transaction.table === filters.table;
-      const matchesSplitMethod =
-        filters.splitMethod === 'all' ||
-        transaction.splitMethod === filters.splitMethod;
-      const matchesCloseType =
-        filters.closeType === 'all' ||
-        transaction.closeType === filters.closeType;
-      const matchesStaffName =
-        filters.staffName === 'all' ||
-        transaction.staffName === filters.staffName;
 
       return (
         matchesDate &&
         matchesBranch &&
         matchesStatus &&
         matchesMethod &&
-        matchesTable &&
-        matchesSplitMethod &&
-        matchesCloseType &&
-        matchesStaffName
+        matchesTable
       );
     });
 
@@ -550,14 +537,6 @@ export default function PaymentsReportPage() {
     );
   }, [transactions]);
 
-  const staffNames = useMemo(() => {
-    return [...new Set(transactions.map((t) => t.staffName))];
-  }, [transactions]);
-
-  const branches = useMemo(() => {
-    return [...new Set(transactions.map((t) => t.branch))];
-  }, [transactions]);
-
   const SortableHeader = ({
     tKey,
     label,
@@ -651,11 +630,8 @@ export default function PaymentsReportPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Branches</SelectItem>
-                {branches.map((branch) => (
-                  <SelectItem key={branch} value={branch}>
-                    {branch}
-                  </SelectItem>
-                ))}
+                <SelectItem value="Ras Al Khaimah">Ras Al Khaimah</SelectItem>
+                <SelectItem value="Dubai Mall">Dubai Mall</SelectItem>
               </SelectContent>
             </Select>
             <Select
@@ -879,7 +855,10 @@ export default function PaymentsReportPage() {
                             />
                           </TableHead>
                           <TableHead>
-                            <SortableHeader tKey="timestamp" label="Timestamp" />
+                            <SortableHeader
+                              tKey="timestamp"
+                              label="Timestamp"
+                            />
                           </TableHead>
                           <TableHead className="text-right">
                             <SortableHeader
@@ -935,7 +914,9 @@ export default function PaymentsReportPage() {
                                 onCheckedChange={() => handleRowSelect(t.id)}
                               />
                             </TableCell>
-                            <TableCell className="font-medium">{t.id}</TableCell>
+                            <TableCell className="font-medium">
+                              {t.id}
+                            </TableCell>
                             <TableCell>{t.orderId}</TableCell>
                             <TableCell>
                               {new Date(t.timestamp).toLocaleString()}
@@ -968,7 +949,9 @@ export default function PaymentsReportPage() {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent>
-                                  <DropdownMenuItem>View Order</DropdownMenuItem>
+                                  <DropdownMenuItem>
+                                    View Order
+                                  </DropdownMenuItem>
                                   <DropdownMenuItem>
                                     View Receipt
                                   </DropdownMenuItem>
