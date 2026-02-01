@@ -46,7 +46,7 @@ import { Input } from '../ui/input';
 const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
 
 export const EMenuIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" version="1.0" viewBox="0 0 1896 592" width="100" height="24">
+  <svg xmlns="http://www.w3.org/2000/svg" version="1.0" viewBox="0 0 1896 592" width="120" height="38">
     <path
       fill="teal"
       d="M474 167v19h42v-38h-42zm69 0v19h310v-38H543zm-69 89.5V275h42v-37h-42zm69 0V275h152v-37H543zm-69 90V365h42v-37h-42zm69 0V365h76v-37h-76z"
@@ -119,10 +119,7 @@ export const EMenuIcon = () => (
 const createTooltipContent = (
   title: string,
   items: { label: string; path: string }[]
-): Omit<React.ComponentProps<typeof TooltipContent>, 'key' | 'children'> & {
-  children: React.ReactNode;
-} => ({
-  className: 'bg-gray-900 text-gray-200 border-gray-700 p-0',
+): React.ComponentProps<typeof TooltipContent> => ({
   children: (
     <div className="flex flex-col items-start p-1">
       <p className="font-bold px-2 py-1">{title}</p>
@@ -142,6 +139,7 @@ const createTooltipContent = (
       </div>
     </div>
   ),
+  className: 'bg-gray-900 text-gray-200 border-gray-700 p-0',
 });
 
 export function AppSidebar() {
