@@ -818,130 +818,6 @@ export default function PaymentsReportPage() {
     </Card>
   )
 
-  const renderSecondaryFilters = () => {
-    switch (activeTab) {
-      case 'summary':
-        return (
-          <>
-            <div className="space-y-2">
-              <Label htmlFor="status-filter">Payment Status</Label>
-              <Select
-                value={filters.paymentStatus}
-                onValueChange={(value) => handleFilterChange('paymentStatus', value)}
-              >
-                <SelectTrigger id="status-filter">
-                  <SelectValue placeholder="Payment Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="Paid">Paid</SelectItem>
-                  <SelectItem value="Partial">Partial</SelectItem>
-                  <SelectItem value="Unpaid">Unpaid</SelectItem>
-                  <SelectItem value="Refunded">Refunded</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="method-filter">Payment Method</Label>
-              <Select
-                value={filters.paymentMethod}
-                onValueChange={(value) => handleFilterChange('paymentMethod', value)}
-              >
-                <SelectTrigger id="method-filter">
-                  <SelectValue placeholder="Payment Method" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Methods</SelectItem>
-                  <SelectItem value="Credit Card">Credit Card</SelectItem>
-                  <SelectItem value="Cash">Cash</SelectItem>
-                  <SelectItem value="Online">Online</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="table-filter">Table Number</Label>
-              <Select
-                value={filters.table}
-                onValueChange={(value) => handleFilterChange('table', value)}
-              >
-                <SelectTrigger id="table-filter">
-                  <SelectValue placeholder="Table Number" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Tables</SelectItem>
-                  {tableNumbers.map((table) => (
-                    <SelectItem key={table} value={table}>{table}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </>
-        );
-      case 'split-bills':
-        return (
-          <div className="space-y-2">
-            <Label htmlFor="split-filter">Split Method</Label>
-            <Select
-              value={filters.splitMethod}
-              onValueChange={(value) => handleFilterChange('splitMethod', value)}
-            >
-              <SelectTrigger id="split-filter">
-                <SelectValue placeholder="Split Method" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Split Methods</SelectItem>
-                <SelectItem value="Equal">Equal</SelectItem>
-                <SelectItem value="Item-based">Item-based</SelectItem>
-                <SelectItem value="Custom">Custom</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        );
-      case 'outstanding':
-        return (
-          <div className="space-y-2">
-            <Label htmlFor="close-type-filter">Close Type</Label>
-            <Select
-              value={filters.closeType}
-              onValueChange={(value) => handleFilterChange('closeType', value)}
-            >
-              <SelectTrigger id="close-type-filter">
-                <SelectValue placeholder="Close Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Close Types</SelectItem>
-                <SelectItem value="Auto">Auto</SelectItem>
-                <SelectItem value="Manual">Manual</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        );
-      case 'tips':
-        return (
-          <div className="space-y-2">
-            <Label htmlFor="staff-filter">Staff Name</Label>
-            <Select
-              value={filters.staffName}
-              onValueChange={(value) => handleFilterChange('staffName', value)}
-            >
-              <SelectTrigger id="staff-filter">
-                <SelectValue placeholder="Filter by Staff" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Staff</SelectItem>
-                {staffNames.map((name) => (
-                  <SelectItem key={name} value={name}>{name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
-
-
   if (isLoading) {
     return <OrdersPageSkeleton view="list" />;
   }
@@ -1011,7 +887,118 @@ export default function PaymentsReportPage() {
                     <p className="text-sm text-muted-foreground">
                       Filter the data for the '{activeTab}' tab.
                     </p>
-                    {renderSecondaryFilters()}
+                    {activeTab === 'summary' && (
+                        <>
+                            <div className="space-y-2">
+                            <Label htmlFor="status-filter">Payment Status</Label>
+                            <Select
+                                value={filters.paymentStatus}
+                                onValueChange={(value) => handleFilterChange('paymentStatus', value)}
+                            >
+                                <SelectTrigger id="status-filter">
+                                <SelectValue placeholder="Payment Status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                <SelectItem value="all">All Statuses</SelectItem>
+                                <SelectItem value="Paid">Paid</SelectItem>
+                                <SelectItem value="Partial">Partial</SelectItem>
+                                <SelectItem value="Unpaid">Unpaid</SelectItem>
+                                <SelectItem value="Refunded">Refunded</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            </div>
+                            <div className="space-y-2">
+                            <Label htmlFor="method-filter">Payment Method</Label>
+                            <Select
+                                value={filters.paymentMethod}
+                                onValueChange={(value) => handleFilterChange('paymentMethod', value)}
+                            >
+                                <SelectTrigger id="method-filter">
+                                <SelectValue placeholder="Payment Method" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                <SelectItem value="all">All Methods</SelectItem>
+                                <SelectItem value="Credit Card">Credit Card</SelectItem>
+                                <SelectItem value="Cash">Cash</SelectItem>
+                                <SelectItem value="Online">Online</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            </div>
+                            <div className="space-y-2">
+                            <Label htmlFor="table-filter">Table Number</Label>
+                            <Select
+                                value={filters.table}
+                                onValueChange={(value) => handleFilterChange('table', value)}
+                            >
+                                <SelectTrigger id="table-filter">
+                                <SelectValue placeholder="Table Number" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                <SelectItem value="all">All Tables</SelectItem>
+                                {tableNumbers.map((table) => (
+                                    <SelectItem key={table} value={table}>{table}</SelectItem>
+                                ))}
+                                </SelectContent>
+                            </Select>
+                            </div>
+                        </>
+                    )}
+                    {activeTab === 'split-bills' && (
+                        <div className="space-y-2">
+                            <Label htmlFor="split-filter">Split Method</Label>
+                            <Select
+                            value={filters.splitMethod}
+                            onValueChange={(value) => handleFilterChange('splitMethod', value)}
+                            >
+                            <SelectTrigger id="split-filter">
+                                <SelectValue placeholder="Split Method" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Split Methods</SelectItem>
+                                <SelectItem value="Equal">Equal</SelectItem>
+                                <SelectItem value="Item-based">Item-based</SelectItem>
+                                <SelectItem value="Custom">Custom</SelectItem>
+                            </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+                    {activeTab === 'outstanding' && (
+                         <div className="space-y-2">
+                            <Label htmlFor="close-type-filter">Close Type</Label>
+                            <Select
+                            value={filters.closeType}
+                            onValueChange={(value) => handleFilterChange('closeType', value)}
+                            >
+                            <SelectTrigger id="close-type-filter">
+                                <SelectValue placeholder="Close Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Close Types</SelectItem>
+                                <SelectItem value="Auto">Auto</SelectItem>
+                                <SelectItem value="Manual">Manual</SelectItem>
+                            </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+                    {activeTab === 'tips' && (
+                        <div className="space-y-2">
+                            <Label htmlFor="staff-filter">Staff Name</Label>
+                            <Select
+                            value={filters.staffName}
+                            onValueChange={(value) => handleFilterChange('staffName', value)}
+                            >
+                            <SelectTrigger id="staff-filter">
+                                <SelectValue placeholder="Filter by Staff" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Staff</SelectItem>
+                                {staffNames.map((name) => (
+                                <SelectItem key={name} value={name}>{name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                            </Select>
+                        </div>
+                    )}
                   </div>
                 </PopoverContent>
               </Popover>
@@ -1024,7 +1011,7 @@ export default function PaymentsReportPage() {
             </Button>
           </div>
 
-          <TabsContent value="summary" className="space-y-4 mt-4">
+          <TabsContent value="summary" className="space-y-6 mt-4">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               {summaryKpiCards.map((card) => (
                 <KpiCard key={card.title} {...card}/>
@@ -1144,31 +1131,23 @@ export default function PaymentsReportPage() {
                     <TableBody>
                       {paginatedTransactions.map((t) => (
                         <TableRow key={t.id} onClick={() => handleViewDetails(t)} className="cursor-pointer">
-                          <TableCell className="font-medium">{t.id}</TableCell>
-                          <TableCell>{t.orderId}</TableCell>
-                          <TableCell>
+                          <><TableCell className="font-medium">{t.id}</TableCell><TableCell>{t.orderId}</TableCell><TableCell>
                             {new Date(t.timestamp).toLocaleString()}
-                          </TableCell>
-                          <TableCell className="text-right font-mono">
+                          </TableCell><TableCell className="text-right font-mono">
                             ${t.totalAmount.toFixed(2)}
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-green-600">
+                          </TableCell><TableCell className="text-right font-mono text-green-600">
                             ${t.paidAmount.toFixed(2)}
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-red-600">
+                          </TableCell><TableCell className="text-right font-mono text-red-600">
                             ${t.outstandingAmount.toFixed(2)}
-                          </TableCell>
-                          <TableCell>
+                          </TableCell><TableCell>
                             <Badge
                               variant={getStatusBadgeVariant(t.paymentStatus)}
                             >
                               {t.paymentStatus}
                             </Badge>
-                          </TableCell>
-                          <TableCell>{t.paymentMethod}</TableCell>
-                          <TableCell className="text-right">
+                          </TableCell><TableCell>{t.paymentMethod}</TableCell><TableCell className="text-right">
                             {t.payers}
-                          </TableCell>
+                          </TableCell></>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -1217,7 +1196,7 @@ export default function PaymentsReportPage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="split-bills" className="mt-4 space-y-4">
+          <TabsContent value="split-bills" className="mt-4 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {splitKpiCards.map((card) => (
                 <KpiCard key={card.title} {...card}/>
@@ -1288,24 +1267,19 @@ export default function PaymentsReportPage() {
                     <TableBody>
                       {splitTransactions.slice(0, 5).map((t) => (
                         <TableRow key={t.id} onClick={() => handleViewDetails(t)} className="cursor-pointer">
-                          <TableCell className="font-medium">
+                          <><TableCell className="font-medium">
                             {t.orderId}
-                          </TableCell>
-                          <TableCell className="font-mono">
+                          </TableCell><TableCell className="font-mono">
                             ${t.totalAmount.toFixed(2)}
-                          </TableCell>
-                          <TableCell className="text-center">
+                          </TableCell><TableCell className="text-center">
                             {t.payers}
-                          </TableCell>
-                          <TableCell>{t.splitMethod || 'N/A'}</TableCell>
-                          <TableCell>8m 15s</TableCell> {/* Placeholder */}
-                          <TableCell>
+                          </TableCell><TableCell>{t.splitMethod || 'N/A'}</TableCell><TableCell>8m 15s</TableCell><TableCell>
                             <Badge
                               variant={getStatusBadgeVariant(t.paymentStatus)}
                             >
                               {t.paymentStatus}
                             </Badge>
-                          </TableCell>
+                          </TableCell></>
                         </TableRow>
                         ))}
                     </TableBody>
@@ -1319,7 +1293,7 @@ export default function PaymentsReportPage() {
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="outstanding" className="mt-4 space-y-4">
+          <TabsContent value="outstanding" className="mt-4 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {outstandingKpiCards.map((card) => (
                 <KpiCard key={card.title} {...card}/>
@@ -1387,28 +1361,21 @@ export default function PaymentsReportPage() {
                           )}
                           onClick={() => handleViewDetails(t)}
                         >
-                          <TableCell className="font-medium">
+                          <><TableCell className="font-medium">
                             {t.orderId}
-                          </TableCell>
-                          <TableCell>${t.totalAmount.toFixed(2)}</TableCell>
-                          <TableCell className="text-green-600">
+                          </TableCell><TableCell>${t.totalAmount.toFixed(2)}</TableCell><TableCell className="text-green-600">
                             ${t.paidAmount.toFixed(2)}
-                          </TableCell>
-                          <TableCell className="font-semibold text-red-600">
+                          </TableCell><TableCell className="font-semibold text-red-600">
                             ${t.outstandingAmount.toFixed(2)}
-                          </TableCell>
-                          <TableCell>{daysOutstanding} day(s)</TableCell>
-                          <TableCell>
+                          </TableCell><TableCell>{daysOutstanding} day(s)</TableCell><TableCell>
                             {new Date(
                               t.lastPaymentAttempt
                             ).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell>{t.closeType}</TableCell>
-                          <TableCell className="text-right">
+                          </TableCell><TableCell>{t.closeType}</TableCell><TableCell className="text-right">
                             {isHighRisk && (
                               <AlertTriangle className="h-5 w-5 text-red-500" />
                             )}
-                          </TableCell>
+                          </TableCell></>
                         </TableRow>
                       );
                     })}
@@ -1422,7 +1389,7 @@ export default function PaymentsReportPage() {
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="tips" className="mt-4 space-y-4">
+          <TabsContent value="tips" className="mt-4 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
              {tipsKpiCards.map((card) => (
                 <KpiCard key={card.title} {...card}/>
@@ -1499,25 +1466,20 @@ export default function PaymentsReportPage() {
                       <TableBody>
                         {tipTransactions.slice(0, 5).map((t) => (
                           <TableRow key={t.id} onClick={() => handleViewDetails(t)} className="cursor-pointer">
-                            <TableCell className="font-medium">
+                            <><TableCell className="font-medium">
                               {t.orderId}
-                            </TableCell>
-                            <TableCell>{t.staffName}</TableCell>
-                            <TableCell className="font-mono">
+                            </TableCell><TableCell>{t.staffName}</TableCell><TableCell className="font-mono">
                               ${t.tipAmount?.toFixed(2)}
-                            </TableCell>
-                            <TableCell className="font-mono">
+                            </TableCell><TableCell className="font-mono">
                               {t.paidAmount > 0
                                 ? `${(
                                     (t.tipAmount! / t.paidAmount) *
                                     100
                                   ).toFixed(1)}%`
                                 : 'N/A'}
-                            </TableCell>
-                            <TableCell>{t.paymentMethod}</TableCell>
-                            <TableCell>
+                            </TableCell><TableCell>{t.paymentMethod}</TableCell><TableCell>
                               <Badge variant="outline">{t.tipType}</Badge>
-                            </TableCell>
+                            </TableCell></>
                           </TableRow>
                         ))}
                       </TableBody>
