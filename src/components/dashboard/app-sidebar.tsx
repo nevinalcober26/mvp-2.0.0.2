@@ -38,7 +38,6 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '../ui/button';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
 import NextLink from 'next/link';
 
 const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
@@ -93,23 +92,29 @@ export function AppSidebar() {
   const pathname = usePathname();
 
   const getInitialOpenMenu = () => {
+    if (pathname.startsWith('/dashboard/reports')) {
+      return 'reports';
+    }
     if (
       pathname.startsWith('/dashboard/products') ||
       pathname.startsWith('/dashboard/categories')
     ) {
       return 'catalog';
     }
-    if (
-      pathname.startsWith('/dashboard/tables') ||
-      pathname.startsWith('/dashboard/reports/staff-performance')
-    ) {
+    if (pathname.startsWith('/dashboard/tables')) {
       return 'operations';
     }
-    if (
-      pathname.startsWith('/dashboard/orders') ||
-      pathname.startsWith('/dashboard/reports/payments')
-    ) {
+    if (pathname.startsWith('/dashboard/orders')) {
       return 'orders';
+    }
+    if (pathname.startsWith('/dashboard/settings')) {
+      return 'settings';
+    }
+    if (pathname.startsWith('/dashboard/integrations')) {
+      return 'integrations';
+    }
+    if (pathname.startsWith('/dashboard/system')) {
+      return 'system';
     }
     return null;
   };
@@ -159,16 +164,70 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname.startsWith('/dashboard/reports')}
-                tooltip="Reports"
+              <Collapsible
+                open={activeMenu === 'reports'}
+                onOpenChange={() => handleMenuToggle('reports')}
               >
-                <NextLink href="/dashboard/reports/payments">
-                  <BarChart />
-                  <span>Reports</span>
-                </NextLink>
-              </SidebarMenuButton>
+                <CollapsibleTrigger asChild className="w-full">
+                  <SidebarMenuButton
+                    isActive={activeMenu === 'reports'}
+                    tooltip="Reports"
+                    className="w-full"
+                  >
+                    <div className="flex w-full items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <BarChart />
+                        <span>Reports</span>
+                      </div>
+                      {activeMenu === 'reports' ? (
+                        <Minus className="h-4 w-4" />
+                      ) : (
+                        <Plus className="h-4 w-4" />
+                      )}
+                    </div>
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <SidebarMenuSub>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton
+                        asChild
+                        isActive={pathname.startsWith(
+                          '/dashboard/reports/payments'
+                        )}
+                      >
+                        <NextLink href="/dashboard/reports/payments">
+                          Payments
+                        </NextLink>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton
+                        asChild
+                        isActive={pathname.startsWith(
+                          '/dashboard/reports/payments'
+                        )}
+                      >
+                        <NextLink href="/dashboard/reports/payments">
+                          Split Payments
+                        </NextLink>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton
+                        asChild
+                        isActive={pathname.startsWith(
+                          '/dashboard/reports/staff-performance'
+                        )}
+                      >
+                        <NextLink href="/dashboard/reports/staff-performance">
+                          Staff Performance
+                        </NextLink>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  </SidebarMenuSub>
+                </CollapsibleContent>
+              </Collapsible>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
@@ -188,7 +247,7 @@ export function AppSidebar() {
                     tooltip="Catalog"
                     className="w-full"
                   >
-                    <div className="flex items-center justify-between w-full">
+                    <div className="flex w-full items-center justify-between">
                       <div className="flex items-center gap-2">
                         <BookOpen />
                         <span>Catalog</span>
@@ -252,7 +311,7 @@ export function AppSidebar() {
                     tooltip="Operations"
                     className="w-full"
                   >
-                    <div className="flex items-center justify-between w-full">
+                    <div className="flex w-full items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Briefcase />
                         <span>Operations</span>
@@ -292,18 +351,6 @@ export function AppSidebar() {
                         Feedback Forms
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton
-                        asChild
-                        isActive={pathname.startsWith(
-                          '/dashboard/reports/staff-performance'
-                        )}
-                      >
-                        <NextLink href="/dashboard/reports/staff-performance">
-                          Staff Performance
-                        </NextLink>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
                   </SidebarMenuSub>
                 </CollapsibleContent>
               </Collapsible>
@@ -320,7 +367,7 @@ export function AppSidebar() {
                     tooltip="Orders"
                     className="w-full"
                   >
-                    <div className="flex items-center justify-between w-full">
+                    <div className="flex w-full items-center justify-between">
                       <div className="flex items-center gap-2">
                         <ClipboardList />
                         <span>Orders</span>
@@ -341,23 +388,6 @@ export function AppSidebar() {
                         isActive={pathname.startsWith('/dashboard/orders')}
                       >
                         <NextLink href="/dashboard/orders">Order List</NextLink>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton
-                        asChild
-                        isActive={pathname.startsWith(
-                          '/dashboard/reports/payments'
-                        )}
-                      >
-                        <NextLink href="/dashboard/reports/payments">
-                          Payments
-                        </NextLink>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton href="#">
-                        Split Payments
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                     <SidebarMenuSubItem>
@@ -387,7 +417,7 @@ export function AppSidebar() {
                     tooltip="Settings"
                     className="w-full"
                   >
-                    <div className="flex items-center justify-between w-full">
+                    <div className="flex w-full items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Settings />
                         <span>Settings</span>
@@ -403,44 +433,28 @@ export function AppSidebar() {
                 <CollapsibleContent>
                   <SidebarMenuSub>
                     <SidebarMenuSubItem>
-                      <SidebarMenuSubButton href="#">
-                        Order Types
-                      </SidebarMenuSubButton>
+                      <SidebarMenuSubButton>Order Types</SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                     <SidebarMenuSubItem>
-                      <SidebarMenuSubButton href="#">
-                        Payment Models
-                      </SidebarMenuSubButton>
+                      <SidebarMenuSubButton>Payment Models</SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                     <SidebarMenuSubItem>
-                      <SidebarMenuSubButton href="#">
-                        POS Mode
-                      </SidebarMenuSubButton>
+                      <SidebarMenuSubButton>POS Mode</SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                     <SidebarMenuSubItem>
-                      <SidebarMenuSubButton href="#">
-                        Tips & Charges
-                      </SidebarMenuSubButton>
+                      <SidebarMenuSubButton>Tips & Charges</SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                     <SidebarMenuSubItem>
-                      <SidebarMenuSubButton href="#">
-                        Pricing
-                      </SidebarMenuSubButton>
+                      <SidebarMenuSubButton>Pricing</SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                     <SidebarMenuSubItem>
-                      <SidebarMenuSubButton href="#">
-                        Taxes
-                      </SidebarMenuSubButton>
+                      <SidebarMenuSubButton>Taxes</SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                     <SidebarMenuSubItem>
-                      <SidebarMenuSubButton href="#">
-                        Discounts
-                      </SidebarMenuSubButton>
+                      <SidebarMenuSubButton>Discounts</SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                     <SidebarMenuSubItem>
-                      <SidebarMenuSubButton href="#">
-                        Rounding
-                      </SidebarMenuSubButton>
+                      <SidebarMenuSubButton>Rounding</SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                   </SidebarMenuSub>
                 </CollapsibleContent>
@@ -458,7 +472,7 @@ export function AppSidebar() {
                     tooltip="Integrations"
                     className="w-full"
                   >
-                    <div className="flex items-center justify-between w-full">
+                    <div className="flex w-full items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Plug />
                         <span>Integrations</span>
@@ -474,19 +488,13 @@ export function AppSidebar() {
                 <CollapsibleContent>
                   <SidebarMenuSub>
                     <SidebarMenuSubItem>
-                      <SidebarMenuSubButton href="#">
-                        POS
-                      </SidebarMenuSubButton>
+                      <SidebarMenuSubButton>POS</SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                     <SidebarMenuSubItem>
-                      <SidebarMenuSubButton href="#">
-                        Gateway
-                      </SidebarMenuSubButton>
+                      <SidebarMenuSubButton>Gateway</SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                     <SidebarMenuSubItem>
-                      <SidebarMenuSubButton href="#">
-                        Webhooks
-                      </SidebarMenuSubButton>
+                      <SidebarMenuSubButton>Webhooks</SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                   </SidebarMenuSub>
                 </CollapsibleContent>
@@ -504,7 +512,7 @@ export function AppSidebar() {
                     tooltip="System"
                     className="w-full"
                   >
-                    <div className="flex items-center justify-between w-full">
+                    <div className="flex w-full items-center justify-between">
                       <div className="flex items-center gap-2">
                         <SlidersHorizontal />
                         <span>System</span>
@@ -520,24 +528,16 @@ export function AppSidebar() {
                 <CollapsibleContent>
                   <SidebarMenuSub>
                     <SidebarMenuSubItem>
-                      <SidebarMenuSubButton href="#">
-                        Appearance
-                      </SidebarMenuSubButton>
+                      <SidebarMenuSubButton>Appearance</SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                     <SidebarMenuSubItem>
-                      <SidebarMenuSubButton href="#">
-                        Localization
-                      </SidebarMenuSubButton>
+                      <SidebarMenuSubButton>Localization</SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                     <SidebarMenuSubItem>
-                      <SidebarMenuSubButton href="#">
-                        Roles
-                      </SidebarMenuSubButton>
+                      <SidebarMenuSubButton>Roles</SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                     <SidebarMenuSubItem>
-                      <SidebarMenuSubButton href="#">
-                        Business Info
-                      </SidebarMenuSubButton>
+                      <SidebarMenuSubButton>Business Info</SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                   </SidebarMenuSub>
                 </CollapsibleContent>
