@@ -41,6 +41,7 @@ import { useState } from 'react';
 import NextLink from 'next/link';
 import { cn } from '@/lib/utils';
 import { TooltipContent } from '../ui/tooltip';
+import { TooltipPortal } from '@radix-ui/react-tooltip';
 
 const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
 
@@ -94,23 +95,31 @@ const createTooltipContent = (
   title: string,
   items: { label: string; path: string }[]
 ) => (
-  <div className="flex flex-col items-start p-1">
-    <p className="font-bold px-2 py-1">{title}</p>
-    <div className="flex flex-col items-start">
-      {items.map((item) => (
-        <NextLink
-          key={item.label}
-          href={item.path}
-          className="w-full text-left rounded-sm px-2 py-1.5 hover:bg-gray-800"
-          onClick={(e) => {
-            if (item.path === '#') e.preventDefault();
-          }}
-        >
-          {item.label}
-        </NextLink>
-      ))}
-    </div>
-  </div>
+  <TooltipPortal>
+    <TooltipContent
+      side="right"
+      align="center"
+      className="bg-gray-900 text-gray-200 border-gray-700 p-0"
+    >
+      <div className="flex flex-col items-start p-1">
+        <p className="font-bold px-2 py-1">{title}</p>
+        <div className="flex flex-col items-start">
+          {items.map((item) => (
+            <NextLink
+              key={item.label}
+              href={item.path}
+              className="w-full text-left rounded-sm px-2 py-1.5 hover:bg-gray-800"
+              onClick={(e) => {
+                if (item.path === '#') e.preventDefault();
+              }}
+            >
+              {item.label}
+            </NextLink>
+          ))}
+        </div>
+      </div>
+    </TooltipContent>
+  </TooltipPortal>
 );
 
 export function AppSidebar() {
@@ -216,7 +225,7 @@ export function AppSidebar() {
 
       <SidebarContent className="p-0">
         <SidebarGroup>
-          <SidebarGroupLabel>Overview</SidebarGroupLabel>
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Overview</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
@@ -240,10 +249,7 @@ export function AppSidebar() {
                 <CollapsibleTrigger asChild className="w-full">
                   <SidebarMenuButton
                     isActive={activeMenu === 'reports'}
-                    tooltip={{
-                      className: 'bg-gray-900 text-gray-200 border-gray-700 p-0',
-                      children: createTooltipContent('Reports', reportsSubMenu),
-                    }}
+                    tooltip={createTooltipContent('Reports', reportsSubMenu)}
                     className="w-full"
                   >
                     <div className="flex w-full items-center justify-between">
@@ -264,7 +270,7 @@ export function AppSidebar() {
                 <CollapsibleContent>
                   <SidebarMenuSub>
                     {reportsSubMenu.map((item) => (
-                      <SidebarMenuSubItem key={item.path}>
+                      <SidebarMenuSubItem key={item.label}>
                         <SidebarMenuSubButton
                           asChild
                           isActive={pathname.startsWith(item.path)}
@@ -282,10 +288,10 @@ export function AppSidebar() {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
-        <SidebarSeparator />
+        <SidebarSeparator className="group-data-[collapsible=icon]:hidden" />
 
         <SidebarGroup>
-          <SidebarGroupLabel>Management</SidebarGroupLabel>
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Management</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
               <Collapsible
@@ -295,10 +301,7 @@ export function AppSidebar() {
                 <CollapsibleTrigger asChild className="w-full">
                   <SidebarMenuButton
                     isActive={activeMenu === 'catalog'}
-                    tooltip={{
-                      className: 'bg-gray-900 text-gray-200 border-gray-700 p-0',
-                      children: createTooltipContent('Catalog', catalogSubMenu),
-                    }}
+                    tooltip={createTooltipContent('Catalog', catalogSubMenu)}
                     className="w-full"
                   >
                     <div className="flex w-full items-center justify-between">
@@ -319,7 +322,7 @@ export function AppSidebar() {
                 <CollapsibleContent>
                   <SidebarMenuSub>
                     {catalogSubMenu.map((item) => (
-                      <SidebarMenuSubItem key={item.path}>
+                      <SidebarMenuSubItem key={item.label}>
                         <SidebarMenuSubButton
                           asChild
                           isActive={pathname.startsWith(item.path)}
@@ -344,13 +347,10 @@ export function AppSidebar() {
                 <CollapsibleTrigger asChild className="w-full">
                   <SidebarMenuButton
                     isActive={activeMenu === 'operations'}
-                    tooltip={{
-                      className: 'bg-gray-900 text-gray-200 border-gray-700 p-0',
-                      children: createTooltipContent(
+                    tooltip={createTooltipContent(
                         'Operations',
                         operationsSubMenu
-                      ),
-                    }}
+                      )}
                     className="w-full"
                   >
                     <div className="flex w-full items-center justify-between">
@@ -371,7 +371,7 @@ export function AppSidebar() {
                 <CollapsibleContent>
                   <SidebarMenuSub>
                     {operationsSubMenu.map((item) => (
-                      <SidebarMenuSubItem key={item.path}>
+                      <SidebarMenuSubItem key={item.label}>
                         <SidebarMenuSubButton
                           asChild
                           isActive={pathname.startsWith(item.path)}
@@ -396,10 +396,7 @@ export function AppSidebar() {
                 <CollapsibleTrigger asChild className="w-full">
                   <SidebarMenuButton
                     isActive={activeMenu === 'orders'}
-                    tooltip={{
-                      className: 'bg-gray-900 text-gray-200 border-gray-700 p-0',
-                      children: createTooltipContent('Orders', ordersSubMenu),
-                    }}
+                    tooltip={createTooltipContent('Orders', ordersSubMenu)}
                     className="w-full"
                   >
                     <div className="flex w-full items-center justify-between">
@@ -420,7 +417,7 @@ export function AppSidebar() {
                 <CollapsibleContent>
                   <SidebarMenuSub>
                     {ordersSubMenu.map((item) => (
-                      <SidebarMenuSubItem key={item.path}>
+                      <SidebarMenuSubItem key={item.label}>
                         <SidebarMenuSubButton
                           asChild
                           isActive={pathname.startsWith(item.path)}
@@ -438,10 +435,10 @@ export function AppSidebar() {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
-        <SidebarSeparator />
+        <SidebarSeparator className="group-data-[collapsible=icon]:hidden" />
 
         <SidebarGroup>
-          <SidebarGroupLabel>Configuration</SidebarGroupLabel>
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Configuration</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
               <Collapsible
@@ -451,13 +448,10 @@ export function AppSidebar() {
                 <CollapsibleTrigger asChild className="w-full">
                   <SidebarMenuButton
                     isActive={activeMenu === 'settings'}
-                    tooltip={{
-                      className: 'bg-gray-900 text-gray-200 border-gray-700 p-0',
-                      children: createTooltipContent(
+                    tooltip={createTooltipContent(
                         'Settings',
                         settingsSubMenu
-                      ),
-                    }}
+                      )}
                     className="w-full"
                   >
                     <div className="flex w-full items-center justify-between">
@@ -478,7 +472,7 @@ export function AppSidebar() {
                 <CollapsibleContent>
                   <SidebarMenuSub>
                     {settingsSubMenu.map((item) => (
-                      <SidebarMenuSubItem key={item.path}>
+                      <SidebarMenuSubItem key={item.label}>
                         <SidebarMenuSubButton
                           asChild
                           isActive={pathname.startsWith(item.path)}
@@ -503,13 +497,10 @@ export function AppSidebar() {
                 <CollapsibleTrigger asChild className="w-full">
                   <SidebarMenuButton
                     isActive={activeMenu === 'integrations'}
-                    tooltip={{
-                      className: 'bg-gray-900 text-gray-200 border-gray-700 p-0',
-                      children: createTooltipContent(
+                    tooltip={createTooltipContent(
                         'Integrations',
                         integrationsSubMenu
-                      ),
-                    }}
+                      )}
                     className="w-full"
                   >
                     <div className="flex w-full items-center justify-between">
@@ -530,7 +521,7 @@ export function AppSidebar() {
                 <CollapsibleContent>
                   <SidebarMenuSub>
                     {integrationsSubMenu.map((item) => (
-                      <SidebarMenuSubItem key={item.path}>
+                      <SidebarMenuSubItem key={item.label}>
                         <SidebarMenuSubButton
                           asChild
                           isActive={pathname.startsWith(item.path)}
@@ -555,10 +546,7 @@ export function AppSidebar() {
                 <CollapsibleTrigger asChild className="w-full">
                   <SidebarMenuButton
                     isActive={activeMenu === 'system'}
-                    tooltip={{
-                      className: 'bg-gray-900 text-gray-200 border-gray-700 p-0',
-                      children: createTooltipContent('System', systemSubMenu),
-                    }}
+                    tooltip={createTooltipContent('System', systemSubMenu)}
                     className="w-full"
                   >
                     <div className="flex w-full items-center justify-between">
@@ -579,7 +567,7 @@ export function AppSidebar() {
                 <CollapsibleContent>
                   <SidebarMenuSub>
                     {systemSubMenu.map((item) => (
-                      <SidebarMenuSubItem key={item.path}>
+                      <SidebarMenuSubItem key={item.label}>
                         <SidebarMenuSubButton
                           asChild
                           isActive={pathname.startsWith(item.path)}
