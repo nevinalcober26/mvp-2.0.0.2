@@ -109,13 +109,13 @@
   right: 0;
   bottom: 0;
   border-radius: inherit;
-  padding: 2px;
+  padding: 3px;
   background: conic-gradient(from var(--angle), #a18cd1, #fbc2eb, #8fd3f4, #84fab0, #a18cd1);
   -webkit-mask: 
       linear-gradient(#fff 0 0) content-box, 
       linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
           mask-composite: exclude;
-  animation: rotate-border 10s linear infinite;
+  animation: rotate-border 4s linear infinite;
   z-index: 0;
 }
