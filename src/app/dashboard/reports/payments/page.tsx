@@ -56,6 +56,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
+import { Label } from '@/components/ui/label';
 import { DashboardHeader } from '@/components/dashboard/header';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -773,6 +779,18 @@ export default function PaymentsReportPage() {
     return [...new Set(transactions.map((t) => t.staffName))].sort();
   }, [transactions]);
 
+  const activeSecondaryFilterCount = useMemo(() => {
+    let count = 0;
+    if (filters.paymentStatus !== 'all') count++;
+    if (filters.paymentMethod !== 'all') count++;
+    if (filters.table !== 'all') count++;
+    if (filters.splitMethod !== 'all') count++;
+    if (filters.closeType !== 'all') count++;
+    if (filters.staffName !== 'all') count++;
+    return count;
+  }, [filters]);
+
+
   const SortableHeader = ({
     tKey,
     label,
@@ -802,7 +820,7 @@ export default function PaymentsReportPage() {
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardDescription>{title}</CardDescription>
         {Icon && (
-          <Icon className="h-4 w-4 text-muted-foreground" />
+          <Icon className={cn("h-4 w-4 text-muted-foreground", isAlert && "text-red-500")} />
         )}
       </CardHeader>
       <CardContent>
@@ -833,6 +851,130 @@ export default function PaymentsReportPage() {
     </Card>
   )
 
+  const renderSecondaryFilters = () => {
+    switch (activeTab) {
+      case 'summary':
+        return (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="status-filter">Payment Status</Label>
+              <Select
+                value={filters.paymentStatus}
+                onValueChange={(value) => handleFilterChange('paymentStatus', value)}
+              >
+                <SelectTrigger id="status-filter">
+                  <SelectValue placeholder="Payment Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="Paid">Paid</SelectItem>
+                  <SelectItem value="Partial">Partial</SelectItem>
+                  <SelectItem value="Unpaid">Unpaid</SelectItem>
+                  <SelectItem value="Refunded">Refunded</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="method-filter">Payment Method</Label>
+              <Select
+                value={filters.paymentMethod}
+                onValueChange={(value) => handleFilterChange('paymentMethod', value)}
+              >
+                <SelectTrigger id="method-filter">
+                  <SelectValue placeholder="Payment Method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Methods</SelectItem>
+                  <SelectItem value="Credit Card">Credit Card</SelectItem>
+                  <SelectItem value="Cash">Cash</SelectItem>
+                  <SelectItem value="Online">Online</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="table-filter">Table Number</Label>
+              <Select
+                value={filters.table}
+                onValueChange={(value) => handleFilterChange('table', value)}
+              >
+                <SelectTrigger id="table-filter">
+                  <SelectValue placeholder="Table Number" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Tables</SelectItem>
+                  {tableNumbers.map((table) => (
+                    <SelectItem key={table} value={table}>{table}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </>
+        );
+      case 'split-bills':
+        return (
+          <div className="space-y-2">
+            <Label htmlFor="split-filter">Split Method</Label>
+            <Select
+              value={filters.splitMethod}
+              onValueChange={(value) => handleFilterChange('splitMethod', value)}
+            >
+              <SelectTrigger id="split-filter">
+                <SelectValue placeholder="Split Method" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Split Methods</SelectItem>
+                <SelectItem value="Equal">Equal</SelectItem>
+                <SelectItem value="Item-based">Item-based</SelectItem>
+                <SelectItem value="Custom">Custom</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        );
+      case 'outstanding':
+        return (
+          <div className="space-y-2">
+            <Label htmlFor="close-type-filter">Close Type</Label>
+            <Select
+              value={filters.closeType}
+              onValueChange={(value) => handleFilterChange('closeType', value)}
+            >
+              <SelectTrigger id="close-type-filter">
+                <SelectValue placeholder="Close Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Close Types</SelectItem>
+                <SelectItem value="Auto">Auto</SelectItem>
+                <SelectItem value="Manual">Manual</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        );
+      case 'tips':
+        return (
+          <div className="space-y-2">
+            <Label htmlFor="staff-filter">Staff Name</Label>
+            <Select
+              value={filters.staffName}
+              onValueChange={(value) => handleFilterChange('staffName', value)}
+            >
+              <SelectTrigger id="staff-filter">
+                <SelectValue placeholder="Filter by Staff" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Staff</SelectItem>
+                {staffNames.map((name) => (
+                  <SelectItem key={name} value={name}>{name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+
   if (isLoading) {
     return <OrdersPageSkeleton view="list" />;
   }
@@ -855,9 +997,9 @@ export default function PaymentsReportPage() {
           </Button>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-4 p-4 border rounded-lg bg-card">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg border bg-card p-3">
           <div className="flex flex-wrap items-center gap-4">
-             <span className="text-sm font-medium">Global Filters:</span>
+             <span className="text-sm font-medium">Filters:</span>
             <DateRangePicker
               dateRange={filters.dateRange}
               onDateRangeChange={(range) => handleFilterChange('dateRange', range)}
@@ -875,6 +1017,39 @@ export default function PaymentsReportPage() {
                 <SelectItem value="Dubai Mall">Dubai Mall</SelectItem>
               </SelectContent>
             </Select>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full sm:w-auto">
+                  <Filter className="mr-2 h-4 w-4" />
+                  More Filters
+                  {activeSecondaryFilterCount > 0 && (
+                    <Badge variant="secondary" className="ml-2 rounded-full px-1.5 py-0.5 text-xs">
+                      {activeSecondaryFilterCount}
+                    </Badge>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-screen max-w-sm" align="start">
+                <div className="space-y-4 p-4">
+                  <h4 className="font-medium leading-none">Additional Filters</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Filter the data for the '{activeTab}' tab.
+                  </p>
+                  {renderSecondaryFilters()}
+                   <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => resetFiltersForTab(activeTab)}
+                      className="w-full mt-2"
+                    >
+                      <RotateCcw className="mr-2 h-4 w-4" /> Reset Tab Filters
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+
           </div>
           <Button variant="ghost" size="sm" onClick={resetAllFilters}>
             <RotateCcw className="mr-2 h-4 w-4" />
@@ -891,67 +1066,6 @@ export default function PaymentsReportPage() {
           </TabsList>
 
           <TabsContent value="summary" className="space-y-4 mt-4">
-            <div className="flex items-center gap-2 flex-wrap p-4 border rounded-lg bg-card">
-                 <span className="text-sm font-medium">Filters:</span>
-                    <Select
-                      value={filters.paymentStatus}
-                      onValueChange={(value) =>
-                        handleFilterChange('paymentStatus', value)
-                      }
-                    >
-                      <SelectTrigger className="w-full sm:w-[160px]">
-                        <SelectValue placeholder="Payment Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Statuses</SelectItem>
-                        <SelectItem value="Paid">Paid</SelectItem>
-                        <SelectItem value="Partial">Partial</SelectItem>
-                        <SelectItem value="Unpaid">Unpaid</SelectItem>
-                        <SelectItem value="Refunded">Refunded</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Select
-                      value={filters.paymentMethod}
-                      onValueChange={(value) =>
-                        handleFilterChange('paymentMethod', value)
-                      }
-                    >
-                      <SelectTrigger className="w-full sm:w-[160px]">
-                        <SelectValue placeholder="Payment Method" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Methods</SelectItem>
-                        <SelectItem value="Credit Card">Credit Card</SelectItem>
-                        <SelectItem value="Cash">Cash</SelectItem>
-                        <SelectItem value="Online">Online</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Select
-                      value={filters.table}
-                      onValueChange={(value) =>
-                        handleFilterChange('table', value)
-                      }
-                    >
-                      <SelectTrigger className="w-full sm:w-[160px]">
-                        <SelectValue placeholder="Table Number" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Tables</SelectItem>
-                        {tableNumbers.map((table) => (
-                          <SelectItem key={table} value={table}>
-                            {table}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => resetFiltersForTab('summary')}
-                    >
-                      <RotateCcw className="mr-2 h-4 w-4" /> Reset Filters
-                    </Button>
-                  </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               {summaryKpiCards.map((card) => (
                 <KpiCard key={card.title} {...card}/>
@@ -1184,32 +1298,6 @@ export default function PaymentsReportPage() {
           </TabsContent>
 
           <TabsContent value="split-bills" className="mt-4 space-y-4">
-             <div className="flex items-center gap-2 flex-wrap p-4 border rounded-lg bg-card">
-                <span className="text-sm font-medium">Filters:</span>
-                 <Select
-                    value={filters.splitMethod}
-                    onValueChange={(value) =>
-                      handleFilterChange('splitMethod', value)
-                    }
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Split Method" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Split Methods</SelectItem>
-                      <SelectItem value="Equal">Equal</SelectItem>
-                      <SelectItem value="Item-based">Item-based</SelectItem>
-                      <SelectItem value="Custom">Custom</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => resetFiltersForTab('split-bills')}
-                  >
-                    <RotateCcw className="mr-2 h-4 w-4" /> Reset Filters
-                  </Button>
-            </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {splitKpiCards.map((card) => (
                 <KpiCard key={card.title} {...card}/>
@@ -1278,8 +1366,7 @@ export default function PaymentsReportPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {splitTransactions.slice(0, 5).map((t) => {
-                        return (
+                      {splitTransactions.slice(0, 5).map((t) => (
                         <TableRow key={t.id}>
                           <TableCell className="font-medium">
                             {t.orderId}
@@ -1300,7 +1387,7 @@ export default function PaymentsReportPage() {
                             </Badge>
                           </TableCell>
                         </TableRow>
-                        )})}
+                        ))}
                     </TableBody>
                   </Table>
                   {splitTransactions.length === 0 && (
@@ -1313,31 +1400,6 @@ export default function PaymentsReportPage() {
             </Card>
           </TabsContent>
           <TabsContent value="outstanding" className="mt-4 space-y-4">
-             <div className="flex items-center gap-2 flex-wrap p-4 border rounded-lg bg-card">
-                <span className="text-sm font-medium">Filters:</span>
-                <Select
-                    value={filters.closeType}
-                    onValueChange={(value) =>
-                      handleFilterChange('closeType', value)
-                    }
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Close Type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Close Types</SelectItem>
-                      <SelectItem value="Auto">Auto</SelectItem>
-                      <SelectItem value="Manual">Manual</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => resetFiltersForTab('outstanding')}
-                  >
-                    <RotateCcw className="mr-2 h-4 w-4" /> Reset Filters
-                  </Button>
-            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {outstandingKpiCards.map((card) => (
                 <KpiCard key={card.title} {...card}/>
@@ -1439,34 +1501,6 @@ export default function PaymentsReportPage() {
             </Card>
           </TabsContent>
           <TabsContent value="tips" className="mt-4 space-y-4">
-             <div className="flex items-center gap-2 flex-wrap p-4 border rounded-lg bg-card">
-                <span className="text-sm font-medium">Filters:</span>
-                 <Select
-                    value={filters.staffName}
-                    onValueChange={(value) =>
-                      handleFilterChange('staffName', value)
-                    }
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Filter by Staff" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Staff</SelectItem>
-                      {staffNames.map((name) => (
-                        <SelectItem key={name} value={name}>
-                          {name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => resetFiltersForTab('tips')}
-                  >
-                    <RotateCcw className="mr-2 h-4 w-4" /> Reset Filters
-                  </Button>
-            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
              {tipsKpiCards.map((card) => (
                 <KpiCard key={card.title} {...card}/>
