@@ -137,10 +137,16 @@ const generateMockTransactions = (
 
   for (let i = 0; i < count; i++) {
     const randomDayOffset = Math.floor(Math.random() * (dateDiff + 1));
-    let randomDate = subDays(to, randomDayOffset);
+    let randomDate = subDays(endOfDay(to), randomDayOffset);
     randomDate = setHours(randomDate, Math.floor(Math.random() * 24));
     randomDate = setMinutes(randomDate, Math.floor(Math.random() * 60));
     randomDate = setSeconds(randomDate, Math.floor(Math.random() * 60));
+    
+    // Ensure the generated date is within the provided range
+    if (randomDate.getTime() < from.getTime() || randomDate.getTime() > endOfDay(to).getTime()) {
+      continue;
+    }
+
     const timestamp = randomDate.getTime();
 
     const totalAmount = parseFloat((Math.random() * 200 + 10).toFixed(2));
@@ -335,84 +341,6 @@ export default function PaymentsReportPage() {
     );
   };
 
-  const {
-    totalSales,
-    totalCollected,
-    outstandingBalance,
-    avgBillValue,
-    totalTips,
-  } = useMemo(() => {
-    const totalSales = transactions.reduce((acc, t) => acc + t.totalAmount, 0);
-    const totalCollected = transactions.reduce(
-      (acc, t) => acc + t.paidAmount,
-      0
-    );
-    const outstandingBalance = transactions.reduce(
-      (acc, t) => acc + t.outstandingAmount,
-      0
-    );
-    const paidTransactions = transactions.filter(
-      (t) => t.paymentStatus === 'Paid' || t.paymentStatus === 'Partial'
-    );
-    const avgBillValue =
-      paidTransactions.length > 0 ? totalSales / paidTransactions.length : 0;
-    const totalTips = transactions.reduce(
-      (acc, t) => acc + (t.tipAmount || 0),
-      0
-    );
-    return {
-      totalSales,
-      totalCollected,
-      outstandingBalance,
-      avgBillValue,
-      totalTips,
-    };
-  }, [transactions]);
-
-  const kpiCards = useMemo(
-    () => [
-      {
-        title: 'Total Sales',
-        value: `$${totalSales.toLocaleString('en-US', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })}`,
-        change: '+2.5%',
-      },
-      {
-        title: 'Total Collected',
-        value: `$${totalCollected.toLocaleString('en-US', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })}`,
-        change: '+2.8%',
-      },
-      {
-        title: 'Outstanding Balance',
-        value: `$${outstandingBalance.toLocaleString('en-US', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })}`,
-        change: '-5.1%',
-      },
-      {
-        title: 'Average Bill Value',
-        value: `$${avgBillValue.toFixed(2)}`,
-        change: '+0.5%',
-      },
-      { title: 'Average Time to Pay', value: '8m 15s', change: '-2.0%' },
-      {
-        title: 'Total Tips Collected',
-        value: `$${totalTips.toLocaleString('en-US', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })}`,
-        change: '+4.2%',
-      },
-    ],
-    [totalSales, totalCollected, outstandingBalance, avgBillValue, totalTips]
-  );
-
   const handleFilterChange = (
     filterName: string,
     value: string | DateRange | undefined
@@ -491,6 +419,70 @@ export default function PaymentsReportPage() {
     return filtered;
   }, [transactions, sortConfig, filters]);
 
+  const kpiCards = useMemo(() => {
+    const totalSales = filteredAndSortedTransactions.reduce(
+      (acc, t) => acc + t.totalAmount,
+      0
+    );
+    const totalCollected = filteredAndSortedTransactions.reduce(
+      (acc, t) => acc + t.paidAmount,
+      0
+    );
+    const outstandingBalance = filteredAndSortedTransactions.reduce(
+      (acc, t) => acc + t.outstandingAmount,
+      0
+    );
+    const paidTransactions = filteredAndSortedTransactions.filter(
+      (t) => t.paymentStatus === 'Paid' || t.paymentStatus === 'Partial'
+    );
+    const avgBillValue =
+      paidTransactions.length > 0 ? totalSales / paidTransactions.length : 0;
+    const totalTips = filteredAndSortedTransactions.reduce(
+      (acc, t) => acc + (t.tipAmount || 0),
+      0
+    );
+    return [
+      {
+        title: 'Total Sales',
+        value: `$${totalSales.toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`,
+        change: '+2.5%',
+      },
+      {
+        title: 'Total Collected',
+        value: `$${totalCollected.toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`,
+        change: '+2.8%',
+      },
+      {
+        title: 'Outstanding Balance',
+        value: `$${outstandingBalance.toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`,
+        change: '-5.1%',
+      },
+      {
+        title: 'Average Bill Value',
+        value: `$${avgBillValue.toFixed(2)}`,
+        change: '+0.5%',
+      },
+      { title: 'Average Time to Pay', value: '8m 15s', change: '-2.0%' },
+      {
+        title: 'Total Tips Collected',
+        value: `$${totalTips.toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`,
+        change: '+4.2%',
+      },
+    ];
+  }, [filteredAndSortedTransactions]);
+
   const totalPages = Math.ceil(
     filteredAndSortedTransactions.length / itemsPerPage
   );
@@ -503,21 +495,31 @@ export default function PaymentsReportPage() {
   }, [filteredAndSortedTransactions, currentPage]);
 
   const chartData = useMemo(() => {
+    if (!filters.dateRange?.from) return [];
+    
     const salesByDay: { [key: string]: number } = {};
+    const dateDiff = differenceInDays(endOfDay(filters.dateRange.to || new Date()), filters.dateRange.from);
+
+    // Initialize all days in the range to 0
+    for(let i = 0; i <= dateDiff; i++) {
+        const day = format(addDays(filters.dateRange.from, i), 'MMM d');
+        salesByDay[day] = 0;
+    }
+    
     filteredAndSortedTransactions.forEach((t) => {
       const day = format(new Date(t.timestamp), 'MMM d');
-      if (!salesByDay[day]) {
-        salesByDay[day] = 0;
+      if (day in salesByDay) {
+        salesByDay[day] += t.totalAmount;
       }
-      salesByDay[day] += t.totalAmount;
     });
+
     return Object.keys(salesByDay)
       .map((day) => ({
         date: day,
         sales: salesByDay[day],
       }))
       .sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [filteredAndSortedTransactions]);
+  }, [filteredAndSortedTransactions, filters.dateRange]);
 
   const splitTransactions = useMemo(
     () =>
@@ -543,6 +545,18 @@ export default function PaymentsReportPage() {
       (t) => t.paymentStatus === 'Partial' || t.paymentStatus === 'Unpaid'
     );
   }, [filteredAndSortedTransactions]);
+  
+  const outstandingKpis = useMemo(() => {
+    const totalOutstanding = outstandingTransactions.reduce((acc, t) => acc + t.outstandingAmount, 0);
+    const outstandingCount = outstandingTransactions.length;
+    const totalAge = outstandingTransactions.reduce((acc, t) => acc + differenceInDays(new Date(), new Date(t.timestamp)), 0);
+    const avgAge = outstandingCount > 0 ? totalAge / outstandingCount : 0;
+    return {
+      totalOutstanding,
+      outstandingCount,
+      avgAge,
+    };
+  }, [outstandingTransactions]);
 
   const tipTransactions = useMemo(() => {
     return filteredAndSortedTransactions.filter(
@@ -553,6 +567,21 @@ export default function PaymentsReportPage() {
   const totalGrossTips = useMemo(() => {
     return tipTransactions.reduce((acc, t) => acc + (t.tipAmount || 0), 0);
   }, [tipTransactions]);
+  
+  const tipsKpis = useMemo(() => {
+    const paidTransactionsCount = filteredAndSortedTransactions.filter(t => t.paidAmount > 0).length;
+    const tipAdoptionRate = paidTransactionsCount > 0 ? (tipTransactions.length / paidTransactionsCount) * 100 : 0;
+    
+    const totalBillForTippedTxns = tipTransactions.reduce((acc, t) => acc + t.totalAmount, 0);
+    const avgTipPercentage = totalBillForTippedTxns > 0 ? (totalGrossTips / totalBillForTippedTxns) * 100 : 0;
+
+    return {
+      totalGrossTips,
+      tipAdoptionRate,
+      avgTipPercentage,
+    }
+  }, [filteredAndSortedTransactions, tipTransactions, totalGrossTips]);
+
 
   const requestSort = (key: keyof Transaction) => {
     let direction: 'ascending' | 'descending' = 'ascending';
@@ -681,7 +710,6 @@ export default function PaymentsReportPage() {
           </TabsList>
 
           <TabsContent value="summary" className="space-y-4 mt-4">
-            {/* KPI Cards */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {kpiCards.map((card) => (
                 <Card key={card.title}>
@@ -1141,7 +1169,33 @@ export default function PaymentsReportPage() {
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="outstanding" className="mt-4">
+          <TabsContent value="outstanding" className="mt-4 space-y-4">
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                <Card>
+                  <CardHeader className="p-4">
+                    <CardDescription>Total Outstanding</CardDescription>
+                    <CardTitle className="text-3xl text-red-500">
+                      ${outstandingKpis.totalOutstanding.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+                <Card>
+                  <CardHeader className="p-4">
+                    <CardDescription>Outstanding Orders</CardDescription>
+                    <CardTitle className="text-3xl">
+                      {outstandingKpis.outstandingCount}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+                <Card>
+                  <CardHeader className="p-4">
+                    <CardDescription>Avg. Days Outstanding</CardDescription>
+                    <CardTitle className="text-3xl">
+                      {outstandingKpis.avgAge.toFixed(1)}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+              </div>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
@@ -1233,7 +1287,33 @@ export default function PaymentsReportPage() {
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="tips" className="mt-4">
+          <TabsContent value="tips" className="mt-4 space-y-4">
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                <Card>
+                  <CardHeader className="p-4">
+                    <CardDescription>Total Tips Collected</CardDescription>
+                    <CardTitle className="text-3xl text-green-600">
+                      ${tipsKpis.totalGrossTips.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+                <Card>
+                  <CardHeader className="p-4">
+                    <CardDescription>Tip Adoption Rate</CardDescription>
+                    <CardTitle className="text-3xl">
+                      {tipsKpis.tipAdoptionRate.toFixed(1)}%
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+                <Card>
+                  <CardHeader className="p-4">
+                    <CardDescription>Average Tip %</CardDescription>
+                    <CardTitle className="text-3xl">
+                      {tipsKpis.avgTipPercentage.toFixed(1)}%
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+              </div>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
