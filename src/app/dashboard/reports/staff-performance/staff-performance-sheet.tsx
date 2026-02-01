@@ -47,7 +47,7 @@ export function StaffPerformanceSheet({ open, onOpenChange }: StaffPerformanceSh
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
-        className="w-[90vw] sm:w-[90vw] p-0"
+        className="w-[90vw] sm:max-w-[90vw] p-0"
         side="right"
         onInteractOutside={(e) => e.preventDefault()}
       >
@@ -69,12 +69,12 @@ export function StaffPerformanceSheet({ open, onOpenChange }: StaffPerformanceSh
 
           <div className="flex flex-1 overflow-hidden">
             {/* Left Sidebar */}
-            <div className="w-[220px] border-r fixed h-[calc(100vh-77px)] bg-muted/20">
+            <div className="w-[220px] flex-shrink-0 border-r bg-muted/20 overflow-y-auto">
               <StaffPerformanceSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
             </div>
             
             {/* Right Content */}
-            <div className="flex-1 ml-[220px] overflow-y-auto">
+            <div className="flex-1 overflow-y-auto">
               <div className="sticky top-0 bg-background/95 backdrop-blur z-10 p-6 border-b">
                 <AiInsightsStrip />
               </div>
