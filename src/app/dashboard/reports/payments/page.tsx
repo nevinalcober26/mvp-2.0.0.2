@@ -39,6 +39,9 @@ import {
   List,
   Filter,
   RotateCcw,
+  File as FileIcon,
+  FileText,
+  Sheet as SheetIcon,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -77,6 +80,15 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { format, isSameDay, differenceInDays } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 
 type Transaction = {
   id: string;
@@ -209,6 +221,60 @@ const initialFilterState = {
   staffName: 'all',
 };
 
+const ExportDialog = ({
+  open,
+  onOpenChange,
+  onExport,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onExport: (format: 'CSV' | 'Excel' | 'PDF') => void;
+}) => {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Export Transactions</DialogTitle>
+          <DialogDescription>
+            Select a file format to download the current view of transactions.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid grid-cols-3 gap-4 py-4">
+          <Button
+            variant="outline"
+            className="h-24 flex-col gap-2"
+            onClick={() => onExport('CSV')}
+          >
+            <FileIcon className="h-6 w-6" />
+            <span>CSV</span>
+          </Button>
+          <Button
+            variant="outline"
+            className="h-24 flex-col gap-2"
+            onClick={() => onExport('Excel')}
+          >
+            <SheetIcon className="h-6 w-6" />
+            <span>Excel</span>
+          </Button>
+          <Button
+            variant="outline"
+            className="h-24 flex-col gap-2"
+            onClick={() => onExport('PDF')}
+          >
+            <FileText className="h-6 w-6" />
+            <span>PDF</span>
+          </Button>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 export default function PaymentsReportPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -217,6 +283,8 @@ export default function PaymentsReportPage() {
   const itemsPerPage = 10;
   const [filters, setFilters] = useState(initialFilterState);
   const [view, setView] = useState<'chart' | 'list'>('chart');
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   const [sortConfig, setSortConfig] = useState<{
     key: keyof Transaction;
@@ -230,6 +298,16 @@ export default function PaymentsReportPage() {
     }, 1000);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleExport = (format: 'CSV' | 'Excel' | 'PDF') => {
+    setIsExportDialogOpen(false);
+    toast({
+      title: 'Export Initiated',
+      description: `Your transactions are being prepared for a ${format} download.`,
+    });
+    // In a real app, you would implement the actual export logic here
+    console.log(`Exporting ${filteredAndSortedTransactions.length} transactions as ${format}...`);
+  };
 
   const {
     totalSales,
@@ -309,28 +387,44 @@ export default function PaymentsReportPage() {
     [totalSales, totalCollected, outstandingBalance, avgBillValue, totalTips]
   );
 
-  const handleFilterChange = (filterName: string, value: string | Date | undefined) => {
+  const handleFilterChange = (
+    filterName: string,
+    value: string | Date | undefined
+  ) => {
     setFilters((prev) => ({ ...prev, [filterName]: value }));
     setCurrentPage(1);
   };
-  
+
   const resetAllFilters = () => {
     setFilters(initialFilterState);
     setCurrentPage(1);
-  }
-
+  };
 
   const filteredAndSortedTransactions = useMemo(() => {
     let filtered = transactions.filter((transaction) => {
       const transactionDate = new Date(transaction.timestamp);
-      const matchesDate = filters.date ? isSameDay(transactionDate, filters.date) : true;
-      const matchesBranch = filters.branch === 'all' || transaction.branch === filters.branch;
-      const matchesStatus = filters.paymentStatus === 'all' || transaction.paymentStatus === filters.paymentStatus;
-      const matchesMethod = filters.paymentMethod === 'all' || transaction.paymentMethod === filters.paymentMethod;
-      const matchesTable = filters.table === 'all' || transaction.table === filters.table;
-      const matchesSplitMethod = filters.splitMethod === 'all' || transaction.splitMethod === filters.splitMethod;
-      const matchesCloseType = filters.closeType === 'all' || transaction.closeType === filters.closeType;
-      const matchesStaffName = filters.staffName === 'all' || transaction.staffName === filters.staffName;
+      const matchesDate = filters.date
+        ? isSameDay(transactionDate, filters.date)
+        : true;
+      const matchesBranch =
+        filters.branch === 'all' || transaction.branch === filters.branch;
+      const matchesStatus =
+        filters.paymentStatus === 'all' ||
+        transaction.paymentStatus === filters.paymentStatus;
+      const matchesMethod =
+        filters.paymentMethod === 'all' ||
+        transaction.paymentMethod === filters.paymentMethod;
+      const matchesTable =
+        filters.table === 'all' || transaction.table === filters.table;
+      const matchesSplitMethod =
+        filters.splitMethod === 'all' ||
+        transaction.splitMethod === filters.splitMethod;
+      const matchesCloseType =
+        filters.closeType === 'all' ||
+        transaction.closeType === filters.closeType;
+      const matchesStaffName =
+        filters.staffName === 'all' ||
+        transaction.staffName === filters.staffName;
 
       return (
         matchesDate &&
@@ -388,7 +482,9 @@ export default function PaymentsReportPage() {
 
   const splitTransactions = useMemo(
     () =>
-      filteredAndSortedTransactions.filter((t) => t.payers > 1 || t.splitMethod),
+      filteredAndSortedTransactions.filter(
+        (t) => t.payers > 1 || t.splitMethod
+      ),
     [filteredAndSortedTransactions]
   );
   const splitAdoptionRate =
@@ -453,7 +549,7 @@ export default function PaymentsReportPage() {
       (a, b) => parseInt(a.substring(1)) - parseInt(b.substring(1))
     );
   }, [transactions]);
-  
+
   const staffNames = useMemo(() => {
     return [...new Set(transactions.map((t) => t.staffName))];
   }, [transactions]);
@@ -494,120 +590,129 @@ export default function PaymentsReportPage() {
     <>
       <DashboardHeader />
       <main className="p-4 sm:p-6 lg:p-8 space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">Payments Reports</h1>
-          <p className="text-muted-foreground">
-            Track and analyze orders, payments, split bills, tips, and
-            outstanding balances.
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Payments Reports</h1>
+            <p className="text-muted-foreground">
+              Track and analyze orders, payments, split bills, tips, and
+              outstanding balances.
+            </p>
+          </div>
+          <Button variant="outline" onClick={() => setIsExportDialogOpen(true)}>
+            <Download className="mr-2 h-4 w-4" />
+            Export
+          </Button>
         </div>
 
-         <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                    <Filter className="h-4 w-4" />
-                    Global Filters
-                </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-wrap items-center gap-4">
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button
-                        variant={'outline'}
-                        className={cn(
-                            'w-[240px] justify-start text-left font-normal',
-                            !filters.date && 'text-muted-foreground'
-                        )}
-                        >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {filters.date ? (
-                            isSameDay(filters.date, new Date()) ? (
-                            'Today'
-                            ) : (
-                            format(filters.date, 'PPP')
-                            )
-                        ) : (
-                            <span>Pick a date</span>
-                        )}
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                        <Calendar
-                        mode="single"
-                        selected={filters.date}
-                        onSelect={(date) => handleFilterChange('date', date)}
-                        initialFocus
-                        />
-                    </PopoverContent>
-                </Popover>
-                <Select
-                    value={filters.branch}
-                    onValueChange={(value) => handleFilterChange('branch', value)}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Filter className="h-4 w-4" />
+              Global Filters
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-wrap items-center gap-4">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={'outline'}
+                  className={cn(
+                    'w-[240px] justify-start text-left font-normal',
+                    !filters.date && 'text-muted-foreground'
+                  )}
                 >
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Branch/Venue" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Branches</SelectItem>
-                        {branches.map((branch) => (
-                        <SelectItem key={branch} value={branch}>
-                            {branch}
-                        </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                 <Select
-                    value={filters.paymentStatus}
-                    onValueChange={(value) => handleFilterChange('paymentStatus', value)}
-                >
-                    <SelectTrigger className="w-full sm:w-[160px]">
-                        <SelectValue placeholder="Payment Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Statuses</SelectItem>
-                        <SelectItem value="Paid">Paid</SelectItem>
-                        <SelectItem value="Partial">Partial</SelectItem>
-                        <SelectItem value="Unpaid">Unpaid</SelectItem>
-                        <SelectItem value="Refunded">Refunded</SelectItem>
-                    </SelectContent>
-                </Select>
-                <Select
-                    value={filters.paymentMethod}
-                    onValueChange={(value) => handleFilterChange('paymentMethod', value)}
-                >
-                    <SelectTrigger className="w-full sm:w-[160px]">
-                        <SelectValue placeholder="Payment Method" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Methods</SelectItem>
-                        <SelectItem value="Credit Card">Credit Card</SelectItem>
-                        <SelectItem value="Cash">Cash</SelectItem>
-                        <SelectItem value="Online">Online</SelectItem>
-                    </SelectContent>
-                </Select>
-                <Select
-                    value={filters.table}
-                    onValueChange={(value) => handleFilterChange('table', value)}
-                >
-                    <SelectTrigger className="w-full sm:w-[160px]">
-                        <SelectValue placeholder="Table Number" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Tables</SelectItem>
-                        {tableNumbers.map((table) => (
-                        <SelectItem key={table} value={table}>
-                            {table}
-                        </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                <Button variant="ghost" size="sm" onClick={resetAllFilters}>
-                    <RotateCcw className="mr-2 h-4 w-4" />
-                    Reset All Filters
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {filters.date ? (
+                    isSameDay(filters.date, new Date()) ? (
+                      'Today'
+                    ) : (
+                      format(filters.date, 'PPP')
+                    )
+                  ) : (
+                    <span>Pick a date</span>
+                  )}
                 </Button>
-            </CardContent>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={filters.date}
+                  onSelect={(date) => handleFilterChange('date', date)}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            <Select
+              value={filters.branch}
+              onValueChange={(value) => handleFilterChange('branch', value)}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Branch/Venue" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Branches</SelectItem>
+                {branches.map((branch) => (
+                  <SelectItem key={branch} value={branch}>
+                    {branch}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={filters.paymentStatus}
+              onValueChange={(value) =>
+                handleFilterChange('paymentStatus', value)
+              }
+            >
+              <SelectTrigger className="w-full sm:w-[160px]">
+                <SelectValue placeholder="Payment Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="Paid">Paid</SelectItem>
+                <SelectItem value="Partial">Partial</SelectItem>
+                <SelectItem value="Unpaid">Unpaid</SelectItem>
+                <SelectItem value="Refunded">Refunded</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select
+              value={filters.paymentMethod}
+              onValueChange={(value) =>
+                handleFilterChange('paymentMethod', value)
+              }
+            >
+              <SelectTrigger className="w-full sm:w-[160px]">
+                <SelectValue placeholder="Payment Method" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Methods</SelectItem>
+                <SelectItem value="Credit Card">Credit Card</SelectItem>
+                <SelectItem value="Cash">Cash</SelectItem>
+                <SelectItem value="Online">Online</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select
+              value={filters.table}
+              onValueChange={(value) => handleFilterChange('table', value)}
+            >
+              <SelectTrigger className="w-full sm:w-[160px]">
+                <SelectValue placeholder="Table Number" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Tables</SelectItem>
+                {tableNumbers.map((table) => (
+                  <SelectItem key={table} value={table}>
+                    {table}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button variant="ghost" size="sm" onClick={resetAllFilters}>
+              <RotateCcw className="mr-2 h-4 w-4" />
+              Reset All Filters
+            </Button>
+          </CardContent>
         </Card>
-
 
         <Tabs defaultValue="summary" className="w-full">
           <TabsList className="grid w-full grid-cols-4">
@@ -657,36 +762,32 @@ export default function PaymentsReportPage() {
             <Card>
               <CardHeader>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div className="flex-shrink-0">
-                        <CardTitle>Sales Overview</CardTitle>
-                        <CardDescription>
-                        A summary of your sales performance.
-                        </CardDescription>
+                  <div className="flex-shrink-0">
+                    <CardTitle>Sales Overview</CardTitle>
+                    <CardDescription>
+                      A summary of your sales performance.
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-1 rounded-md bg-muted p-1">
+                      <Button
+                        variant={view === 'chart' ? 'secondary' : 'ghost'}
+                        size="icon"
+                        onClick={() => setView('chart')}
+                        aria-label="Chart View"
+                      >
+                        <LayoutGrid className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant={view === 'list' ? 'secondary' : 'ghost'}
+                        size="icon"
+                        onClick={() => setView('list')}
+                        aria-label="List View"
+                      >
+                        <List className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <div className="flex items-center gap-1 rounded-md bg-muted p-1">
-                            <Button
-                                variant={view === 'chart' ? 'secondary' : 'ghost'}
-                                size="icon"
-                                onClick={() => setView('chart')}
-                                aria-label="Chart View"
-                            >
-                                <LayoutGrid className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                variant={view === 'list' ? 'secondary' : 'ghost'}
-                                size="icon"
-                                onClick={() => setView('list')}
-                                aria-label="List View"
-                            >
-                                <List className="h-4 w-4" />
-                            </Button>
-                        </div>
-                        <Button variant="outline">
-                            <Download className="mr-2 h-4 w-4" />
-                            Export
-                        </Button>
-                    </div>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -923,16 +1024,15 @@ export default function PaymentsReportPage() {
                 </CardFooter>
               )}
             </Card>
-
           </TabsContent>
           <TabsContent value="split-bills" className="mt-4">
             <Card>
               <CardHeader>
                 <div>
-                    <CardTitle>Split Bill Analytics</CardTitle>
-                    <CardDescription>
+                  <CardTitle>Split Bill Analytics</CardTitle>
+                  <CardDescription>
                     Analysis of orders with split payments.
-                    </CardDescription>
+                  </CardDescription>
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -986,7 +1086,9 @@ export default function PaymentsReportPage() {
                       <TableRow>
                         <TableHead>Order ID</TableHead>
                         <TableHead>Total Bill</TableHead>
-                        <TableHead className="text-center"># of Payers</TableHead>
+                        <TableHead className="text-center">
+                          # of Payers
+                        </TableHead>
                         <TableHead>Split Method</TableHead>
                         <TableHead>Time to Settle</TableHead>
                         <TableHead>Status</TableHead>
@@ -1029,12 +1131,12 @@ export default function PaymentsReportPage() {
           <TabsContent value="outstanding" className="mt-4">
             <Card>
               <CardHeader>
-                 <div>
-                    <CardTitle>Outstanding / Partial Payments</CardTitle>
-                    <CardDescription>
+                <div>
+                  <CardTitle>Outstanding / Partial Payments</CardTitle>
+                  <CardDescription>
                     Monitor orders with pending payments to manage risk and
                     collections.
-                    </CardDescription>
+                  </CardDescription>
                 </div>
               </CardHeader>
               <CardContent>
@@ -1107,7 +1209,7 @@ export default function PaymentsReportPage() {
             <Card>
               <CardHeader>
                 <div>
-                    <CardTitle>Tips &amp; Service Charges</CardTitle>
+                  <CardTitle>Tips &amp; Service Charges</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
@@ -1203,6 +1305,11 @@ export default function PaymentsReportPage() {
           </TabsContent>
         </Tabs>
       </main>
+      <ExportDialog
+        open={isExportDialogOpen}
+        onOpenChange={setIsExportDialogOpen}
+        onExport={handleExport}
+      />
     </>
   );
 }
