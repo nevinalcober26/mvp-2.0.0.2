@@ -45,6 +45,7 @@ import NextLink from 'next/link';
 import { cn } from '@/lib/utils';
 import { TooltipContent } from '@/components/ui/tooltip';
 import { Input } from '../ui/input';
+import { Button } from '@/components/ui/button';
 
 const restaurantLogo = PlaceHolderImages.find((img) => img.id === 'restaurant-logo');
 
