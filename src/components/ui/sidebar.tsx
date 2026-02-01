@@ -689,7 +689,7 @@ const SidebarMenuSub = React.forwardRef<
     ref={ref}
     data-sidebar="menu-sub"
     className={cn(
-      "mx-4 flex flex-col gap-0.5 border-l border-ring py-1 pl-4",
+      "mx-4 flex flex-col gap-0.5 border-l border-ring/20 py-1 pl-4",
       "group-data-[collapsible=icon]:hidden",
       className
     )}
@@ -721,14 +721,13 @@ const SidebarMenuSubButton = React.forwardRef<
       data-size={size}
       data-active={isActive}
       className={cn(
-        "relative flex h-7 items-center gap-2 rounded-md py-1 px-2 text-xs text-muted-foreground outline-none ring-sidebar-ring transition-colors hover:text-sidebar-foreground focus-visible:ring-2",
+        "relative flex h-7 items-center gap-2 rounded-md py-1 px-2 text-xs text-muted-foreground outline-none ring-sidebar-ring transition-colors hover:text-sidebar-foreground focus-visible:ring-2 before:content-[''] before:absolute before:-left-[19px] before:top-1/2 before:h-1.5 before:w-1.5 before:-translate-y-1/2 before:rounded-full before:transition-colors data-[active=true]:before:bg-ring",
         "data-[active=true]:font-semibold data-[active=true]:text-sidebar-foreground",
         "group-data-[collapsible=icon]:hidden",
         className
       )}
       {...props}
     >
-      {isActive && <div className="absolute -left-[19px] top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-ring" />}
       {children}
     </Comp>
   );
