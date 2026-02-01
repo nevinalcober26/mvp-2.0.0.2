@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
+  CardFooter,
 } from '@/components/ui/card';
 import {
   Table,
@@ -857,7 +858,7 @@ export default function PaymentsReportPage() {
             <TabsTrigger value="summary">Summary</TabsTrigger>
             <TabsTrigger value="split-bills">Split Bills</TabsTrigger>
             <TabsTrigger value="outstanding">Outstanding</TabsTrigger>
-            <TabsTrigger value="tips">Tips & Charges</TabsTrigger>
+            <TabsTrigger value="tips">Tips &amp; Charges</TabsTrigger>
           </TabsList>
             
           <div className="my-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg border bg-card p-3">
@@ -1092,8 +1093,7 @@ export default function PaymentsReportPage() {
                 <div className="relative w-full overflow-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>
+                      <TableRow><TableHead>
                           <SortableHeader tKey="id" label="Transaction ID" />
                         </TableHead>
                         <TableHead>
@@ -1137,8 +1137,7 @@ export default function PaymentsReportPage() {
                         </TableHead>
                         <TableHead className="text-right">
                           <SortableHeader tKey="payers" label="# of Payers" />
-                        </TableHead>
-                      </TableRow>
+                        </TableHead></TableRow>
                     </TableHeader>
                     <TableBody>
                       {paginatedTransactions.map((t) => (
@@ -1166,7 +1165,7 @@ export default function PaymentsReportPage() {
                   </Table>
                 </div>
               </CardContent>
-                <div className="border-t px-6 py-4 flex items-center justify-between">
+              <CardFooter className="flex items-center justify-between">
                 <div className="text-xs text-muted-foreground">
                   Showing{' '}
                   <strong>
@@ -1204,7 +1203,7 @@ export default function PaymentsReportPage() {
                     Next
                   </Button>
                 </div>
-              </div>
+              </CardFooter>
             </Card>
           </TabsContent>
 
@@ -1265,16 +1264,14 @@ export default function PaymentsReportPage() {
                 <div className="relative w-full overflow-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>Order ID</TableHead>
+                      <TableRow><TableHead>Order ID</TableHead>
                         <TableHead>Total Bill</TableHead>
                         <TableHead className="text-center">
                           # of Payers
                         </TableHead>
                         <TableHead>Split Method</TableHead>
                         <TableHead>Time to Settle</TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
+                        <TableHead>Status</TableHead></TableRow>
                     </TableHeader>
                     <TableBody>
                       {splitTransactions.slice(0, 5).map((t) => (
@@ -1350,8 +1347,7 @@ export default function PaymentsReportPage() {
               <CardContent>
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Order ID</TableHead>
+                    <TableRow><TableHead>Order ID</TableHead>
                       <TableHead>Total</TableHead>
                       <TableHead>Paid</TableHead>
                       <TableHead>Remaining</TableHead>
@@ -1360,8 +1356,7 @@ export default function PaymentsReportPage() {
                       <TableHead>Close Type</TableHead>
                       <TableHead>
                         <span className="sr-only">Warning</span>
-                      </TableHead>
-                    </TableRow>
+                      </TableHead></TableRow>
                   </TableHeader>
                   <TableBody>
                     {outstandingTransactions.slice(0, 5).map((t) => {
@@ -1379,8 +1374,7 @@ export default function PaymentsReportPage() {
                               'bg-red-50/50 border-l-4 border-red-500'
                           )}
                           onClick={() => handleViewDetails(t)}
-                        >
-                          <>
+                        ><>
                           <TableCell className="font-medium">
                             {t.orderId}
                           </TableCell>
@@ -1403,8 +1397,7 @@ export default function PaymentsReportPage() {
                               <AlertTriangle className="h-5 w-5 text-red-500" />
                             )}
                           </TableCell>
-                          </>
-                        </TableRow>
+                          </></TableRow>
                       );
                     })}
                   </TableBody>
@@ -1467,115 +1460,104 @@ export default function PaymentsReportPage() {
               </CardContent>
             </Card>
 
-            <div className="border rounded-lg">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
                 <CardHeader>
-                    <CardTitle>Tips &amp; Service Charges</CardTitle>
+                  <CardTitle>Tips Report</CardTitle>
                 </CardHeader>
-                <Tabs defaultValue="tips" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 rounded-none bg-muted/50 border-b">
-                    <TabsTrigger value="tips" className="rounded-none data-[state=active]:bg-background">Tips Report</TabsTrigger>
-                    <TabsTrigger value="service-charges" className="rounded-none data-[state=active]:bg-background">
-                      Service Charge Report
-                    </TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="tips" className="m-0">
-                    <div className="relative w-full overflow-auto">
-                        <Table>
-                        <TableHeader>
-                            <TableRow>
-                            <TableHead>Order ID</TableHead>
-                            <TableHead>Waiter</TableHead>
-                            <TableHead>Tip Amount</TableHead>
-                            <TableHead>Tip %</TableHead>
-                            <TableHead>Method</TableHead>
-                            <TableHead>Type</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {tipTransactions.slice(0, 5).map((t) => (
-                            <TableRow key={t.id} onClick={() => handleViewDetails(t)} className="cursor-pointer">
-                                <>
-                                <TableCell className="font-medium">
-                                {t.orderId}
-                                </TableCell>
-                                <TableCell>{t.staffName}</TableCell>
-                                <TableCell className="font-mono">
-                                ${t.tipAmount?.toFixed(2)}
-                                </TableCell>
-                                <TableCell className="font-mono">
-                                {t.paidAmount > 0
-                                    ? `${(
-                                        (t.tipAmount! / t.paidAmount) *
-                                        100
-                                    ).toFixed(1)}%`
-                                    : 'N/A'}
-                                </TableCell>
-                                <TableCell>{t.paymentMethod}</TableCell>
-                                <TableCell>
-                                <Badge variant="outline">{t.tipType}</Badge>
-                                </TableCell>
-                                </>
-                            </TableRow>
-                            ))}
-                        </TableBody>
-                        </Table>
-                    </div>
-                    {tipTransactions.length === 0 && (
-                      <p className="text-center text-muted-foreground py-8">
-                        No transactions with tips match the current filters.
-                      </p>
-                    )}
-                    <div className="bg-muted/50 p-6 border-t space-y-2">
-                        <div className="flex justify-between items-center text-sm font-semibold">
-                            <span>Gross Tips Collected</span>
-                            <span className="font-bold text-lg">${totalGrossTips.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm text-muted-foreground">
-                            <span>Net Tips (after 5% fee)</span>
-                            <span className="font-bold text-lg">${(totalGrossTips * 0.95).toFixed(2)}</span>
-                        </div>
-                    </div>
-                  </TabsContent>
-                  <TabsContent value="service-charges" className="m-0">
-                     <div className="relative w-full overflow-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Order ID</TableHead>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead className="text-right">Bill Amount</TableHead>
-                                    <TableHead className="text-right">Service Charge</TableHead>
-                                    <TableHead>Staff</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {serviceChargeTransactions.slice(0, 10).map((t) => (
-                                    <TableRow key={t.id} onClick={() => handleViewDetails(t)} className="cursor-pointer">
-                                        <>
-                                        <TableCell className="font-medium">{t.orderId}</TableCell>
-                                        <TableCell>{new Date(t.timestamp).toLocaleDateString()}</TableCell>
-                                        <TableCell className="text-right font-mono">${t.totalAmount.toFixed(2)}</TableCell>
-                                        <TableCell className="text-right font-mono">${t.serviceChargeAmount?.toFixed(2)}</TableCell>
-                                        <TableCell>{t.staffName}</TableCell>
-                                        </>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                        {serviceChargeTransactions.length === 0 && (
-                            <p className="text-center text-muted-foreground py-8">
-                                No transactions with service charges match the current filters.
-                            </p>
-                        )}
-                    </div>
-                    <div className="bg-muted/50 p-6 border-t">
-                        <div className="flex justify-between items-center text-sm font-semibold">
-                            <span>Total Service Charges Collected</span>
-                            <span className="font-bold text-lg">${totalServiceCharge.toFixed(2)}</span>
-                        </div>
-                    </div>
-                  </TabsContent>
-                </Tabs>
+                <CardContent className="p-0">
+                  <div className="relative w-full overflow-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Order ID</TableHead>
+                          <TableHead>Waiter</TableHead>
+                          <TableHead>Tip Amount</TableHead>
+                          <TableHead>Tip %</TableHead>
+                          <TableHead>Method</TableHead>
+                          <TableHead>Type</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {tipTransactions.slice(0, 5).map((t) => (
+                          <TableRow key={t.id} onClick={() => handleViewDetails(t)} className="cursor-pointer">
+                            <>
+                              <TableCell className="font-medium">{t.orderId}</TableCell>
+                              <TableCell>{t.staffName}</TableCell>
+                              <TableCell className="font-mono">${t.tipAmount?.toFixed(2)}</TableCell>
+                              <TableCell className="font-mono">
+                                {t.paidAmount > 0 ? `${((t.tipAmount! / t.paidAmount) * 100).toFixed(1)}%` : 'N/A'}
+                              </TableCell>
+                              <TableCell>{t.paymentMethod}</TableCell>
+                              <TableCell><Badge variant="outline">{t.tipType}</Badge></TableCell>
+                            </>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  {tipTransactions.length === 0 && (
+                    <p className="text-center text-muted-foreground p-8">
+                      No transactions with tips match the current filters.
+                    </p>
+                  )}
+                </CardContent>
+                <CardFooter className="flex-col items-start bg-muted/50 p-6 space-y-2 border-t">
+                  <div className="flex justify-between items-center w-full text-sm font-semibold">
+                    <span>Gross Tips Collected</span>
+                    <span className="font-bold text-lg">${totalGrossTips.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center w-full text-sm text-muted-foreground">
+                    <span>Net Tips (after 5% fee)</span>
+                    <span className="font-bold text-lg">${(totalGrossTips * 0.95).toFixed(2)}</span>
+                  </div>
+                </CardFooter>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Service Charge Report</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="relative w-full overflow-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Order ID</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead className="text-right">Bill Amount</TableHead>
+                          <TableHead className="text-right">Service Charge</TableHead>
+                          <TableHead>Staff</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {serviceChargeTransactions.slice(0, 10).map((t) => (
+                          <TableRow key={t.id} onClick={() => handleViewDetails(t)} className="cursor-pointer">
+                            <>
+                              <TableCell className="font-medium">{t.orderId}</TableCell>
+                              <TableCell>{new Date(t.timestamp).toLocaleDateString()}</TableCell>
+                              <TableCell className="text-right font-mono">${t.totalAmount.toFixed(2)}</TableCell>
+                              <TableCell className="text-right font-mono">${t.serviceChargeAmount?.toFixed(2)}</TableCell>
+                              <TableCell>{t.staffName}</TableCell>
+                            </>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  {serviceChargeTransactions.length === 0 && (
+                    <p className="text-center text-muted-foreground p-8">
+                      No transactions with service charges match the current filters.
+                    </p>
+                  )}
+                </CardContent>
+                <CardFooter className="bg-muted/50 p-6 border-t">
+                  <div className="flex justify-between items-center w-full text-sm font-semibold">
+                    <span>Total Service Charges Collected</span>
+                    <span className="font-bold text-lg">${totalServiceCharge.toFixed(2)}</span>
+                  </div>
+                </CardFooter>
+              </Card>
             </div>
           </TabsContent>
         </Tabs>
