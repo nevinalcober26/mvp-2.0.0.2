@@ -40,7 +40,12 @@ export default {
     'bg-gray-900',
     'text-gray-200',
     'border-gray-700',
-    'hover:bg-gray-800'
+    'hover:bg-gray-800',
+    'bg-gray-800',
+    'text-white',
+    'hover:bg-gray-700',
+    'focus:bg-gray-700',
+    'text-gray-400'
   ],
   theme: {
     extend: {

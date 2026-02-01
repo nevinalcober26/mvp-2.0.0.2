@@ -45,12 +45,28 @@ import NextLink from 'next/link';
 import { cn } from '@/lib/utils';
 import { TooltipContent } from '@/components/ui/tooltip';
 import { Input } from '../ui/input';
-import { Button } from '@/components/ui/button';
+import { Button } from '../ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
-const restaurantLogo = PlaceHolderImages.find((img) => img.id === 'restaurant-logo');
+const restaurantLogo = PlaceHolderImages.find(
+  (img) => img.id === 'restaurant-logo'
+);
 
 export const EMenuIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" version="1.0" viewBox="0 0 1896 592" width="240" height="76">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    version="1.0"
+    viewBox="0 0 1896 592"
+    width="240"
+    height="76"
+  >
     <path
       fill="teal"
       d="M474 167v19h42v-38h-42zm69 0v19h310v-38H543zm-69 89.5V275h42v-37h-42zm69 0V275h152v-37H543zm-69 90V365h42v-37h-42zm69 0V365h76v-37h-76z"
@@ -768,32 +784,66 @@ export function AppSidebar() {
 
       <SidebarFooter className="flex flex-col gap-2 p-2">
         <div className="group-data-[collapsible=icon]:hidden">
-          <Button
-            variant="ghost"
-            className="flex h-auto w-full items-center justify-between gap-2 rounded-md bg-sidebar-accent p-2 text-left text-sidebar-accent-foreground"
-          >
-            <div className="flex items-center gap-3">
-              {restaurantLogo && (
-                <Image
-                  src={restaurantLogo.imageUrl}
-                  width={32}
-                  height={32}
-                  alt="Restaurant logo"
-                  className="rounded-full bg-white p-0.5"
-                  data-ai-hint={restaurantLogo.imageHint}
-                />
-              )}
-              <div className="flex flex-col overflow-hidden">
-                <span className="truncate text-sm font-medium">
-                  Restaurant Na...
-                </span>
-                <span className="truncate text-xs text-muted-foreground">
-                  Restaurant Type
-                </span>
-              </div>
-            </div>
-            <ChevronDown className="h-4 w-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="flex h-auto w-full items-center justify-between gap-2 rounded-md bg-gray-800 p-2 text-left text-white hover:bg-gray-700"
+              >
+                <div className="flex items-center gap-3">
+                  {restaurantLogo && (
+                    <Image
+                      src={restaurantLogo.imageUrl}
+                      width={32}
+                      height={32}
+                      alt="Restaurant logo"
+                      className="rounded-full bg-white p-0.5"
+                      data-ai-hint={restaurantLogo.imageHint}
+                    />
+                  )}
+                  <div className="flex flex-col overflow-hidden">
+                    <span className="truncate text-sm font-medium">
+                      Bloomsbury's
+                    </span>
+                    <span className="truncate text-xs text-gray-400">
+                      Ras Al Khaimah
+                    </span>
+                  </div>
+                </div>
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="start"
+              className="mb-2 w-[240px] border-gray-700 bg-gray-800 text-white"
+            >
+              <DropdownMenuLabel>Select a Branch</DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-gray-700" />
+              <DropdownMenuItem className="cursor-pointer focus:bg-gray-700">
+                <div className="flex items-center gap-3">
+                  <Image
+                    src={restaurantLogo.imageUrl}
+                    width={24}
+                    height={24}
+                    alt="Restaurant logo"
+                    className="rounded-full bg-white p-0.5"
+                  />
+                  <div className="flex flex-col">
+                    <span>Dubai Mall</span>
+                    <span className="text-xs text-gray-400">Restaurant</span>
+                  </div>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer focus:bg-gray-700">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-700">
+                    <Plus className="h-4 w-4" />
+                  </div>
+                  <span>Add New Branch</span>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <div className="hidden group-data-[collapsible=icon]:block">
           <NextLink href="#">
