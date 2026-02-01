@@ -670,14 +670,8 @@ export default function PaymentsReportPage() {
           </Button>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Filter className="h-4 w-4" />
-              Global Filters
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border bg-card p-4">
+          <div className="flex flex-wrap items-center gap-4">
             <DateRangePicker
               dateRange={filters.dateRange}
               onDateRangeChange={(range) => handleFilterChange('dateRange', range)}
@@ -686,7 +680,7 @@ export default function PaymentsReportPage() {
               value={filters.branch}
               onValueChange={(value) => handleFilterChange('branch', value)}
             >
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Branch/Venue" />
               </SelectTrigger>
               <SelectContent>
@@ -695,12 +689,12 @@ export default function PaymentsReportPage() {
                 <SelectItem value="Dubai Mall">Dubai Mall</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="ghost" size="sm" onClick={resetAllFilters}>
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Reset Global Filters
-            </Button>
-          </CardContent>
-        </Card>
+          </div>
+          <Button variant="ghost" size="sm" onClick={resetAllFilters}>
+            <RotateCcw className="mr-2 h-4 w-4" />
+            Reset All Filters
+          </Button>
+        </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
