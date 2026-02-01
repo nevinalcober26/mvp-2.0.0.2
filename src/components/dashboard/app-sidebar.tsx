@@ -99,7 +99,7 @@ const createTooltipContent = (
     <div className="flex flex-col items-start">
       {items.map((item) => (
         <NextLink
-          key={item.path}
+          key={item.label}
           href={item.path}
           className="w-full text-left rounded-sm px-2 py-1.5 hover:bg-gray-800"
           onClick={(e) => {
