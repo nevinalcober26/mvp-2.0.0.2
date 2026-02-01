@@ -37,6 +37,7 @@ import {
   AlertTriangle,
   LayoutGrid,
   List,
+  Filter,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -199,15 +200,18 @@ const chartConfig = {
 export default function PaymentsReportPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [date, setDate] = useState<Date | undefined>();
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [filters, setFilters] = useState({
+    date: new Date() as Date | undefined,
+    branch: 'all',
     paymentStatus: 'all',
     paymentMethod: 'all',
     table: 'all',
-    branch: 'all',
+    splitMethod: 'all',
+    closeType: 'all',
+    staffName: 'all',
   });
   const [view, setView] = useState<'chart' | 'list'>('chart');
 
@@ -302,7 +306,7 @@ export default function PaymentsReportPage() {
     [totalSales, totalCollected, outstandingBalance, avgBillValue, totalTips]
   );
 
-  const handleFilterChange = (filterName: string, value: string) => {
+  const handleFilterChange = (filterName: string, value: string | Date | undefined) => {
     setFilters((prev) => ({ ...prev, [filterName]: value }));
     setCurrentPage(1);
   };
@@ -310,24 +314,24 @@ export default function PaymentsReportPage() {
   const filteredAndSortedTransactions = useMemo(() => {
     let filtered = transactions.filter((transaction) => {
       const transactionDate = new Date(transaction.timestamp);
-      const matchesDate = date ? isSameDay(transactionDate, date) : true;
-      const matchesStatus =
-        filters.paymentStatus === 'all' ||
-        transaction.paymentStatus === filters.paymentStatus;
-      const matchesMethod =
-        filters.paymentMethod === 'all' ||
-        transaction.paymentMethod === filters.paymentMethod;
-      const matchesTable =
-        filters.table === 'all' || transaction.table === filters.table;
-      const matchesBranch =
-        filters.branch === 'all' || transaction.branch === filters.branch;
+      const matchesDate = filters.date ? isSameDay(transactionDate, filters.date) : true;
+      const matchesBranch = filters.branch === 'all' || transaction.branch === filters.branch;
+      const matchesStatus = filters.paymentStatus === 'all' || transaction.paymentStatus === filters.paymentStatus;
+      const matchesMethod = filters.paymentMethod === 'all' || transaction.paymentMethod === filters.paymentMethod;
+      const matchesTable = filters.table === 'all' || transaction.table === filters.table;
+      const matchesSplitMethod = filters.splitMethod === 'all' || transaction.splitMethod === filters.splitMethod;
+      const matchesCloseType = filters.closeType === 'all' || transaction.closeType === filters.closeType;
+      const matchesStaffName = filters.staffName === 'all' || transaction.staffName === filters.staffName;
 
       return (
         matchesDate &&
+        matchesBranch &&
         matchesStatus &&
         matchesMethod &&
         matchesTable &&
-        matchesBranch
+        matchesSplitMethod &&
+        matchesCloseType &&
+        matchesStaffName
       );
     });
 
@@ -343,7 +347,7 @@ export default function PaymentsReportPage() {
       });
     }
     return filtered;
-  }, [transactions, sortConfig, date, filters]);
+  }, [transactions, sortConfig, filters]);
 
   const totalPages = Math.ceil(
     filteredAndSortedTransactions.length / itemsPerPage
@@ -358,7 +362,7 @@ export default function PaymentsReportPage() {
 
   const chartData = useMemo(() => {
     const salesByDay: { [key: string]: number } = {};
-    transactions.forEach((t) => {
+    filteredAndSortedTransactions.forEach((t) => {
       const day = format(new Date(t.timestamp), 'MMM d');
       if (!salesByDay[day]) {
         salesByDay[day] = 0;
@@ -371,7 +375,7 @@ export default function PaymentsReportPage() {
         sales: salesByDay[day],
       }))
       .reverse(); // To show chronologically
-  }, [transactions]);
+  }, [filteredAndSortedTransactions]);
 
   const splitTransactions = useMemo(
     () =>
@@ -379,9 +383,9 @@ export default function PaymentsReportPage() {
     [filteredAndSortedTransactions]
   );
   const splitAdoptionRate =
-    transactions.length > 0
-      ? (transactions.filter((t) => t.payers > 1).length /
-          transactions.length) *
+    filteredAndSortedTransactions.length > 0
+      ? (filteredAndSortedTransactions.filter((t) => t.payers > 1).length /
+          filteredAndSortedTransactions.length) *
         100
       : 0;
   const avgPayers =
@@ -440,6 +444,10 @@ export default function PaymentsReportPage() {
       (a, b) => parseInt(a.substring(1)) - parseInt(b.substring(1))
     );
   }, [transactions]);
+  
+  const staffNames = useMemo(() => {
+    return [...new Set(transactions.map((t) => t.staffName))];
+  }, [transactions]);
 
   const branches = useMemo(() => {
     return [...new Set(transactions.map((t) => t.branch))];
@@ -476,7 +484,7 @@ export default function PaymentsReportPage() {
   return (
     <>
       <DashboardHeader />
-      <main className="p-4 sm:p-6 lg:p-8 space-y-8">
+      <main className="p-4 sm:p-6 lg:p-8 space-y-6">
         <div>
           <h1 className="text-2xl font-bold">Payments Reports</h1>
           <p className="text-muted-foreground">
@@ -484,104 +492,63 @@ export default function PaymentsReportPage() {
             outstanding balances.
           </p>
         </div>
-        
-        <div className="flex flex-wrap items-center gap-2">
-            <Popover>
-            <PopoverTrigger asChild>
-                <Button
-                variant={'outline'}
-                className={cn(
-                    'w-[280px] justify-start text-left font-normal',
-                    !date && 'text-muted-foreground'
-                )}
+
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <Filter className="h-5 w-5" />
+                    Global Filters
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-wrap items-center gap-4">
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button
+                        variant={'outline'}
+                        className={cn(
+                            'w-[240px] justify-start text-left font-normal',
+                            !filters.date && 'text-muted-foreground'
+                        )}
+                        >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {filters.date ? (
+                            isSameDay(filters.date, new Date()) ? (
+                            'Today'
+                            ) : (
+                            format(filters.date, 'PPP')
+                            )
+                        ) : (
+                            <span>Pick a date</span>
+                        )}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                        <Calendar
+                        mode="single"
+                        selected={filters.date}
+                        onSelect={(date) => handleFilterChange('date', date)}
+                        initialFocus
+                        />
+                    </PopoverContent>
+                </Popover>
+                <Select
+                    value={filters.branch}
+                    onValueChange={(value) => handleFilterChange('branch', value)}
                 >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? (
-                    isSameDay(date, new Date()) ? (
-                    'Today'
-                    ) : (
-                    format(date, 'PPP')
-                    )
-                ) : (
-                    <span>Pick a date</span>
-                )}
-                </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-                <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                initialFocus
-                />
-            </PopoverContent>
-            </Popover>
-            <Select
-            value={filters.paymentStatus}
-            onValueChange={(value) =>
-                handleFilterChange('paymentStatus', value)
-            }
-            >
-            <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Payment Status" />
-            </SelectTrigger>
-            <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="Paid">Paid</SelectItem>
-                <SelectItem value="Partial">Partial</SelectItem>
-                <SelectItem value="Unpaid">Unpaid</SelectItem>
-                <SelectItem value="Refunded">Refunded</SelectItem>
-            </SelectContent>
-            </Select>
-            <Select
-            value={filters.paymentMethod}
-            onValueChange={(value) =>
-                handleFilterChange('paymentMethod', value)
-            }
-            >
-            <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Payment Method" />
-            </SelectTrigger>
-            <SelectContent>
-                <SelectItem value="all">All Methods</SelectItem>
-                <SelectItem value="Credit Card">Credit Card</SelectItem>
-                <SelectItem value="Cash">Cash</SelectItem>
-                <SelectItem value="Online">Online</SelectItem>
-            </SelectContent>
-            </Select>
-            <Select
-            value={filters.table}
-            onValueChange={(value) => handleFilterChange('table', value)}
-            >
-            <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Table Number" />
-            </SelectTrigger>
-            <SelectContent>
-                <SelectItem value="all">All Tables</SelectItem>
-                {tableNumbers.map((table) => (
-                <SelectItem key={table} value={table}>
-                    {table}
-                </SelectItem>
-                ))}
-            </SelectContent>
-            </Select>
-            <Select
-            value={filters.branch}
-            onValueChange={(value) => handleFilterChange('branch', value)}
-            >
-            <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Branch/Venue" />
-            </SelectTrigger>
-            <SelectContent>
-                <SelectItem value="all">All Branches</SelectItem>
-                {branches.map((branch) => (
-                <SelectItem key={branch} value={branch}>
-                    {branch}
-                </SelectItem>
-                ))}
-            </SelectContent>
-            </Select>
-        </div>
+                    <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Branch/Venue" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Branches</SelectItem>
+                        {branches.map((branch) => (
+                        <SelectItem key={branch} value={branch}>
+                            {branch}
+                        </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </CardContent>
+        </Card>
 
 
         <Tabs defaultValue="summary" className="space-y-4">
@@ -631,37 +598,82 @@ export default function PaymentsReportPage() {
 
             <Card>
               <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle>Sales Overview</CardTitle>
-                    <CardDescription>
-                      A summary of your sales performance.
-                    </CardDescription>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 rounded-md bg-muted p-1">
-                      <Button
-                        variant={view === 'chart' ? 'secondary' : 'ghost'}
-                        size="icon"
-                        onClick={() => setView('chart')}
-                        aria-label="Chart View"
-                      >
-                        <LayoutGrid className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant={view === 'list' ? 'secondary' : 'ghost'}
-                        size="icon"
-                        onClick={() => setView('list')}
-                        aria-label="List View"
-                      >
-                        <List className="h-4 w-4" />
-                      </Button>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="flex-shrink-0">
+                        <CardTitle>Sales Overview</CardTitle>
+                        <CardDescription>
+                        A summary of your sales performance.
+                        </CardDescription>
                     </div>
-                     <Button variant="outline">
-                        <Download className="mr-2 h-4 w-4" />
-                        Export to CSV
-                    </Button>
-                  </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <Select
+                            value={filters.paymentStatus}
+                            onValueChange={(value) => handleFilterChange('paymentStatus', value)}
+                        >
+                            <SelectTrigger className="w-full sm:w-[160px]">
+                                <SelectValue placeholder="Payment Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Statuses</SelectItem>
+                                <SelectItem value="Paid">Paid</SelectItem>
+                                <SelectItem value="Partial">Partial</SelectItem>
+                                <SelectItem value="Unpaid">Unpaid</SelectItem>
+                                <SelectItem value="Refunded">Refunded</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Select
+                            value={filters.paymentMethod}
+                            onValueChange={(value) => handleFilterChange('paymentMethod', value)}
+                        >
+                            <SelectTrigger className="w-full sm:w-[160px]">
+                                <SelectValue placeholder="Payment Method" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Methods</SelectItem>
+                                <SelectItem value="Credit Card">Credit Card</SelectItem>
+                                <SelectItem value="Cash">Cash</SelectItem>
+                                <SelectItem value="Online">Online</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Select
+                            value={filters.table}
+                            onValueChange={(value) => handleFilterChange('table', value)}
+                        >
+                            <SelectTrigger className="w-full sm:w-[160px]">
+                                <SelectValue placeholder="Table Number" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Tables</SelectItem>
+                                {tableNumbers.map((table) => (
+                                <SelectItem key={table} value={table}>
+                                    {table}
+                                </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <div className="flex items-center gap-1 rounded-md bg-muted p-1">
+                            <Button
+                                variant={view === 'chart' ? 'secondary' : 'ghost'}
+                                size="icon"
+                                onClick={() => setView('chart')}
+                                aria-label="Chart View"
+                            >
+                                <LayoutGrid className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant={view === 'list' ? 'secondary' : 'ghost'}
+                                size="icon"
+                                onClick={() => setView('list')}
+                                aria-label="List View"
+                            >
+                                <List className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        <Button variant="outline">
+                            <Download className="mr-2 h-4 w-4" />
+                            Export
+                        </Button>
+                    </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -903,10 +915,30 @@ export default function PaymentsReportPage() {
           <TabsContent value="split-bills">
             <Card>
               <CardHeader>
-                <CardTitle>Split Bill Analytics</CardTitle>
-                <CardDescription>
-                  Analysis of orders with split payments.
-                </CardDescription>
+                <div className='flex justify-between items-center'>
+                    <div>
+                        <CardTitle>Split Bill Analytics</CardTitle>
+                        <CardDescription>
+                        Analysis of orders with split payments.
+                        </CardDescription>
+                    </div>
+                    <div className='flex items-center gap-2'>
+                        <Select
+                            value={filters.splitMethod}
+                            onValueChange={(value) => handleFilterChange('splitMethod', value)}
+                        >
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Split Method" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Split Methods</SelectItem>
+                                <SelectItem value="Equal">Equal</SelectItem>
+                                <SelectItem value="Item-based">Item-based</SelectItem>
+                                <SelectItem value="Custom">Custom</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
@@ -1002,11 +1034,30 @@ export default function PaymentsReportPage() {
           <TabsContent value="outstanding">
             <Card>
               <CardHeader>
-                <CardTitle>Outstanding / Partial Payments</CardTitle>
-                <CardDescription>
-                  Monitor orders with pending payments to manage risk and
-                  collections.
-                </CardDescription>
+                 <div className='flex justify-between items-center'>
+                    <div>
+                        <CardTitle>Outstanding / Partial Payments</CardTitle>
+                        <CardDescription>
+                        Monitor orders with pending payments to manage risk and
+                        collections.
+                        </CardDescription>
+                    </div>
+                    <div className='flex items-center gap-2'>
+                        <Select
+                            value={filters.closeType}
+                            onValueChange={(value) => handleFilterChange('closeType', value)}
+                        >
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Close Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Close Types</SelectItem>
+                                <SelectItem value="Auto">Auto</SelectItem>
+                                <SelectItem value="Manual">Manual</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                 </div>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -1077,7 +1128,29 @@ export default function PaymentsReportPage() {
           <TabsContent value="tips">
             <Card>
               <CardHeader>
-                <CardTitle>Tips &amp; Service Charges</CardTitle>
+                <div className='flex justify-between items-center'>
+                    <div>
+                        <CardTitle>Tips &amp; Service Charges</CardTitle>
+                    </div>
+                     <div className='flex items-center gap-2'>
+                        <Select
+                            value={filters.staffName}
+                            onValueChange={(value) => handleFilterChange('staffName', value)}
+                        >
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Staff Name" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Staff</SelectItem>
+                                {staffNames.map((name) => (
+                                <SelectItem key={name} value={name}>
+                                    {name}
+                                </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue="tips">
