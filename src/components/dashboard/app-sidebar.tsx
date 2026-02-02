@@ -788,7 +788,7 @@ export function AppSidebar() {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="flex h-auto w-full items-center justify-between gap-2 rounded-md bg-gray-800 p-2 text-left text-white hover:bg-gray-700 border-2 border-primary"
+                className="flex h-auto w-full items-center justify-between gap-2 rounded-md bg-gray-800 p-2 text-left text-white hover:bg-gray-700"
               >
                 <div className="flex items-center gap-3">
                   {restaurantLogo && (
