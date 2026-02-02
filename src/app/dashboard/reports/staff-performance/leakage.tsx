@@ -2,11 +2,34 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { StatCards, type StatCardData } from "@/components/dashboard/stat-cards";
+import { DollarSign, FileText, AlertCircle } from "lucide-react";
 
 const leakageData = [
   { id: "#3215", waiter: "John", type: "Closed w/o Settlement", amount: 22.50, status: "Unresolved" },
   { id: "#3211", waiter: "David", type: "Order w/o Payment", amount: 18.30, status: "Unresolved" },
   { id: "#3205", waiter: "Maria", type: "Tip Discrepancy", amount: 2.50, status: "Reviewed" },
+];
+
+const leakageKpiCards: StatCardData[] = [
+    {
+        title: 'Estimated Leakage',
+        value: '$40.80',
+        icon: DollarSign,
+        color: 'pink',
+    },
+    {
+        title: 'Tickets Involved',
+        value: '2',
+        icon: FileText,
+        color: 'orange',
+    },
+    {
+        title: 'Leakage Types',
+        value: '2',
+        icon: AlertCircle,
+        color: 'green',
+    }
 ];
 
 export function Leakage() {
@@ -17,19 +40,8 @@ export function Leakage() {
                     <CardTitle>Revenue Leakage</CardTitle>
                     <CardDescription>Identify and track potential revenue loss.</CardDescription>
                 </CardHeader>
-                <CardContent className="grid grid-cols-3 gap-4 text-center">
-                     <div>
-                        <p className="text-sm text-muted-foreground">Estimated Leakage</p>
-                        <p className="text-2xl font-bold text-destructive">$40.80</p>
-                    </div>
-                    <div>
-                        <p className="text-sm text-muted-foreground">Tickets Involved</p>
-                        <p className="text-2xl font-bold">2</p>
-                    </div>
-                     <div>
-                        <p className="text-sm text-muted-foreground">Leakage Types</p>
-                        <p className="text-2xl font-bold">2</p>
-                    </div>
+                <CardContent>
+                    <StatCards cards={leakageKpiCards} />
                 </CardContent>
             </Card>
 
