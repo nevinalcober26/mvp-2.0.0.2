@@ -48,6 +48,7 @@ import {
   Undo2,
   ChevronLeft,
   ChevronRight,
+  Hourglass,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -79,70 +80,82 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 const OrderStatusBadge = ({ status }: { status: Order['orderStatus'] }) => {
-  let icon = null;
-  let variant = getStatusBadgeVariant(status);
-  let text = status;
+  let icon = <Circle className="mr-1.5 h-2.5 w-2.5 fill-current" />;
+  let className = '';
 
   switch (status) {
     case 'Completed':
-      icon = <Circle className="mr-1.5 h-2.5 w-2.5 fill-current text-green-500" />;
+      className = 'bg-green-100 text-green-700';
       break;
     case 'Open':
-      icon = <Circle className="mr-1.5 h-2.5 w-2.5 fill-current text-blue-500" />;
-      variant = 'secondary';
+      className = 'bg-blue-100 text-blue-700';
       break;
     case 'Draft':
-      icon = <Circle className="mr-1.5 h-2.5 w-2.5 fill-current text-gray-400" />;
-      variant = 'outline';
+      className = 'bg-gray-100 text-gray-600';
       break;
     case 'Cancelled':
-      icon = <Circle className="mr-1.5 h-2.5 w-2.5 fill-current text-red-500" />;
-      variant = 'destructive';
+      className = 'bg-red-100 text-red-700';
       break;
     case 'Refunded':
-        icon = <Circle className="mr-1.5 h-2.5 w-2.5 fill-current text-orange-500" />;
-        variant = 'secondary';
+        className = 'bg-orange-100 text-orange-700';
         break;
     case 'Paid':
-        icon = <Check className="mr-1.5 h-3 w-3" />;
-        variant = 'default';
+        className = 'bg-green-100 text-green-700';
+        break;
   }
 
-  return <Badge variant={variant} className="capitalize">{icon}{text}</Badge>;
+  return <Badge variant="outline" className={cn("capitalize border-transparent", className)}>{icon}{status}</Badge>;
 };
 
 const PaymentStatusBadge = ({ status, splitType }: { status: Order['paymentState'], splitType?: Order['splitType'] }) => {
-    let icon = null;
-    let variant = getStatusBadgeVariant(status);
+    let icon;
+    let className = '';
     let text = status;
 
     switch (status) {
         case 'Fully Paid':
             icon = <Check className="mr-1.5 h-3 w-3" />;
-            variant = 'default';
+            className = 'bg-green-100 text-green-700';
             break;
         case 'Partial':
-            icon = <Circle className="mr-1.5 h-2.5 w-2.5 fill-current text-orange-500" />;
-            variant = 'secondary';
+            icon = <Hourglass className="mr-1.5 h-3 w-3" />;
+            className = 'bg-yellow-100 text-yellow-700';
             if (splitType === 'byItem') text = 'Partial (by Item)';
             if (splitType === 'equally') text = 'Partial (Equally)';
             break;
         case 'Unpaid':
             icon = <X className="mr-1.5 h-3 w-3" />;
-            variant = 'destructive';
+            className = 'bg-red-100 text-red-700';
             break;
         case 'Voided':
             icon = <Ban className="mr-1.5 h-3 w-3" />;
-            variant = 'outline';
+            className = 'bg-gray-100 text-gray-600';
             break;
         case 'Returned':
             icon = <Undo2 className="mr-1.5 h-3 w-3" />;
-            variant = 'secondary';
+            className = 'bg-orange-100 text-orange-700';
             break;
     }
 
-    return <Badge variant={variant} className="capitalize">{icon}{text}</Badge>;
+    return <Badge variant="outline" className={cn("capitalize border-transparent", className)}>{icon}{text}</Badge>;
 }
+
+
+const avatarColors = [
+  'bg-blue-100 text-blue-600',
+  'bg-purple-100 text-purple-600',
+  'bg-pink-100 text-pink-600',
+  'bg-orange-100 text-orange-600',
+  'bg-teal-100 text-teal-600',
+  'bg-green-100 text-green-600',
+  'bg-yellow-100 text-yellow-600'
+];
+
+const getAvatarColorClass = (name: string) => {
+  const charCodeSum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return avatarColors[charCodeSum % avatarColors.length];
+};
+
 
 export default function OrdersPage() {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
@@ -168,7 +181,7 @@ export default function OrdersPage() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setAllOrders(generateMockOrders(30));
+      setAllOrders(generateMockOrders(124));
       setIsLoading(false);
     }, 1500);
     return () => clearTimeout(timer);
@@ -292,7 +305,7 @@ export default function OrdersPage() {
   };
   
   const SortableHeader = ({ tKey, label }: { tKey: keyof Order; label: string }) => (
-    <Button variant="ghost" onClick={() => requestSort(tKey)} className="px-2 font-semibold">
+    <Button variant="ghost" onClick={() => requestSort(tKey)} className="px-2 font-semibold text-muted-foreground hover:text-foreground">
       {label}
       <ArrowUpDown className={cn('ml-2 h-4 w-4', sortConfig?.key !== tKey && 'text-muted-foreground/50')} />
     </Button>
@@ -307,34 +320,32 @@ export default function OrdersPage() {
             pageNumbers.push(i);
         }
     } else {
-        let startPage = Math.max(1, currentPage - 2);
-        let endPage = Math.min(totalPages, currentPage + 2);
+        let startPage = Math.max(2, currentPage - 1);
+        let endPage = Math.min(totalPages - 1, currentPage + 1);
 
-        if (currentPage <= 3) {
-            startPage = 1;
-            endPage = maxPagesToShow -1;
-        } else if (currentPage >= totalPages - 2) {
-            startPage = totalPages - maxPagesToShow + 2;
-            endPage = totalPages;
+        pageNumbers.push(1);
+
+        if (currentPage > 3) {
+            pageNumbers.push('...');
         }
 
-        if (startPage > 1) {
-            pageNumbers.push(1);
-            if (startPage > 2) {
-                pageNumbers.push('...');
-            }
+        if(currentPage <= 3) {
+          startPage = 2;
+          endPage = 4;
+        } else if (currentPage >= totalPages - 2) {
+          startPage = totalPages - 3;
+          endPage = totalPages - 1;
         }
 
         for (let i = startPage; i <= endPage; i++) {
             pageNumbers.push(i);
         }
 
-        if (endPage < totalPages) {
-            if (endPage < totalPages - 1) {
-                pageNumbers.push('...');
-            }
-            pageNumbers.push(totalPages);
+        if (currentPage < totalPages - 2) {
+            pageNumbers.push('...');
         }
+
+        pageNumbers.push(totalPages);
     }
     
     return (
@@ -352,7 +363,7 @@ export default function OrdersPage() {
               typeof page === 'number' ? (
                 <Button
                   key={index}
-                  variant={currentPage === page ? 'default' : 'outline'}
+                  variant={currentPage === page ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setCurrentPage(page)}
                   className="h-8 w-8 p-0"
@@ -360,7 +371,7 @@ export default function OrdersPage() {
                   {page}
                 </Button>
               ) : (
-                <span key={index} className="px-2">...</span>
+                <span key={index} className="px-2 h-8 flex items-center justify-center">...</span>
               )
             )}
              <Button
@@ -449,7 +460,7 @@ export default function OrdersPage() {
                         <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
                     </PopoverContent>
                     </Popover>
-                    <Button variant="outline" size="icon">
+                    <Button variant="ghost" size="icon">
                         <Settings className="h-4 w-4" />
                     </Button>
                 </div>
@@ -459,16 +470,16 @@ export default function OrdersPage() {
                     <Table>
                         <TableHeader>
                         <TableRow>
-                            <TableHead><SortableHeader tKey="orderId" label="Order ID" /></TableHead>
-                            <TableHead>Customer</TableHead>
-                            <TableHead><SortableHeader tKey="branch" label="Branch" /></TableHead>
-                            <TableHead>Table</TableHead>
-                            <TableHead>Order Status</TableHead>
-                            <TableHead>Payment Status</TableHead>
-                            <TableHead className="text-right"><SortableHeader tKey="totalAmount" label="Total" /></TableHead>
-                            <TableHead className="text-right">Paid</TableHead>
-                            <TableHead className="text-right">Pending</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                            <TableHead><SortableHeader tKey="orderId" label="ORDER ID" /></TableHead>
+                            <TableHead><SortableHeader tKey="customer" label="CUSTOMER" /></TableHead>
+                            <TableHead><SortableHeader tKey="branch" label="BRANCH" /></TableHead>
+                            <TableHead>TABLE</TableHead>
+                            <TableHead>ORDER STATUS</TableHead>
+                            <TableHead>PAYMENT STATUS</TableHead>
+                            <TableHead className="text-right"><SortableHeader tKey="totalAmount" label="TOTAL" /></TableHead>
+                            <TableHead className="text-right">PAID</TableHead>
+                            <TableHead className="text-right">PENDING</TableHead>
+                            <TableHead className="text-right">ACTIONS</TableHead>
                         </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -479,7 +490,9 @@ export default function OrdersPage() {
                                 {order.customer ? (
                                     <div className="flex items-center gap-3">
                                     <Avatar className="h-8 w-8">
-                                        <AvatarFallback>{order.customer.name.charAt(0)}</AvatarFallback>
+                                        <AvatarFallback className={cn(getAvatarColorClass(order.customer.name))}>
+                                            {order.customer.name.split(' ').map(n => n[0]).join('')}
+                                        </AvatarFallback>
                                     </Avatar>
                                     <div>
                                         <p className="font-medium text-sm">{order.customer.name}</p>
@@ -487,11 +500,11 @@ export default function OrdersPage() {
                                     </div>
                                     </div>
                                 ) : (
-                                    <div className="text-sm italic text-muted-foreground">Guest</div>
+                                    <div className="text-sm">Guest</div>
                                 )}
                             </TableCell>
                             <TableCell>{order.branch}</TableCell>
-                            <TableCell>{order.table}</TableCell>
+                            <TableCell><Badge variant="secondary">{order.table}</Badge></TableCell>
                             <TableCell><OrderStatusBadge status={order.orderStatus} /></TableCell>
                             <TableCell><PaymentStatusBadge status={order.paymentState} splitType={order.splitType} /></TableCell>
                             <TableCell className="text-right font-mono">${order.totalAmount.toFixed(2)}</TableCell>
@@ -500,10 +513,17 @@ export default function OrdersPage() {
                                 {order.totalAmount - order.paidAmount > 0.01 ? `$${(order.totalAmount - order.paidAmount).toFixed(2)}` : '-'}
                             </TableCell>
                             <TableCell onClick={(e) => e.stopPropagation()} className="text-right">
-                                <Button aria-haspopup="true" size="icon" variant="ghost">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">Toggle menu</span>
-                                </Button>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                        <span className="sr-only">Toggle menu</span>
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent>
+                                    <DropdownMenuItem>View Details</DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                             </TableCell>
                             </TableRow>
                         ))}
