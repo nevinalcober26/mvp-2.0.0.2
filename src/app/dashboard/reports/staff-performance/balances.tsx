@@ -42,7 +42,7 @@ export function Balances() {
                                 <TableHead># Open Tables</TableHead>
                                 <TableHead>Oldest Balance Age</TableHead>
                                 <TableHead>Recovered vs Lost</TableHead>
-                                <TableHead></TableHead>
+                                <TableHead className="text-right"></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -53,7 +53,7 @@ export function Balances() {
                                     <TableCell>{row.openTables}</TableCell>
                                     <TableCell>{row.oldestAge}</TableCell>
                                     <TableCell>{row.recoveredVsLost}</TableCell>
-                                    <TableCell><Button variant="link" size="sm">View open tables</Button></TableCell>
+                                    <TableCell className="text-right"><Button variant="link" size="sm">View open tables</Button></TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
