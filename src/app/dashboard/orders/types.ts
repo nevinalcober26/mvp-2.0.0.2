@@ -12,6 +12,7 @@ export type Payment = {
   date: string;
   transactionId: string;
   guestName: string;
+  tip?: number;
 };
 
 export type Customer = {

@@ -76,7 +76,7 @@ import {
 import { type DateRange } from 'react-day-picker';
 import { DateRangePicker } from '@/components/dashboard/reports/date-range-picker';
 import type { Order } from '@/app/dashboard/orders/types';
-import { generateMockOrders } from '@/app/dashboard/orders/mock';
+import { mockDataStore } from '@/lib/mock-data-store';
 import { OrderDetailsSheet } from '@/app/dashboard/orders/order-details-sheet';
 import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
 import { AiSummary } from '@/components/dashboard/ai-summary';
@@ -102,75 +102,41 @@ type Transaction = {
   serviceChargeAmount?: number;
 };
 
-const generateMockTransactions = (
-  count: number,
-  dateRange?: DateRange
-): Transaction[] => {
-  const transactions: Transaction[] = [];
-  const { from = subDays(new Date(), 29), to = new Date() } = dateRange || {};
-  const dateDiff = Math.abs(differenceInDays(to, from));
+const generateTransactionsFromOrders = (orders: Order[]): Transaction[] => {
+    return orders.map(order => {
+        const paymentStatusMap = {
+            'Fully Paid': 'Paid',
+            'Partial': 'Partial',
+            'Unpaid': 'Unpaid',
+            'Voided': 'Unpaid',
+            'Returned': 'Refunded',
+        };
 
-  const statuses: Transaction['paymentStatus'][] = [
-    'Paid',
-    'Partial',
-    'Unpaid',
-    'Refunded',
-  ];
-  const methods = ['Credit Card', 'Cash', 'Online'];
-  const branches: ('Ras Al Khaimah' | 'Dubai Mall')[] = [
-    'Ras Al Khaimah',
-    'Dubai Mall',
-  ];
-  const closeTypes: Transaction['closeType'][] = ['Auto', 'Manual'];
-  const staffNames = ['Alex', 'Maria', 'John', 'Sarah', 'David'];
+        const tipAmount = order.payments.reduce((acc, p) => acc + (p.tip || 0), 0);
 
-  for (let i = 0; i < count; i++) {
-    const randomDayOffset = Math.floor(Math.random() * (dateDiff + 1));
-    let randomDate = subDays(endOfDay(to), randomDayOffset);
-    randomDate = setHours(randomDate, Math.floor(Math.random() * 24));
-    randomDate = setMinutes(randomDate, Math.floor(Math.random() * 60));
-    randomDate = setSeconds(randomDate, Math.floor(Math.random() * 60));
-
-    if (
-      randomDate.getTime() < from.getTime() ||
-      randomDate.getTime() > endOfDay(to).getTime()
-    ) {
-      continue;
-    }
-
-    const timestamp = randomDate.getTime();
-    const totalAmount = parseFloat((Math.random() * 200 + 10).toFixed(2));
-    const status = statuses[i % statuses.length];
-    let paidAmount = 0;
-    if (status === 'Paid') {
-      paidAmount = totalAmount;
-    } else if (status === 'Partial') {
-      paidAmount = parseFloat(
-        (totalAmount * (Math.random() * 0.7 + 0.2)).toFixed(2)
-      );
-    } else if (status === 'Refunded') {
-      paidAmount = totalAmount;
-    }
-
-    transactions.push({
-      id: `txn_${12345 + i}`,
-      orderId: `#${3210 + i}`,
-      timestamp: timestamp,
-      totalAmount,
-      paidAmount,
-      outstandingAmount: totalAmount - paidAmount,
-      paymentStatus: status,
-      paymentMethod: methods[i % methods.length],
-      payers: Math.floor(Math.random() * 4) + 1,
-      branch: branches[i % branches.length],
-      table: `T${(i % 24) + 1}`,
-      lastPaymentAttempt: timestamp + Math.random() * 3600000,
-      closeType: closeTypes[i % closeTypes.length],
-      staffName: staffNames[i % staffNames.length],
+        return {
+            id: `txn_${order.orderId.replace('#', '')}`,
+            orderId: order.orderId,
+            timestamp: order.orderTimestamp,
+            totalAmount: order.totalAmount,
+            paidAmount: order.paidAmount,
+            outstandingAmount: order.totalAmount - order.paidAmount,
+            paymentStatus: paymentStatusMap[order.paymentState] as Transaction['paymentStatus'] || 'Unpaid',
+            paymentMethod: order.payments[0]?.method || 'Credit Card',
+            payers: order.payments.length > 0 ? order.payments.length : 1,
+            branch: order.branch,
+            table: order.table,
+            splitMethod: order.splitType === 'equally' ? 'Equal' : order.splitType === 'byItem' ? 'Item-based' : undefined,
+            lastPaymentAttempt: order.orderTimestamp + Math.random() * 3600000,
+            closeType: Math.random() > 0.5 ? 'Auto' : 'Manual',
+            staffName: order.staffName,
+            tipAmount: tipAmount > 0 ? tipAmount : undefined,
+            tipType: 'Custom',
+            serviceChargeAmount: Math.random() > 0.5 ? order.totalAmount * 0.1 : undefined,
+        };
     });
-  }
-  return transactions;
 };
+
 
 const chartConfig = {
   total: {
@@ -243,8 +209,8 @@ export default function OutstandingReportPage() {
   useEffect(() => {
     setIsLoading(true);
     const timer = setTimeout(() => {
-      const mockTransactions = generateMockTransactions(100, filters.dateRange);
-      const mockOrders = generateMockOrders(100, filters.dateRange);
+      const mockOrders = mockDataStore.orders;
+      const mockTransactions = generateTransactionsFromOrders(mockOrders);
       setTransactions(mockTransactions);
       setAllOrders(mockOrders);
       setIsLoading(false);

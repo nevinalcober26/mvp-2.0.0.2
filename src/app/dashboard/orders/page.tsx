@@ -70,7 +70,7 @@ import {
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import type { Order } from './types';
-import { generateMockOrders } from './mock';
+import { mockDataStore } from '@/lib/mock-data-store';
 import { getStatusBadgeVariant } from './utils';
 import { OrderDetailsSheet } from './order-details-sheet';
 import { OrdersPageSkeleton } from '@/components/dashboard/skeletons';
@@ -189,7 +189,7 @@ export default function OrdersPage() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setAllOrders(generateMockOrders(124));
+      setAllOrders(mockDataStore.orders);
       setIsLoading(false);
     }, 1500);
     return () => clearTimeout(timer);

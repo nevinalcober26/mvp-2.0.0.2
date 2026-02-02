@@ -28,7 +28,7 @@ import {
 import { DashboardHeader } from '@/components/dashboard/header';
 import { cn } from '@/lib/utils';
 import type { Customer } from './types';
-import { generateMockCustomers } from './mock';
+import { mockDataStore } from '@/lib/mock-data-store';
 import { CustomerSheet } from './customer-sheet';
 import { Input } from '@/components/ui/input';
 import { OrdersPageSkeleton } from '@/components/dashboard/skeletons';
@@ -50,7 +50,7 @@ export default function CustomerListPage() {
   useEffect(() => {
     // Simulate fetching data
     setTimeout(() => {
-      setAllCustomers(generateMockCustomers(45));
+      setAllCustomers(mockDataStore.customers);
       setIsLoading(false);
     }, 1000);
   }, []);

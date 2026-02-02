@@ -56,7 +56,7 @@ import {
 import { DashboardHeader } from '@/components/dashboard/header';
 import { cn } from '@/lib/utils';
 import type { Product } from './types';
-import { generateMockProducts } from './mock-data';
+import { mockDataStore } from '@/lib/mock-data-store';
 import { ProductSheet } from './product-sheet';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -188,7 +188,7 @@ export default function ProductsPage() {
   useEffect(() => {
     // Simulate fetching data
     setTimeout(() => {
-      setAllProducts(generateMockProducts(30));
+      setAllProducts(mockDataStore.products);
       setIsLoading(false);
     }, 1000);
   }, []);
