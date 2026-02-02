@@ -53,32 +53,34 @@ export default function StaffPerformancePage() {
   };
 
   return (
-    <div className="flex flex-col h-full">
-        <DashboardHeader />
-        <div className="flex-1 flex overflow-hidden">
-             {/* Left Sidebar for staff performance sections */}
-            <div className="w-[240px] flex-shrink-0 border-r bg-muted/40 overflow-y-auto">
-                <div className="p-4 pt-6">
-                    <h2 className="text-lg font-semibold tracking-tight">Performance</h2>
-                    <p className="text-sm text-muted-foreground">Staff Analytics</p>
-                </div>
-              <StaffPerformanceSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
+    <>
+      <DashboardHeader />
+      <div className="flex">
+        {/* Left Sidebar for staff performance sections */}
+        <div className="w-[240px] flex-shrink-0 border-r bg-muted/40">
+          <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+            <div className="p-4 pt-6">
+                <h2 className="text-lg font-semibold tracking-tight">Performance</h2>
+                <p className="text-sm text-muted-foreground">Staff Analytics</p>
             </div>
-            
-            {/* Right Content */}
-            <div className="flex-1 overflow-y-auto">
-                <div className="p-6 space-y-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-2xl font-bold">Staff Performance</h1>
-                            <p className="text-muted-foreground">Real-time staff metrics, payment behavior, and AI insights.</p>
-                        </div>
+            <StaffPerformanceSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
+          </div>
+        </div>
+        
+        {/* Right Content */}
+        <div className="flex-1">
+            <div className="p-6 space-y-6">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold">Staff Performance</h1>
+                        <p className="text-muted-foreground">Real-time staff metrics, payment behavior, and AI insights.</p>
                     </div>
-                  <AiInsightsStrip />
-                  {renderContent()}
                 </div>
+              <AiInsightsStrip />
+              {renderContent()}
             </div>
         </div>
-    </div>
+      </div>
+    </>
   );
 }
