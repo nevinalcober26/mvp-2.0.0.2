@@ -9,6 +9,7 @@ import { AlertTriangle, DollarSign, TrendingUp, Eye } from "lucide-react";
 import { OrderDetailsSheet } from '@/app/dashboard/orders/order-details-sheet';
 import type { Order } from '@/app/dashboard/orders/types';
 import { generateMockOrders } from '@/app/dashboard/orders/mock';
+import { useToast } from '@/hooks/use-toast';
 
 const kpis: StatCardData[] = [
     { title: "Risky Tables", value: "3", icon: AlertTriangle, color: 'pink' },
@@ -17,26 +18,32 @@ const kpis: StatCardData[] = [
 ];
 
 const alerts = [
-    { type: "High-risk Table", timestamp: "2m ago", reference: "Waiter: John, Table: T5", severity: "High", waiter: "John" },
-    { type: "Unusual Tip Drop", timestamp: "1h ago", reference: "Waiter: Maria", severity: "Medium", waiter: "Maria" },
-    { type: "Ending Shift with Open Balance", timestamp: "8h ago", reference: "Waiter: David", severity: "Low", waiter: "David" },
-]
+    { type: "High-risk Table", timestamp: "2m ago", reference: "Waiter: John, Table: T5", severity: "High", orderId: "#3214" },
+    { type: "Unusual Tip Drop", timestamp: "1h ago", reference: "Waiter: Maria", severity: "Medium", orderId: "#3211" },
+    { type: "Ending Shift with Open Balance", timestamp: "8h ago", reference: "Waiter: David", severity: "Low", orderId: "#3210" },
+];
 
 export function AiOverview() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const { toast } = useToast();
 
     useEffect(() => {
         setOrders(generateMockOrders(50));
     }, []);
 
-    const handleViewDetails = (waiterName: string) => {
-        // For demonstration, find the first order associated with the waiter
-        const order = orders.find(o => o.staffName === waiterName);
+    const handleViewDetails = (orderId: string) => {
+        const order = orders.find(o => o.orderId === orderId);
         if (order) {
             setSelectedOrder(order);
             setIsSheetOpen(true);
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Order Details Not Found",
+                description: `Could not find the details for order ${orderId}.`,
+            });
         }
     };
 
@@ -68,7 +75,7 @@ export function AiOverview() {
                                         <TableCell>{alert.reference}</TableCell>
                                         <TableCell><Badge variant={alert.severity === 'High' ? 'destructive' : alert.severity === 'Medium' ? 'secondary' : 'outline'}>{alert.severity}</Badge></TableCell>
                                         <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon" onClick={() => handleViewDetails(alert.waiter)}>
+                                            <Button variant="ghost" size="icon" onClick={() => handleViewDetails(alert.orderId)}>
                                                 <Eye className="h-5 w-5" />
                                                 <span className="sr-only">View details</span>
                                             </Button>
