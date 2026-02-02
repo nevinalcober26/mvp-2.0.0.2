@@ -128,7 +128,7 @@ export function AiSummary({ data, context }: AiSummaryProps) {
             </div>
         </div>
         {renderContent()}
-        <Button variant="ghost" size="icon" className="h-7 w-7 absolute top-2 right-2 rounded-full bg-white/50 hover:bg-white/80" onClick={() => setIsVisible(false)}>
+        <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 rounded-full bg-white/50 hover:bg-white/80" onClick={() => setIsVisible(false)}>
           <X className="h-4 w-4 text-muted-foreground" />
         </Button>
       </div>
