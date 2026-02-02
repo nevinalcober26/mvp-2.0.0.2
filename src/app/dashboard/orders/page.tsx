@@ -232,7 +232,7 @@ export default function OrdersPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [date, setDate] = useState<Date | undefined>();
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const { toast } = useToast();
   const [permission, setPermission] = useState('default');
@@ -873,10 +873,9 @@ export default function OrdersPage() {
             <div className="text-sm text-muted-foreground">
               Showing{' '}
               <strong>
-                {Math.min(
-                  (currentPage - 1) * itemsPerPage + 1,
-                  filteredAndSortedOrders.length
-                )}
+                {filteredAndSortedOrders.length === 0
+                  ? 0
+                  : (currentPage - 1) * itemsPerPage + 1}
               </strong>{' '}
               to{' '}
               <strong>
