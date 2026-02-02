@@ -65,25 +65,23 @@ export function WelcomeBanner({ statCards, chartData }: WelcomeBannerProps) {
         })
         .catch((err) => {
           console.error('AI Summary Error:', err);
+          // For any error (including rate limits), fall back to a static summary.
+          if (statCards && statCards.length >= 2) {
+            const staticSummary = `Today's key metrics: **${statCards[0].title}** is at **${statCards[0].value}** and **${statCards[1].title}** is **${statCards[1].value}**.`;
+            setSummary(staticSummary);
+          } else {
+            setSummary("Welcome back! Here's a look at your dashboard.");
+          }
+          setStatus('success'); // Set status to success to display the fallback
+          setError(''); // Clear any previous errors
+          
+          // If it's a rate limit error, prevent auto-retries.
           if (
             err.message &&
             (err.message.includes('429') ||
               err.message.includes('Too Many Requests'))
           ) {
             setIsRateLimited(true);
-            if (statCards && statCards.length >= 2) {
-              const staticSummary = `Today's key metrics: **${statCards[0].title}** is at **${statCards[0].value}** and **${statCards[1].title}** is **${statCards[1].value}**.`;
-              setSummary(staticSummary);
-            } else {
-              setSummary("Welcome back! Here's a look at your dashboard.");
-            }
-            setStatus('success');
-            setError('');
-          } else {
-            setError(
-              `Could not generate summary. The AI may be temporarily unavailable.`
-            );
-            setStatus('error');
           }
         })
         .finally(() => {
@@ -97,12 +95,16 @@ export function WelcomeBanner({ statCards, chartData }: WelcomeBannerProps) {
   }, [statCards, chartData]);
 
   useEffect(() => {
+    // Trigger summary generation when data changes, but not if rate limited.
     if (isRateLimited) return;
     generateSummary();
   }, [generateSummary, isRateLimited]);
 
   const handleRefresh = () => {
+    // Allow manual refresh to try again.
     setIsRateLimited(false);
+    // Manually trigger generation since the effect might not run if data hasn't changed.
+    generateSummary();
   };
 
   const renderSummaryWithBold = (text: string) => {
@@ -130,7 +132,12 @@ export function WelcomeBanner({ statCards, chartData }: WelcomeBannerProps) {
           </div>
         );
       case 'error':
-        return <p className="text-sm text-red-600">{error}</p>;
+        // This case is now a fallback and should ideally not be hit.
+        return (
+          <p className="max-w-md text-gray-600">
+            Welcome back! Key metrics are being calculated.
+          </p>
+        );
       case 'success':
         return (
           <p className="max-w-md text-gray-600">

@@ -42,21 +42,19 @@ export function AiSummary({ data, context }: AiSummaryProps) {
         })
         .catch((err) => {
           console.error('AI Summary Error:', err);
+          // For any error, fall back to a static summary
+          const staticSummary = `Key metrics: **${data.length} items** found for **${context}**.`;
+          setSummary(staticSummary);
+          setStatus('success');
+          setError('');
+
+          // If it's a rate limit error, prevent auto-retries.
           if (
             err.message &&
             (err.message.includes('429') ||
               err.message.includes('Too Many Requests'))
           ) {
-            const staticSummary = `Today's key metrics: **${data.length} items** for **${context}**.`;
-            setSummary(staticSummary);
-            setStatus('success');
-            setError('');
             setIsRateLimited(true);
-          } else {
-            setError(
-              `Could not generate summary. The AI may be temporarily unavailable.`
-            );
-            setStatus('error');
           }
         })
         .finally(() => {
@@ -79,6 +77,7 @@ export function AiSummary({ data, context }: AiSummaryProps) {
   const handleRefresh = () => {
     // Allow manual refresh to try again.
     setIsRateLimited(false);
+    generateSummary();
   };
 
   const renderSummaryWithBold = (text: string) => {
@@ -97,7 +96,7 @@ export function AiSummary({ data, context }: AiSummaryProps) {
   };
 
   // Do not render the component if it's been closed or if there's no data to show.
-  if (!isVisible || status === 'idle') {
+  if (!isVisible || (status === 'idle' && data.length === 0)) {
     return null;
   }
 
@@ -121,16 +120,15 @@ export function AiSummary({ data, context }: AiSummaryProps) {
             </div>
           </div>
         );
-      case 'error':
+      case 'error': // This case now acts as a fallback
         return (
-          <div className="flex-grow flex items-center gap-4">
-            <AlertTriangle className="h-5 w-5 text-destructive" />
-            <div>
-              <p className="text-xs font-semibold text-destructive uppercase tracking-wider">
-                AI Error
-              </p>
-              <p className="text-sm text-foreground/90">{error}</p>
-            </div>
+          <div className="flex-grow">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+              AI ANALYSIS
+            </p>
+            <p className="text-sm text-foreground/90">
+              {`Key metrics: **${data.length} items** found for **${context}**.`}
+            </p>
           </div>
         );
       case 'success':
