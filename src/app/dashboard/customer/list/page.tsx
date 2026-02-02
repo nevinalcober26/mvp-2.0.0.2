@@ -4,8 +4,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
-  CardDescription,
   CardFooter,
 } from '@/components/ui/card';
 import {
@@ -16,9 +14,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { MoreHorizontal, PlusCircle, ArrowUpDown } from 'lucide-react';
 import {
   DropdownMenu,
@@ -35,6 +32,7 @@ import { generateMockCustomers } from './mock';
 import { CustomerSheet } from './customer-sheet';
 import { Input } from '@/components/ui/input';
 import { OrdersPageSkeleton } from '@/components/dashboard/skeletons';
+import { AiSummary } from '@/components/dashboard/ai-summary';
 
 export default function CustomerListPage() {
   const [allCustomers, setAllCustomers] = useState<Customer[]>([]);
@@ -130,21 +128,24 @@ export default function CustomerListPage() {
     <>
       <DashboardHeader />
       <main className="p-4 sm:p-6 lg:p-8 space-y-6">
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Customers</h1>
+            <p className="text-muted-foreground">
+              View and manage your customer profiles.
+            </p>
+          </div>
+          <Button size="sm">
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Customer
+          </Button>
+        </div>
+
+        <AiSummary data={filteredAndSortedCustomers} context="customer list" />
+
         <Card>
           <CardHeader>
-            <div className="flex items-start justify-between">
-              <div>
-                <CardTitle>Customer List</CardTitle>
-                <CardDescription>
-                  View and manage your customer profiles.
-                </CardDescription>
-              </div>
-              <Button size="sm">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Customer
-              </Button>
-            </div>
-            <div className="pt-4 flex items-center justify-between">
+            <div className="flex items-center justify-between">
               <Input
                 placeholder="Search by name or phone..."
                 value={search}

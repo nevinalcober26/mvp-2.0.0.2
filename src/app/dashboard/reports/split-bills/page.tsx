@@ -82,6 +82,7 @@ import type { Order } from '@/app/dashboard/orders/types';
 import { generateMockOrders } from '@/app/dashboard/orders/mock';
 import { OrderDetailsSheet } from '@/app/dashboard/orders/order-details-sheet';
 import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
+import { AiSummary } from '@/components/dashboard/ai-summary';
 
 type Transaction = {
   id: string;
@@ -455,8 +456,10 @@ export default function SplitBillsReportPage() {
             Export
           </Button>
         </div>
+
+        <AiSummary data={splitTransactions} context="split bills" />
             
-        <div className="my-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg border bg-card p-3">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg border bg-card p-3">
           <div className="flex flex-wrap items-center gap-4">
             <span className="text-sm font-medium">Filters:</span>
             <DateRangePicker
@@ -519,7 +522,7 @@ export default function SplitBillsReportPage() {
           </Button>
         </div>
 
-        <div className="space-y-6 mt-4">
+        <div className="space-y-6">
             <StatCards cards={splitKpiCards} />
             
             <Card>
