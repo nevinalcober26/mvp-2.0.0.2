@@ -16,7 +16,7 @@ export function AiSummary({ data, context }: AiSummaryProps) {
   const [summary, setSummary] = useState('');
   const [error, setError] = useState('');
   const [status, setStatus] = useState<
-    'idle' | 'loading' | 'success' | 'error' | 'rate-limited'
+    'idle' | 'loading' | 'success' | 'error'
   >('idle');
   const [isVisible, setIsVisible] = useState(true);
   const isLoadingRef = useRef(false);
@@ -45,10 +45,11 @@ export function AiSummary({ data, context }: AiSummaryProps) {
             (err.message.includes('429') ||
               err.message.includes('Too Many Requests'))
           ) {
-            setError(
-              'You have exceeded the request limit. Please wait a moment before trying again.'
+            setSummary(
+              `AI analysis limit reached. Displaying basic summary: Found **${data.length} items** for **${context}**.`
             );
-            setStatus('rate-limited');
+            setStatus('success');
+            setError('');
           } else {
             setError(
               `Could not generate summary. The AI may be temporarily unavailable.`
@@ -112,25 +113,16 @@ export function AiSummary({ data, context }: AiSummaryProps) {
             </div>
           </div>
         );
-      case 'rate-limited':
+      case 'error':
         return (
           <div className="flex-grow flex items-center gap-4">
-            <AlertTriangle className="h-5 w-5 text-orange-500" />
+            <AlertTriangle className="h-5 w-5 text-destructive" />
             <div>
-              <p className="text-xs font-semibold text-orange-600 uppercase tracking-wider">
-                AI Usage Limit Reached
+              <p className="text-xs font-semibold text-destructive uppercase tracking-wider">
+                AI Error
               </p>
               <p className="text-sm text-foreground/90">{error}</p>
             </div>
-          </div>
-        );
-      case 'error':
-        return (
-          <div className="flex-grow">
-            <p className="text-xs font-semibold text-red-700 uppercase tracking-wider mb-1">
-              AI Error
-            </p>
-            <p className="text-sm text-red-700">{error}</p>
           </div>
         );
       case 'success':

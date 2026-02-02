@@ -68,8 +68,13 @@ export function WelcomeBanner({ statCards, chartData }: WelcomeBannerProps) {
             (err.message.includes('429') ||
               err.message.includes('Too Many Requests'))
           ) {
-            setStatus('idle');
-            setSummary('');
+            if (statCards && statCards.length >= 2) {
+              const staticSummary = `Today's key metrics: **${statCards[0].title}** is at **${statCards[0].value}** and **${statCards[1].title}** is **${statCards[1].value}**.`;
+              setSummary(staticSummary);
+            } else {
+              setSummary("Welcome back! Here's a look at your dashboard.");
+            }
+            setStatus('success');
             setError('');
           } else {
             setError(
