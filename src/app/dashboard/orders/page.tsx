@@ -484,7 +484,14 @@ export default function OrdersPage() {
                         </TableHeader>
                         <TableBody>
                         {paginatedOrders.map((order) => (
-                            <TableRow key={order.orderId} onClick={() => handleViewDetails(order)} className="cursor-pointer">
+                            <TableRow
+                              key={order.orderId}
+                              onClick={() => handleViewDetails(order)}
+                              className={cn(
+                                "cursor-pointer",
+                                (order.orderStatus === 'Cancelled' || order.paymentState === 'Voided') && 'opacity-50'
+                              )}
+                            >
                             <TableCell className="font-medium">{order.orderId}</TableCell>
                             <TableCell>
                                 {order.customer ? (
