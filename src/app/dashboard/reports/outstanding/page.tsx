@@ -37,6 +37,8 @@ import {
   FileWarning,
   CalendarDays,
   Info,
+  User,
+  Zap,
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
@@ -563,7 +565,16 @@ export default function OutstandingReportPage() {
                             <TableCell className="font-semibold text-red-600">${t.outstandingAmount.toFixed(2)}</TableCell>
                             <TableCell>{daysOutstanding} day(s)</TableCell>
                             <TableCell>{new Date(t.lastPaymentAttempt).toLocaleDateString()}</TableCell>
-                            <TableCell>{t.closeType}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="font-normal capitalize flex items-center gap-1.5 w-fit">
+                                {t.closeType === 'Manual' ? (
+                                  <User className="h-3 w-3" />
+                                ) : (
+                                  <Zap className="h-3 w-3" />
+                                )}
+                                {t.closeType}
+                              </Badge>
+                            </TableCell>
                             <TableCell className="text-right">
                               {isHighRisk && (
                                 <AlertTriangle className="h-5 w-5 text-red-500 inline-block" />
