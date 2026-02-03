@@ -521,12 +521,19 @@ export default function OutstandingReportPage() {
                           </UiTooltip>
                         </TableHead>
                         <TableHead>
-                          <UiTooltip>
+                           <UiTooltip>
                             <UiTooltipTrigger className="flex items-center gap-1">
                               Close Type <Info className="h-3 w-3 text-muted-foreground" />
                             </UiTooltipTrigger>
                             <UiTooltipContent>
-                              <p>How the order was closed (e.g., auto or manually by staff).</p>
+                               <div className="max-w-xs space-y-2 p-1">
+                                <p>
+                                  <strong className="font-semibold">Auto:</strong> Order automatically closed by the system, typically after a successful online or QR code payment by the customer.
+                                </p>
+                                <p>
+                                  <strong className="font-semibold">Manual:</strong> Order manually closed by a staff member in the POS after handling a payment (e.g., cash or card terminal).
+                                </p>
+                              </div>
                             </UiTooltipContent>
                           </UiTooltip>
                         </TableHead>
