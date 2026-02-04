@@ -33,6 +33,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectSeparator,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -69,7 +70,7 @@ import { useToast } from '@/hooks/use-toast';
 import { generateProductDescription } from '@/ai/flows/generate-product-description-flow';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { mockDataStore } from '@/lib/mock-data-store';
+import { mockDataStore, mockComboGroups } from '@/lib/mock-data-store';
 import { getCategoryNameOptions } from '@/app/dashboard/categories/utils';
 
 const productSchema = z
@@ -149,10 +150,10 @@ export function ProductSheet({
 }) {
   const [activeTab, setActiveTab] = useState('basic-info');
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
-  const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState<'short' | 'long' | null>(
     null
   );
+  const [showNewComboInput, setShowNewComboInput] = useState(false);
 
   const categoryOptions = useMemo(() => getCategoryNameOptions(mockDataStore.categories), []);
 
@@ -206,6 +207,7 @@ export function ProductSheet({
     name: 'variations',
   });
 
+  const { toast } = useToast();
   const { isDirty, isValid, errors } = form.formState;
   const productName = form.watch('name');
   const productCategory = form.watch('category');
@@ -232,6 +234,7 @@ export function ProductSheet({
 
   useEffect(() => {
     form.reset(defaultValues);
+    setShowNewComboInput(false);
   }, [defaultValues, form]);
 
   const handleAttemptClose = () => {
@@ -302,7 +305,7 @@ export function ProductSheet({
         discountedPrice = data.price - data.discountValue;
     }
 
-    const { discountType, discountValue, ...restOfData } = data;
+    const { discountType: dt, discountValue: dv, ...restOfData } = data;
 
     const fullProductData: Product = {
       ...(product || {}),
@@ -747,15 +750,153 @@ export function ProductSheet({
                             </CardContent>
                           </Card>
                           <Card className="md:col-span-2">
-                             <CardHeader>
+                            <CardHeader>
                               <CardTitle>Advanced Options</CardTitle>
-                              <CardDescription>Special features like upselling and combos.</CardDescription>
+                              <CardDescription>
+                                Special features like upselling and combos.
+                              </CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-2">
-                                <FormField control={form.control} name="recommend" render={({ field }) => (<FormItem className="flex items-center justify-between rounded-lg border p-3"><div className="space-y-0.5"><FormLabel>Recommend</FormLabel><FormDescription>Feature this product on your menu.</FormDescription></div><FormControl><Switch checked={field.value} onCheckedChange={field.onChange}/></FormControl></FormItem>)} />
-                                <FormField control={form.control} name="upsell" render={({ field }) => (<FormItem className="flex items-center justify-between rounded-lg border p-3"><div className="space-y-0.5"><FormLabel>Enable Upsell</FormLabel></div><FormControl><Switch checked={field.value} onCheckedChange={field.onChange}/></FormControl></FormItem>)} />
-                                <FormField control={form.control} name="enableCombo" render={({ field }) => (<FormItem className="flex items-center justify-between rounded-lg border p-3"><div className="space-y-0.5"><FormLabel>Enable Combo</FormLabel></div><FormControl><Switch checked={field.value} onCheckedChange={field.onChange}/></FormControl></FormItem>)} />
-                                {form.watch('enableCombo') && <FormField control={form.control} name="comboGroup" render={({ field }) => (<FormItem className="p-3"><FormLabel>Combo Group</FormLabel><FormControl><Input placeholder="e.g. Burger Combos" {...field} /></FormControl><FormMessage /></FormItem>)} />}
+                            <CardContent className="space-y-4">
+                              <FormField
+                                control={form.control}
+                                name="recommend"
+                                render={({ field }) => (
+                                  <FormItem className="flex items-center justify-between rounded-lg border p-3">
+                                    <div className="space-y-0.5">
+                                      <FormLabel>Recommend</FormLabel>
+                                      <FormDescription>
+                                        Feature this product on your menu.
+                                      </FormDescription>
+                                    </div>
+                                    <FormControl>
+                                      <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name="upsell"
+                                render={({ field }) => (
+                                  <FormItem className="flex items-center justify-between rounded-lg border p-3">
+                                    <div className="space-y-0.5">
+                                      <FormLabel>Enable Upsell</FormLabel>
+                                    </div>
+                                    <FormControl>
+                                      <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                              <div className="rounded-lg border">
+                                <FormField
+                                  control={form.control}
+                                  name="enableCombo"
+                                  render={({ field }) => (
+                                    <FormItem className="flex items-center justify-between p-3">
+                                      <div className="space-y-0.5">
+                                        <FormLabel>Enable Combo</FormLabel>
+                                        <FormDescription>
+                                          Group this product with others as a combo deal.
+                                        </FormDescription>
+                                      </div>
+                                      <FormControl>
+                                        <Switch
+                                          checked={field.value}
+                                          onCheckedChange={(checked) => {
+                                            field.onChange(checked);
+                                            if (!checked) {
+                                              form.setValue('comboGroup', '');
+                                              setShowNewComboInput(false);
+                                            }
+                                          }}
+                                        />
+                                      </FormControl>
+                                    </FormItem>
+                                  )}
+                                />
+                                {form.watch('enableCombo') && (
+                                  <div className="p-3 pt-4 border-t">
+                                    {!showNewComboInput ? (
+                                      <FormField
+                                        control={form.control}
+                                        name="comboGroup"
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>Combo Group</FormLabel>
+                                            <Select
+                                              onValueChange={(value) => {
+                                                if (value === '__CREATE_NEW__') {
+                                                  setShowNewComboInput(true);
+                                                  field.onChange('');
+                                                } else {
+                                                  field.onChange(value);
+                                                }
+                                              }}
+                                              value={field.value}
+                                            >
+                                              <FormControl>
+                                                <SelectTrigger>
+                                                  <SelectValue placeholder="Select a combo group" />
+                                                </SelectTrigger>
+                                              </FormControl>
+                                              <SelectContent>
+                                                {mockComboGroups.map((group) => (
+                                                  <SelectItem key={group} value={group}>
+                                                    {group}
+                                                  </SelectItem>
+                                                ))}
+                                                <SelectSeparator />
+                                                <SelectItem value="__CREATE_NEW__">
+                                                  <div className="flex items-center gap-2">
+                                                    <PlusCircle className="h-4 w-4" />
+                                                    <span>Create new combo group</span>
+                                                  </div>
+                                                </SelectItem>
+                                              </SelectContent>
+                                            </Select>
+                                            <FormDescription>Select an existing group or create a new one.</FormDescription>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )}
+                                      />
+                                    ) : (
+                                      <FormField
+                                        control={form.control}
+                                        name="comboGroup"
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>New Combo Group Name</FormLabel>
+                                            <div className="flex items-center gap-2">
+                                              <FormControl>
+                                                <Input placeholder="e.g. Weekend Specials" {...field} autoFocus />
+                                              </FormControl>
+                                              <Button
+                                                type="button"
+                                                variant="ghost"
+                                                onClick={() => {
+                                                  setShowNewComboInput(false);
+                                                  form.setValue('comboGroup', '');
+                                                }}
+                                              >
+                                                Cancel
+                                              </Button>
+                                            </div>
+                                            <FormDescription>Enter a unique name for your new combo group.</FormDescription>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )}
+                                      />
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             </CardContent>
                           </Card>
                         </div>

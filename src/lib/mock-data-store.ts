@@ -6,6 +6,8 @@ import type { Order, OrderItem, Payment as OrderPayment } from '@/app/dashboard/
 import { format, subDays, subHours, endOfDay, setHours, setMinutes, subMinutes, formatDistanceToNow } from 'date-fns';
 import type { Column } from '@/app/dashboard/categories/types';
 
+export const mockComboGroups = ['Lunch Special', 'Family Deal', 'Dinner for Two', 'Breakfast Combo'];
+
 // --- Product Generation ---
 const productNames = [
     'Classic Cheeseburger', 'Truffle Fries', 'Seasonal Berry Crumble', 'Artisanal Pizza',
