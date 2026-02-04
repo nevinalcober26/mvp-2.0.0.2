@@ -683,6 +683,7 @@ export function ProductSheet({
                                                     : 'e.g. 5.00'
                                                 }
                                                 {...field}
+                                                value={field.value ?? ''}
                                                 onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.valueAsNumber)}
                                             />
                                             </FormControl>
