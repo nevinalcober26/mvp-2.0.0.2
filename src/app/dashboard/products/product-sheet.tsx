@@ -309,7 +309,7 @@ export function ProductSheet({
   return (
     <>
       <Sheet open={open} onOpenChange={handleAttemptClose}>
-        <SheetContent className="sm:max-w-4xl w-full p-0">
+        <SheetContent className="sm:max-w-4xl w-full p-0 bg-card">
           <TooltipProvider>
             <Form {...form}>
               <form
