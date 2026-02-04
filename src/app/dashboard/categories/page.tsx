@@ -27,7 +27,7 @@ import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { CategoriesPageSkeleton } from '@/components/dashboard/skeletons';
-import { CategorySheet, getCategoryOptions } from './category-sheet';
+import { CategorySheet } from './category-sheet';
 import {
   Dialog,
   DialogContent,
@@ -47,93 +47,9 @@ import {
 } from '@/components/ui/select';
 import { Container } from '@/components/dashboard/dnd/Container';
 import { Item as ItemComponent } from '@/components/dashboard/dnd/Item';
-
-
-export type Item = {
-  id: UniqueIdentifier;
-  name: string;
-  children: Item[];
-};
-
-export type Column = {
-  id: UniqueIdentifier;
-  name: string;
-  items: Item[];
-};
-
-const initialBoardData: Column[] = [
-  {
-    id: 'food',
-    name: 'Food',
-    items: [
-      {
-        id: 'appetizers',
-        name: 'Appetizers',
-        children: [
-          { id: 'soups', name: 'Soups', children: [] },
-          { id: 'salads', name: 'Salads', children: [] },
-        ],
-      },
-      {
-        id: 'main-courses',
-        name: 'Main Courses',
-        children: [
-          { id: 'pizza', name: 'Pizza', children: [] },
-          { id: 'pasta', name: 'Pasta', children: [] },
-          { id: 'burgers', name: 'Burgers', children: [] },
-        ],
-      },
-      {
-        id: 'desserts',
-        name: 'Desserts',
-        children: [
-            { id: 'cakes', name: 'Cakes', children: [] },
-            { id: 'ice-cream', name: 'Ice Cream', children: [] },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'beverages',
-    name: 'Beverages',
-    items: [
-      {
-        id: 'hot-drinks',
-        name: 'Hot Drinks',
-        children: [
-          { id: 'coffee', name: 'Coffee', children: [] },
-          { id: 'tea', name: 'Tea', children: [] },
-        ],
-      },
-      {
-        id: 'cold-drinks',
-        name: 'Cold Drinks',
-        children: [
-          { id: 'juices', name: 'Juices', children: [] },
-          { id: 'soft-drinks', name: 'Soft Drinks', children: [] },
-        ],
-      },
-      { id: 'mocktails', name: 'Mocktails', children: [] },
-    ],
-  },
-  {
-    id: 'specials',
-    name: 'Special Offers',
-    items: [
-        { id: 'daily-specials', name: 'Daily Specials', children: [] },
-        { id: 'combo-meals', name: 'Combo Meals', children: [] },
-    ],
-  },
-  {
-    id: 'breakfast',
-    name: 'Breakfast',
-    items: [
-        { id: 'pancakes-waffles', name: 'Pancakes & Waffles', children: [] },
-        { id: 'omelettes', name: 'Omelettes', children: [] },
-        { id: 'healthy-bowls', name: 'Healthy Bowls', children: [] },
-    ]
-  }
-];
+import { mockDataStore } from '@/lib/mock-data-store';
+import { getCategoryOptions } from './utils';
+import type { Item, Column } from './types';
 
 // Helper functions for tree operations
 function findItemDeep(
@@ -283,7 +199,7 @@ export default function CategoriesPage() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setBoard(initialBoardData);
+      setBoard(mockDataStore.categories);
       setIsLoading(false);
     }, 1500);
     return () => clearTimeout(timer);

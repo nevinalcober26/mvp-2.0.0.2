@@ -4,6 +4,7 @@ import type { Product, Variation } from '@/app/dashboard/products/types';
 import type { Customer, Visit, Payment as CustomerPayment } from '@/app/dashboard/customer/list/types';
 import type { Order, OrderItem, Payment as OrderPayment } from '@/app/dashboard/orders/types';
 import { format, subDays, subHours, endOfDay, setHours, setMinutes, subMinutes, formatDistanceToNow } from 'date-fns';
+import type { Column } from '@/app/dashboard/categories/types';
 
 // --- Product Generation ---
 const productNames = [
@@ -23,8 +24,8 @@ const generateMockProducts = (count: number): Product[] => {
         const status = productStatuses[i % productStatuses.length];
         const price = Math.floor(Math.random() * 30) + 5;
         const variations: Variation[] | undefined = i % 5 === 0 ? [
-            { id: `var_${i}_1`, value: 'Small', matrix: `S-${i}`, price: price * 0.8, visible: true, hidden: false },
-            { id: `var_${i}_2`, value: 'Large', matrix: `L-${i}`, price: price * 1.2, visible: true, hidden: false }
+            { id: `var_${i}_1`, value: 'Small', matrix: `S-${i}`, price: price * 0.8, visible: true, hidden: false, categoryPage: true, productPage: true },
+            { id: `var_${i}_2`, value: 'Large', matrix: `L-${i}`, price: price * 1.2, visible: true, hidden: false, categoryPage: true, productPage: true }
         ] : undefined;
 
         products.push({
@@ -240,12 +241,86 @@ class MockDataStore {
     public products: Product[];
     public customers: Customer[];
     public orders: Order[];
+    public categories: Column[];
 
     constructor() {
         this.products = generateMockProducts(30);
         const { customers, orders } = generateRelatedMockData(45, 124, this.products);
         this.customers = customers;
         this.orders = orders;
+        this.categories = [
+          {
+            id: 'food',
+            name: 'Food',
+            items: [
+              {
+                id: 'appetizers',
+                name: 'Appetizers',
+                children: [
+                  { id: 'soups', name: 'Soups', children: [] },
+                  { id: 'salads', name: 'Salads', children: [] },
+                ],
+              },
+              {
+                id: 'main-courses',
+                name: 'Main Courses',
+                children: [
+                  { id: 'pizza', name: 'Pizza', children: [] },
+                  { id: 'pasta', name: 'Pasta', children: [] },
+                  { id: 'burgers', name: 'Burgers', children: [] },
+                ],
+              },
+              {
+                id: 'desserts',
+                name: 'Desserts',
+                children: [
+                    { id: 'cakes', name: 'Cakes', children: [] },
+                    { id: 'ice-cream', name: 'Ice Cream', children: [] },
+                ],
+              },
+            ],
+          },
+          {
+            id: 'beverages',
+            name: 'Beverages',
+            items: [
+              {
+                id: 'hot-drinks',
+                name: 'Hot Drinks',
+                children: [
+                  { id: 'coffee', name: 'Coffee', children: [] },
+                  { id: 'tea', name: 'Tea', children: [] },
+                ],
+              },
+              {
+                id: 'cold-drinks',
+                name: 'Cold Drinks',
+                children: [
+                  { id: 'juices', name: 'Juices', children: [] },
+                  { id: 'soft-drinks', name: 'Soft Drinks', children: [] },
+                ],
+              },
+              { id: 'mocktails', name: 'Mocktails', children: [] },
+            ],
+          },
+          {
+            id: 'specials',
+            name: 'Special Offers',
+            items: [
+                { id: 'daily-specials', name: 'Daily Specials', children: [] },
+                { id: 'combo-meals', name: 'Combo Meals', children: [] },
+            ],
+          },
+          {
+            id: 'breakfast',
+            name: 'Breakfast',
+            items: [
+                { id: 'pancakes-waffles', name: 'Pancakes & Waffles', children: [] },
+                { id: 'omelettes', name: 'Omelettes', children: [] },
+                { id: 'healthy-bowls', name: 'Healthy Bowls', children: [] },
+            ]
+          }
+        ];
     }
 }
 

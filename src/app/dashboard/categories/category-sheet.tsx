@@ -23,9 +23,10 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Upload } from 'lucide-react';
-import type { Column, Item } from './page';
+import type { Column, Item } from './types';
 import Image from 'next/image';
 import { UniqueIdentifier } from '@dnd-kit/core';
+import { getCategoryOptions } from './utils';
 
 interface CategorySheetProps {
   open: boolean;
@@ -70,40 +71,6 @@ const findParent = (
     }
   }
   return null;
-};
-
-export const getCategoryOptions = (
-  board: Column[],
-  currentCategoryId?: UniqueIdentifier
-) => {
-  const options: { label: string; value: string; depth: number }[] = [];
-
-  const traverseItems = (items: Item[], depth: number) => {
-    for (const item of items) {
-      // Exclude the current category and its children from being a parent option
-      if (item.id === currentCategoryId) continue;
-
-      options.push({
-        label: item.name,
-        value: item.id.toString(),
-        depth: depth,
-      });
-      if (item.children) {
-        traverseItems(item.children, depth + 1);
-      }
-    }
-  };
-
-  board.forEach((column) => {
-    options.push({
-      label: column.name,
-      value: column.id.toString(),
-      depth: 0,
-    });
-    traverseItems(column.items, 1);
-  });
-
-  return options;
 };
 
 export function CategorySheet({

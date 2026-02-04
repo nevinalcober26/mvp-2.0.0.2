@@ -69,6 +69,8 @@ import { useToast } from '@/hooks/use-toast';
 import { generateProductDescription } from '@/ai/flows/generate-product-description-flow';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { mockDataStore } from '@/lib/mock-data-store';
+import { getCategoryNameOptions } from '@/app/dashboard/categories/utils';
 
 const productSchema = z
   .object({
@@ -133,15 +135,6 @@ const productSchema = z
 
 type ProductFormValues = z.infer<typeof productSchema>;
 
-const mockCategories = [
-  'Burgers',
-  'Sides',
-  'Desserts',
-  'Mains',
-  'Salads',
-  'Beverages',
-];
-
 const mockProperties = ['Spicy', 'Vegetarian', 'Gluten-Free', 'New'];
 
 export function ProductSheet({
@@ -161,6 +154,8 @@ export function ProductSheet({
   const [isGenerating, setIsGenerating] = useState<'short' | 'long' | null>(
     null
   );
+
+  const categoryOptions = useMemo(() => getCategoryNameOptions(mockDataStore.categories), []);
 
   const defaultValues = useMemo(() => {
     let discountType: 'none' | 'percentage' | 'fixed' = 'none';
@@ -448,10 +443,13 @@ export function ProductSheet({
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {mockCategories.map((cat) => (
-                                                    <SelectItem key={cat} value={cat}>
-                                                        {cat}
-                                                    </SelectItem>
+                                                    {categoryOptions.map((cat) => (
+                                                        <SelectItem key={cat.value} value={cat.value}>
+                                                            <span style={{ paddingLeft: `${cat.depth * 1.5}rem` }}>
+                                                                {cat.depth > 0 && '↳ '}
+                                                                {cat.label}
+                                                            </span>
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                                 </Select>
