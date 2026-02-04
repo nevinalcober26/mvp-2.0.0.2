@@ -280,12 +280,11 @@ export function ProductSheet({
         descriptionType: type,
       });
 
-      const fieldToUpdate =
-        type === 'short' ? 'smallDescription' : 'description';
-      form.setValue(fieldToUpdate, result.description, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
+      if (type === 'short') {
+        form.setValue('smallDescription', result.description, { shouldDirty: true, shouldValidate: true });
+      } else {
+        form.setValue('description', result.description, { shouldDirty: true, shouldValidate: true });
+      }
 
       toast({
         title: 'AI Description Generated',
@@ -320,7 +319,7 @@ export function ProductSheet({
       id: product?.id || `new_${Date.now()}`,
       stock: product?.stock || 0,
       status: product?.status || 'Active',
-      branch: 'Ras Al Khaimah', // Default branch
+      branch: product?.branch || 'Ras Al Khaimah', // Use existing or default
       discountedPrice,
       smallDescription: data.smallDescription || '',
       description: data.description || '',
@@ -612,11 +611,11 @@ export function ProductSheet({
                                                 </Tooltip>
                                             </div>
                                             <FormControl>
-                                            <Textarea
+                                              <Textarea
                                                 placeholder="Detailed description including ingredients, allergens, etc."
                                                 rows={5}
                                                 {...field}
-                                            />
+                                              />
                                             </FormControl>
                                         </FormItem>
                                         )}
