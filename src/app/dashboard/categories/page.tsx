@@ -70,7 +70,7 @@ function findItemDeep(
       return null;
     };
     const found = search(column.items);
-    if (found) return { container: column.items, ...found };
+    if (found) return found;
   }
   return null;
 }
