@@ -252,16 +252,37 @@ export default function CategoriesPage() {
 
   const columnIds = useMemo(() => board.map((c) => c.id), [board]);
 
-  const handleDragStart = (event: DragStartEvent) => {
+  const findColumnForItemId = useCallback((itemId: UniqueIdentifier): UniqueIdentifier | null => {
+      if (board.some(col => col.id === itemId)) {
+          return itemId;
+      }
+      for (const column of board) {
+          const hasItem = (items: Item[]): boolean => {
+              for (const item of items) {
+                  if (item.id === itemId) return true;
+                  if (item.children && hasItem(item.children)) {
+                      return true;
+                  }
+              }
+              return false;
+          };
+          if (hasItem(column.items)) {
+              return column.id;
+          }
+      }
+      return null;
+  }, [board]);
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id);
     setOverId(event.over?.id ?? null);
-  };
+  }, []);
   
-  const handleDragOver = (event: DragOverEvent) => {
+  const handleDragOver = useCallback((event: DragOverEvent) => {
     setOverId(event.over?.id ?? null);
-  };
+  }, []);
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     
     if (!over || active.id === over.id) {
@@ -272,25 +293,24 @@ export default function CategoriesPage() {
 
     const isActiveAContainer = active.data.current?.type === 'container';
 
-    // Handling Container (Column) dragging
     if (isActiveAContainer) {
-      const isOverAContainer = over.data.current?.type === 'container';
-      if (isOverAContainer) {
-        const activeIndex = board.findIndex((col) => col.id === active.id);
-        const overIndex = board.findIndex((col) => col.id === over.id);
+        const overColumnId = findColumnForItemId(over.id);
+        
+        if (overColumnId && active.id !== overColumnId) {
+            const activeIndex = board.findIndex((col) => col.id === active.id);
+            const overIndex = board.findIndex((col) => col.id === overColumnId);
 
-        if (activeIndex !== overIndex) {
-          setBoard((board) => arrayMove(board, activeIndex, overIndex));
+            if (activeIndex !== -1 && overIndex !== -1) {
+              setBoard((currentBoard) => arrayMove(currentBoard, activeIndex, overIndex));
+            }
         }
-      }
-      setActiveId(null);
-      setOverId(null);
-      return;
+        
+        setActiveId(null);
+        setOverId(null);
+        return;
     }
 
-
     setBoard(board => produce(board, draft => {
-        // First, pull the active item out of the tree
         const activeItem = findAndRemoveItem(draft, active.id);
         if (!activeItem) return;
 
@@ -298,14 +318,12 @@ export default function CategoriesPage() {
         const overIsContainer = over.data.current?.type === 'container-drop-zone';
         const overIsItem = over.data.current?.type === 'item-drop-zone';
 
-        // Case 1: Dropping into a container (column)
         if (overIsContainer) {
             const overColumn = draft.find(c => c.id === overId);
             overColumn?.items.push(activeItem);
             return;
         }
 
-        // Case 2: Dropping ON another item (nesting)
         if (overIsItem) {
             const parentItemData = findItemDeep(draft, overId);
             if (parentItemData) {
@@ -317,7 +335,6 @@ export default function CategoriesPage() {
             return;
         }
 
-        // Case 3: Reordering (dropping next to another item)
         const overItemData = findItemDeep(draft, overId);
         if (overItemData) {
             const { container: overContainer } = overItemData;
@@ -332,12 +349,12 @@ export default function CategoriesPage() {
 
     setActiveId(null);
     setOverId(null);
-  };
+  }, [board, findColumnForItemId]);
   
-  const handleDragCancel = () => {
+  const handleDragCancel = useCallback(() => {
     setActiveId(null);
     setOverId(null);
-  }
+  }, []);
 
   const addItemToParent = (items: Item[], parentId: UniqueIdentifier, newItem: Item): boolean => {
     for(const item of items) {
