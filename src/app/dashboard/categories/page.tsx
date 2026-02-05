@@ -28,7 +28,7 @@ import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { CategoriesPageSkeleton } from '@/components/dashboard/skeletons';
-import { CategorySheet } from './category-sheet';
+import { CategorySheet, type CategoryFormValues as UpdateCategoryFormValues } from './category-sheet';
 import {
   Dialog,
   DialogContent,
@@ -315,6 +315,16 @@ export default function CategoriesPage() {
     });
   };
 
+  const handleUpdateCategory = (id: UniqueIdentifier, values: UpdateCategoryFormValues) => {
+    console.log('Updating category:', id, values);
+    // In a real app, you would find and update the item in the board state.
+    // This could involve moving it if the parentId changed.
+    toast({
+      title: 'Category Updated',
+      description: `"${values.name}" has been successfully updated. (This is a demo, data is not persisted).`,
+    });
+  };
+
   const handleOpenAddSheet = (parentId: UniqueIdentifier | 'none' | 'new-column' = 'none') => {
     setAddCategoryParent(parentId);
     setIsAddCategorySheetOpen(true);
@@ -456,6 +466,7 @@ export default function CategoriesPage() {
         }}
         category={selectedCategory}
         board={board}
+        onUpdateCategory={handleUpdateCategory}
       />
       <AddCategorySheet
         open={isAddCategorySheetOpen}
