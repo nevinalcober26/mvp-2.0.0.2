@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { Card } from '@/components/ui/card';
-import { GripVertical, MoreHorizontal, Trash } from 'lucide-react';
+import { GripVertical, MoreHorizontal, Trash, Clock, Edit } from 'lucide-react';
 import { UniqueIdentifier } from '@dnd-kit/core';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -54,6 +54,17 @@ export const Item = React.forwardRef<HTMLDivElement, ItemProps>(
             align="end"
             onClick={(e) => e.stopPropagation()}
           >
+            <DropdownMenuItem className="cursor-pointer">
+              <Clock className="mr-2 h-4 w-4" />
+              Schedule
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={onClick}
+              className="cursor-pointer"
+            >
+              <Edit className="mr-2 h-4 w-4" />
+              Edit
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={onDelete}
               className="text-destructive cursor-pointer"

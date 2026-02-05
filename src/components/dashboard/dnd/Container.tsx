@@ -7,7 +7,7 @@ import { SortableItem } from './SortableItem';
 import type { Item, Column } from '@/app/dashboard/categories/types';
 import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, MoreHorizontal, Trash } from 'lucide-react';
+import { Plus, MoreHorizontal, Trash, Edit, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -101,6 +101,14 @@ export function Container({ id, label, items, onItemClick, onAddItem, onDeleteIt
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                        <DropdownMenuItem className="cursor-pointer">
+                            <Clock className="mr-2 h-4 w-4" />
+                            Schedule
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onItemClick({ id, name: label, items })} className="cursor-pointer">
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => onDeleteItem(id, true)} className="text-destructive cursor-pointer">
                             <Trash className="mr-2 h-4 w-4" />
                             Delete Column
