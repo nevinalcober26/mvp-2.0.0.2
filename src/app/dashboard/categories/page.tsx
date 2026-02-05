@@ -285,48 +285,51 @@ export default function CategoriesPage() {
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
 
-    // No destination, or dropping on itself, do nothing.
-    if (!over || active.id === over.id) {
-        setActiveId(null);
-        setOverId(null);
+    // Reset UI state first
+    setActiveId(null);
+    setOverId(null);
+
+    // No destination, do nothing.
+    if (!over) {
+        return;
+    }
+    
+    // Dropping on itself, do nothing.
+    if (active.id === over.id) {
         return;
     }
 
     const isDraggingColumn = active.data.current?.type === 'container';
     const isDraggingItem = active.data.current?.type === 'item';
 
-    // --- Scenario 1: Dragging a Column ---
+    // --- Scenario 1: Reordering Columns ---
     if (isDraggingColumn) {
-        // Find the destination column's ID. This is necessary because `over.id`
-        // might be an item inside the column, not the column itself.
-        const overColumnId = findColumnForItemId(over.id);
+        setBoard((currentBoard) => {
+            const activeIndex = currentBoard.findIndex((col) => col.id === active.id);
+            // The `over` element could be a column or an item within a column.
+            // Our helper function finds the correct parent column ID in either case.
+            const overColumnId = findColumnForItemId(over.id);
+            const overIndex = currentBoard.findIndex((col) => col.id === overColumnId);
 
-        if (overColumnId && active.id !== overColumnId) {
-            setBoard((currentBoard) => {
-                const activeIndex = currentBoard.findIndex((col) => col.id === active.id);
-                const overIndex = currentBoard.findIndex((col) => col.id === overColumnId);
-                
-                // Only move if both columns are found
-                if (activeIndex !== -1 && overIndex !== -1) {
-                  return arrayMove(currentBoard, activeIndex, overIndex);
-                }
-                return currentBoard;
-            });
-        }
+            if (activeIndex !== -1 && overIndex !== -1 && activeIndex !== overIndex) {
+              return arrayMove(currentBoard, activeIndex, overIndex);
+            }
+            
+            return currentBoard; // Return original board if something went wrong
+        });
+        return; // Exit after handling column drag
     }
-    // --- Scenario 2: Dragging an Item ---
-    else if (isDraggingItem) {
+
+    // --- Scenario 2: Moving an Item ---
+    if (isDraggingItem) {
         setBoard(board => produce(board, draft => {
             const activeItem = findAndRemoveItem(draft, active.id);
             if (!activeItem) return;
 
-            const overId = over.id;
-            
-            // Case 2a: Dropping on a column (empty space)
+            // Case 2a: Dropping on an empty column area
             const overIsContainerDropZone = over.data.current?.type === 'container-drop-zone';
             if (overIsContainerDropZone) {
-                const overColumn = draft.find(c => c.id === overId);
-                // Add to the end of the column's items
+                const overColumn = draft.find(c => c.id === over.id);
                 overColumn?.items.push(activeItem);
                 return;
             }
@@ -334,22 +337,19 @@ export default function CategoriesPage() {
             // Case 2b: Dropping on another item to nest it
             const overIsItemDropZone = over.data.current?.type === 'item-drop-zone';
             if (overIsItemDropZone) {
-                const parentItemData = findItemDeep(draft, overId);
+                const parentItemData = findItemDeep(draft, over.id);
                 if (parentItemData) {
-                    if (!parentItemData.item.children) {
-                        parentItemData.item.children = [];
-                    }
-                    // Add to the beginning of the children array to feel responsive
+                    parentItemData.item.children = parentItemData.item.children ?? [];
                     parentItemData.item.children.unshift(activeItem);
                 }
                 return;
             }
 
             // Case 2c: Dropping near another item to reorder
-            const overItemData = findItemDeep(draft, overId);
+            const overItemData = findItemDeep(draft, over.id);
             if (overItemData) {
                 const { container: overContainer } = overItemData;
-                const overIndex = overContainer.findIndex(item => item.id === overId);
+                const overIndex = overContainer.findIndex(item => item.id === over.id);
                 
                 if (overIndex !== -1) {
                     overContainer.splice(overIndex, 0, activeItem);
@@ -358,10 +358,6 @@ export default function CategoriesPage() {
             }
         }));
     }
-    
-    // Reset dragging state
-    setActiveId(null);
-    setOverId(null);
   }, [board, findColumnForItemId]);
   
   const handleDragCancel = useCallback(() => {
