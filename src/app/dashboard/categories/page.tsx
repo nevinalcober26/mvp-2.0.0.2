@@ -285,18 +285,11 @@ export default function CategoriesPage() {
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
 
-    // Reset UI state first
     setActiveId(null);
     setOverId(null);
 
-    // No destination, do nothing.
-    if (!over) {
-        return;
-    }
-    
-    // Dropping on itself, do nothing.
-    if (active.id === over.id) {
-        return;
+    if (!over || active.id === over.id) {
+      return;
     }
 
     const isDraggingColumn = active.data.current?.type === 'container';
@@ -304,18 +297,21 @@ export default function CategoriesPage() {
 
     // --- Scenario 1: Reordering Columns ---
     if (isDraggingColumn) {
-        setBoard((currentBoard) => {
-            const activeIndex = currentBoard.findIndex((col) => col.id === active.id);
+        setBoard((board) => {
+            const activeColumnIndex = board.findIndex((col) => col.id === active.id);
             // The `over` element could be a column or an item within a column.
             // Our helper function finds the correct parent column ID in either case.
             const overColumnId = findColumnForItemId(over.id);
-            const overIndex = currentBoard.findIndex((col) => col.id === overColumnId);
+            
+            if (!overColumnId) return board; // Dropped somewhere invalid
+            
+            const overColumnIndex = board.findIndex((col) => col.id === overColumnId);
 
-            if (activeIndex !== -1 && overIndex !== -1 && activeIndex !== overIndex) {
-              return arrayMove(currentBoard, activeIndex, overIndex);
+            if (activeColumnIndex !== -1 && overColumnIndex !== -1 && activeColumnIndex !== overColumnIndex) {
+              return arrayMove(board, activeColumnIndex, overColumnIndex);
             }
             
-            return currentBoard; // Return original board if something went wrong
+            return board; // Return original board if something went wrong
         });
         return; // Exit after handling column drag
     }
