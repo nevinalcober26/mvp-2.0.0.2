@@ -214,13 +214,13 @@ export function AddCategorySheet({
                                     <FormControl>
                                         <RadioGroup
                                         onValueChange={field.onChange}
-                                        defaultValue={field.value}
+                                        value={field.value}
                                         className="grid grid-cols-2 gap-4 pt-2"
                                         >
                                         <div>
-                                            <RadioGroupItem value="grid_with_images" id="add-view-format-grid" className="sr-only" />
+                                            <RadioGroupItem value="grid_with_images" id="add-view-format-grid-images" className="sr-only" />
                                             <Label
-                                            htmlFor="add-view-format-grid"
+                                            htmlFor="add-view-format-grid-images"
                                             className={cn(
                                                 "flex cursor-pointer flex-col items-center justify-center rounded-md border-2 p-4 transition-colors",
                                                 field.value === 'grid_with_images'
@@ -233,18 +233,48 @@ export function AddCategorySheet({
                                             </Label>
                                         </div>
                                         <div>
-                                            <RadioGroupItem value="list" id="add-view-format-list" className="sr-only" />
+                                            <RadioGroupItem value="grid_no_images" id="add-view-format-grid-no-images" className="sr-only" />
                                             <Label
-                                            htmlFor="add-view-format-list"
+                                            htmlFor="add-view-format-grid-no-images"
                                             className={cn(
                                                 "flex cursor-pointer flex-col items-center justify-center rounded-md border-2 p-4 transition-colors",
-                                                field.value === 'list'
+                                                field.value === 'grid_no_images'
+                                                ? "border-primary bg-primary/5 text-primary"
+                                                : "border-muted text-muted-foreground hover:border-accent-foreground/20 hover:bg-accent"
+                                            )}
+                                            >
+                                            <LayoutGrid className="mb-2 h-7 w-7" />
+                                            <span className="font-semibold text-center">Grid (No Images)</span>
+                                            </Label>
+                                        </div>
+                                        <div>
+                                            <RadioGroupItem value="list_with_images" id="add-view-format-list-images" className="sr-only" />
+                                            <Label
+                                            htmlFor="add-view-format-list-images"
+                                            className={cn(
+                                                "flex cursor-pointer flex-col items-center justify-center rounded-md border-2 p-4 transition-colors",
+                                                field.value === 'list_with_images'
                                                 ? "border-primary bg-primary/5 text-primary"
                                                 : "border-muted text-muted-foreground hover:border-accent-foreground/20 hover:bg-accent"
                                             )}
                                             >
                                             <List className="mb-2 h-7 w-7" />
-                                            <span className="font-semibold text-center">List View</span>
+                                            <span className="font-semibold text-center">List with Images</span>
+                                            </Label>
+                                        </div>
+                                        <div>
+                                            <RadioGroupItem value="list_no_images" id="add-view-format-list-no-images" className="sr-only" />
+                                            <Label
+                                            htmlFor="add-view-format-list-no-images"
+                                            className={cn(
+                                                "flex cursor-pointer flex-col items-center justify-center rounded-md border-2 p-4 transition-colors",
+                                                field.value === 'list_no_images'
+                                                ? "border-primary bg-primary/5 text-primary"
+                                                : "border-muted text-muted-foreground hover:border-accent-foreground/20 hover:bg-accent"
+                                            )}
+                                            >
+                                            <List className="mb-2 h-7 w-7" />
+                                            <span className="font-semibold text-center">List (No Images)</span>
                                             </Label>
                                         </div>
                                         </RadioGroup>

@@ -125,6 +125,12 @@ export function CategorySheet({
     if (open && category) {
       setActiveTab('general');
       const parentId = 'items' in category ? 'none' : findParent(board, category.id);
+      
+      let viewFormat = category.viewFormat || 'grid_with_images';
+      if (viewFormat === 'list') {
+        viewFormat = 'list_no_images'; // Migration for old value
+      }
+
       form.reset({
         name: category.name || '',
         description: category.description || '',
@@ -133,7 +139,7 @@ export function CategorySheet({
         hiddenTitle: category.hiddenTitle || false,
         hiddenImage: category.hiddenImage || false,
         cardShadow: category.cardShadow ?? true,
-        viewFormat: category.viewFormat || 'grid_with_images',
+        viewFormat: viewFormat,
         hidden: category.hidden || false,
         disableLink: category.disableLink || false,
         externalLink: category.externalLink || '',
@@ -255,9 +261,9 @@ export function CategorySheet({
                                                 className="grid grid-cols-2 gap-4 pt-2"
                                                 >
                                                 <div>
-                                                    <RadioGroupItem value="grid_with_images" id="edit-view-format-grid" className="sr-only" />
+                                                    <RadioGroupItem value="grid_with_images" id="edit-view-format-grid-images" className="sr-only" />
                                                     <Label
-                                                    htmlFor="edit-view-format-grid"
+                                                    htmlFor="edit-view-format-grid-images"
                                                     className={cn(
                                                         "flex cursor-pointer flex-col items-center justify-center rounded-md border-2 p-4 transition-colors",
                                                         field.value === 'grid_with_images'
@@ -270,18 +276,48 @@ export function CategorySheet({
                                                     </Label>
                                                 </div>
                                                 <div>
-                                                    <RadioGroupItem value="list" id="edit-view-format-list" className="sr-only" />
+                                                    <RadioGroupItem value="grid_no_images" id="edit-view-format-grid-no-images" className="sr-only" />
                                                     <Label
-                                                    htmlFor="edit-view-format-list"
+                                                    htmlFor="edit-view-format-grid-no-images"
                                                     className={cn(
                                                         "flex cursor-pointer flex-col items-center justify-center rounded-md border-2 p-4 transition-colors",
-                                                        field.value === 'list'
+                                                        field.value === 'grid_no_images'
+                                                        ? "border-primary bg-primary/5 text-primary"
+                                                        : "border-muted text-muted-foreground hover:border-accent-foreground/20 hover:bg-accent"
+                                                    )}
+                                                    >
+                                                    <LayoutGrid className="mb-2 h-7 w-7" />
+                                                    <span className="font-semibold text-center">Grid (No Images)</span>
+                                                    </Label>
+                                                </div>
+                                                <div>
+                                                    <RadioGroupItem value="list_with_images" id="edit-view-format-list-images" className="sr-only" />
+                                                    <Label
+                                                    htmlFor="edit-view-format-list-images"
+                                                    className={cn(
+                                                        "flex cursor-pointer flex-col items-center justify-center rounded-md border-2 p-4 transition-colors",
+                                                        field.value === 'list_with_images'
                                                         ? "border-primary bg-primary/5 text-primary"
                                                         : "border-muted text-muted-foreground hover:border-accent-foreground/20 hover:bg-accent"
                                                     )}
                                                     >
                                                     <List className="mb-2 h-7 w-7" />
-                                                    <span className="font-semibold text-center">List View</span>
+                                                    <span className="font-semibold text-center">List with Images</span>
+                                                    </Label>
+                                                </div>
+                                                <div>
+                                                    <RadioGroupItem value="list_no_images" id="edit-view-format-list-no-images" className="sr-only" />
+                                                    <Label
+                                                    htmlFor="edit-view-format-list-no-images"
+                                                    className={cn(
+                                                        "flex cursor-pointer flex-col items-center justify-center rounded-md border-2 p-4 transition-colors",
+                                                        field.value === 'list_no_images'
+                                                        ? "border-primary bg-primary/5 text-primary"
+                                                        : "border-muted text-muted-foreground hover:border-accent-foreground/20 hover:bg-accent"
+                                                    )}
+                                                    >
+                                                    <List className="mb-2 h-7 w-7" />
+                                                    <span className="font-semibold text-center">List (No Images)</span>
                                                     </Label>
                                                 </div>
                                                 </RadioGroup>
