@@ -39,7 +39,7 @@ const getDescendantIds = (items: Item[]): UniqueIdentifier[] => {
 }
 
 export function Container({ id, label, items, onItemClick, onAddItem, onDeleteItem, activeId, overId }: ContainerProps) {
-  const { setNodeRef: setSortableNodeRef, transform, transition } = useSortable({ id, data: { type: 'container' } });
+  const { setNodeRef: setSortableNodeRef, transform, transition, attributes, listeners } = useSortable({ id, data: { type: 'container' } });
   const { setNodeRef: setDroppableNodeRef, isOver } = useDroppable({
     id: id,
     data: {
@@ -64,11 +64,15 @@ export function Container({ id, label, items, onItemClick, onAddItem, onDeleteIt
         ref={setDroppableNodeRef}
         className={cn("flex-grow flex flex-col transition-shadow", isOverContainer && "shadow-lg ring-2 ring-primary")}
         >
-            <CardHeader className="flex-row items-center justify-between">
+            <CardHeader 
+              className="flex-row items-center justify-between cursor-grab"
+              {...attributes}
+              {...listeners}
+            >
                 <CardTitle>{label}</CardTitle>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer">
                             <MoreHorizontal className="h-4 w-4" />
                         </Button>
                     </DropdownMenuTrigger>
