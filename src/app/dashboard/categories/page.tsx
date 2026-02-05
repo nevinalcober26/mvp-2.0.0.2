@@ -24,7 +24,7 @@ import Image from 'next/image';
 
 import { DashboardHeader } from '@/components/dashboard/header';
 import { Button } from '@/components/ui/button';
-import { Plus, MoreHorizontal, Trash, Edit, Clock } from 'lucide-react';
+import { Plus, MoreHorizontal, Trash, Edit, Clock, GripVertical } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { CategoriesPageSkeleton } from '@/components/dashboard/skeletons';
@@ -38,8 +38,8 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { AddCategorySheet, type CategoryFormValues } from './add-category-sheet';
-import { Container } from '@/components/dashboard/dnd/Container';
-import { Item as ItemComponent } from '@/components/dashboard/dnd/Item';
+import { Container } from './dnd/Container';
+import { SortableItem } from './dnd/SortableItem';
 import { mockDataStore } from '@/lib/mock-data-store';
 import type { Item, Column } from './types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -166,8 +166,6 @@ export default function CategoriesPage() {
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      // Require the mouse to move by 10 pixels before activating a drag.
-      // This prevents misinterpreting clicks on interactive elements as drags.
       activationConstraint: {
         distance: 10,
       },
@@ -344,11 +342,16 @@ export default function CategoriesPage() {
       produce((draft) => {
         
         let currentItem = findAndRemoveItem(draft, id);
+        let currentColumn: Column | null = null;
         const columnIndex = draft.findIndex(c => c.id === id);
-        let currentColumn = columnIndex !== -1 ? draft[columnIndex] : null;
+        
+        if (columnIndex !== -1) {
+            currentColumn = draft.splice(columnIndex, 1)[0];
+        }
 
         if (currentColumn) {
              Object.assign(currentColumn, rest);
+             draft.splice(columnIndex, 0, currentColumn); // put it back
             return;
         }
         
@@ -516,41 +519,25 @@ export default function CategoriesPage() {
             <DragOverlay>
               {activeElement?.type === 'container' ? (
                   <Card className="w-80 shadow-lg bg-card">
-                      <CardHeader className="flex-row items-center justify-between cursor-grab">
-                          <CardTitle>{(activeElement.data as Column).name}</CardTitle>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
-                                <DropdownMenuItem className="cursor-pointer">
-                                    <Clock className="mr-2 h-4 w-4" />
-                                    Schedule
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="cursor-pointer" onSelect={() => handleEditClick(activeElement.data as Column)}>
-                                    <Edit className="mr-2 h-4 w-4" />
-                                    Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="text-destructive cursor-pointer" onSelect={() => handleDeleteRequest(activeElement.data.id, true)}>
-                                    <Trash className="mr-2 h-4 w-4" />
-                                    Delete Column
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                      <CardHeader className="flex-row items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <GripVertical className="h-5 w-5 text-muted-foreground" />
+                            <CardTitle>{(activeElement.data as Column).name}</CardTitle>
+                          </div>
+                          <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
                       </CardHeader>
                       <CardContent>
                           <p className="text-sm text-muted-foreground">{(activeElement.data as Column).items.length} top-level items</p>
                       </CardContent>
                   </Card>
               ) : activeElement?.type === 'item' ? (
-                <ItemComponent 
-                    id={activeElement.data.id} 
-                    name={(activeElement.data as Item).name} 
-                    onClick={() => handleEditClick(activeElement.data as Item)}
-                    onDelete={() => handleDeleteRequest(activeElement.data.id, false)}
-                />
+                <Card className="p-3 flex items-center justify-between bg-card shadow-lg w-80">
+                    <div className="flex items-center gap-2">
+                        <GripVertical className="h-5 w-5 text-muted-foreground" />
+                        <p className="font-medium text-sm">{(activeElement.data as Item).name}</p>
+                    </div>
+                    <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                </Card>
               ) : null}
             </DragOverlay>
           </DndContext>
