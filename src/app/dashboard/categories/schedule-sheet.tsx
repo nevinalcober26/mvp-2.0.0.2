@@ -146,15 +146,13 @@ export function CategoryScheduleSheet({
             </SheetHeader>
             <div className="flex-grow overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 bg-muted/30">
                 <Card className="self-start shadow-sm sticky top-6">
-                    <CardHeader>
-                        <CardTitle className="text-primary text-lg">Add New Restriction</CardTitle>
-                    </CardHeader>
-                    <CardContent>
+                    <CardContent className="p-6">
+                        <h3 className="text-xl font-bold text-primary mb-6">Add New Restriction</h3>
                         <form onSubmit={form.handleSubmit(handleAddHours)} className="space-y-6">
                             <div className="space-y-2">
                                 <Label>Weekday*</Label>
                                 <Select onValueChange={(val) => form.setValue('weekday', val as ScheduleFormValues['weekday'])} defaultValue={form.getValues('weekday')}>
-                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectTrigger><SelectValue placeholder="Select a day" /></SelectTrigger>
                                     <SelectContent>
                                         {weekdays.map(day => <SelectItem key={day} value={day}>{day}</SelectItem>)}
                                     </SelectContent>
