@@ -145,7 +145,7 @@ export function CategoryScheduleSheet({
                 </div>
             </SheetHeader>
             <div className="flex-grow overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 bg-muted/30">
-                <Card className="self-start shadow-sm">
+                <Card className="self-start shadow-sm sticky top-6">
                     <CardHeader>
                         <CardTitle className="text-primary text-lg">Add New Restriction</CardTitle>
                     </CardHeader>
