@@ -25,11 +25,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { X } from 'lucide-react';
+import { X, AlertTriangle, CheckCircle } from 'lucide-react';
 import type { Column, Item, ScheduleRule } from './types';
 import { UniqueIdentifier } from '@dnd-kit/core';
 import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
 
 const scheduleSchema = z.object({
   weekday: z.enum(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Everyday']),
@@ -190,30 +189,47 @@ export function CategoryScheduleSheet({
                         <CardTitle className="text-primary text-lg">Menu - Display Hours</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <ul className="space-y-4">
-                           {displayHours.map(({day, schedules}) => (
-                               <li key={day}>
-                                   <p className="font-semibold">{day}:</p>
-                                   <div className="pl-4 mt-2 space-y-2 text-sm">
-                                      {schedules.length === 0 ? (
-                                        <div className="text-muted-foreground p-2 rounded-md bg-muted/50">Display 24 Hours</div>
-                                      ) : (
-                                        schedules.map(rule => (
-                                            <div key={rule.id} className="flex items-center justify-between p-2 bg-muted/80 rounded-md">
-                                                <div>
-                                                    <p className="font-medium">{rule.allDay ? 'All Day' : `${rule.from} - ${rule.to}`}</p>
-                                                    {rule.disableOrder && <Badge variant="destructive" className="mt-1">Ordering Disabled</Badge>}
-                                                </div>
-                                                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive" onClick={() => handleDeleteRule(rule.id)}>
-                                                    <X className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        ))
-                                      )}
-                                   </div>
-                               </li>
-                           ))}
-                        </ul>
+                        <div className="space-y-4">
+                            {displayHours.map(({ day, schedules }) => (
+                            <div key={day}>
+                                <p className="font-semibold mb-2">{day}</p>
+                                {schedules.length === 0 ? (
+                                <div className="flex items-center gap-2 p-3 rounded-lg bg-green-100 text-sm border border-green-200">
+                                    <CheckCircle className="h-4 w-4 text-green-600" />
+                                    <span className="font-medium text-green-700">Available all day</span>
+                                </div>
+                                ) : (
+                                <div className="space-y-2">
+                                    {schedules.map((rule) => (
+                                    <div key={rule.id} className="flex items-center justify-between p-3 rounded-lg bg-orange-100 text-sm border border-orange-200">
+                                        <div className="flex items-center gap-2">
+                                        <AlertTriangle className="h-4 w-4 text-orange-600" />
+                                        <div>
+                                            <p className="font-medium text-orange-700">
+                                            {rule.allDay
+                                                ? 'Unavailable all day'
+                                                : `Unavailable: ${rule.from} - ${rule.to}`}
+                                            </p>
+                                            {rule.disableOrder && (
+                                            <p className="text-xs text-orange-700 font-semibold">Ordering will be disabled</p>
+                                            )}
+                                        </div>
+                                        </div>
+                                        <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7 text-muted-foreground hover:bg-orange-100 hover:text-destructive"
+                                        onClick={() => handleDeleteRule(rule.id)}
+                                        >
+                                        <X className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                    ))}
+                                </div>
+                                )}
+                            </div>
+                            ))}
+                        </div>
                     </CardContent>
                 </Card>
             </div>
