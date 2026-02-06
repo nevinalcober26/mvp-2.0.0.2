@@ -165,27 +165,29 @@ export default function CategoriesPage() {
   }, [board, isLoading]);
 
 
+  const isAnyDrawerOpen = useMemo(() => isAddCategorySheetOpen || isScheduleSheetOpen || !!selectedCategory, [isAddCategorySheetOpen, isScheduleSheetOpen, selectedCategory]);
+
   const sensors = useSensors(
     useSensor(MouseSensor, {
       activationConstraint: {
         distance: 10,
       },
+      enabled: !isAnyDrawerOpen,
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
         delay: 250,
         tolerance: 5,
       },
+      enabled: !isAnyDrawerOpen,
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
+      enabled: !isAnyDrawerOpen,
     })
   );
 
   const columnIds = useMemo(() => board.map((c) => c.id), [board]);
-  
-  const isAnyDrawerOpen = useMemo(() => isAddCategorySheetOpen || isScheduleSheetOpen || !!selectedCategory, [isAddCategorySheetOpen, isScheduleSheetOpen, selectedCategory]);
-
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveItem(event.active.data.current?.item as Item | Column | null);
@@ -533,7 +535,7 @@ export default function CategoriesPage() {
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}
           >
-            <SortableContext items={columnIds} strategy={horizontalListSortingStrategy} disabled={isAnyDrawerOpen}>
+            <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
               <div className="flex items-start gap-6 pb-4">
                 {board.map((column) => (
                   <Container
