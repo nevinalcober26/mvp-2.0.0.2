@@ -358,6 +358,21 @@ export default function CategoriesPage() {
       description: `"${values.name}" has been successfully updated.`,
     });
   };
+  
+  const handleUpdateColumn = (id: UniqueIdentifier, newName: string) => {
+    setBoard(
+      produce((draft) => {
+        const column = draft.find((col) => col.id === id);
+        if (column) {
+          column.name = newName;
+        }
+      })
+    );
+    toast({
+      title: 'Column Updated',
+      description: `Column name has been updated to "${newName}".`,
+    });
+  };
 
   const handleOpenAddSheet = (parentId: UniqueIdentifier | 'none' | 'new-column' = 'none') => {
     setAddCategoryParent(parentId);
@@ -464,6 +479,7 @@ export default function CategoriesPage() {
                     onItemClick={handleEditClick}
                     onAddItem={handleOpenAddSheet}
                     onDeleteItem={handleDeleteRequest}
+                    onUpdateColumn={handleUpdateColumn}
                     activeId={activeId}
                     overId={overId}
                     activeElementType={activeElementType}

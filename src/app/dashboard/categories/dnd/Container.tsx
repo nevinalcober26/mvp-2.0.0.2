@@ -1,4 +1,3 @@
-
 'use client';
 import { useSortable, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useDroppable, UniqueIdentifier } from '@dnd-kit/core';
@@ -6,7 +5,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { SortableItem } from './SortableItem';
 import type { Item, Column } from '@/app/dashboard/categories/types';
-import { useMemo } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, MoreHorizontal, Trash, Edit, Clock, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -16,6 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 
 type ContainerProps = {
   id: UniqueIdentifier;
@@ -24,6 +24,7 @@ type ContainerProps = {
   onItemClick: (item: Item | Column) => void;
   onAddItem: (containerId: UniqueIdentifier) => void;
   onDeleteItem: (id: UniqueIdentifier, isColumn?: boolean) => void;
+  onUpdateColumn: (id: UniqueIdentifier, name: string) => void;
   activeId: UniqueIdentifier | null;
   overId: UniqueIdentifier | null;
   activeElementType?: 'container' | 'item';
@@ -53,7 +54,7 @@ const isIdWithinContainer = (
     return false;
   };
 
-export function Container({ id, label, items, onItemClick, onAddItem, onDeleteItem, activeId, overId, activeElementType }: ContainerProps) {
+export function Container({ id, label, items, onItemClick, onAddItem, onDeleteItem, onUpdateColumn, activeId, overId, activeElementType }: ContainerProps) {
   const { setNodeRef: setSortableNodeRef, transform, transition, attributes, listeners } = useSortable({ id, data: { type: 'container' } });
   const { setNodeRef: setDroppableNodeRef, isOver } = useDroppable({
     id: id,
@@ -63,6 +64,36 @@ export function Container({ id, label, items, onItemClick, onAddItem, onDeleteIt
     }
   });
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedLabel, setEditedLabel] = useState(label);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setEditedLabel(label);
+  }, [label]);
+
+  useEffect(() => {
+    if (isEditing) {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }
+  }, [isEditing]);
+
+  const handleSave = () => {
+    if (editedLabel.trim() && editedLabel.trim() !== label) {
+        onUpdateColumn(id, editedLabel.trim());
+    }
+    setIsEditing(false);
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+          handleSave();
+      } else if (e.key === 'Escape') {
+          setEditedLabel(label); // Revert changes
+          setIsEditing(false);
+      }
+  }
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -92,11 +123,24 @@ export function Container({ id, label, items, onItemClick, onAddItem, onDeleteIt
             <CardHeader
               className="flex-row items-center justify-between"
             >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-grow min-w-0">
                   <div className="cursor-grab p-1" {...attributes} {...listeners}>
                     <GripVertical className="h-5 w-5 text-muted-foreground" />
                   </div>
-                  <CardTitle>{label}</CardTitle>
+                  {isEditing ? (
+                    <Input
+                        ref={inputRef}
+                        value={editedLabel}
+                        onChange={(e) => setEditedLabel(e.target.value)}
+                        onBlur={handleSave}
+                        onKeyDown={handleKeyDown}
+                        className="h-9 font-semibold text-lg"
+                    />
+                  ) : (
+                    <CardTitle onDoubleClick={() => setIsEditing(true)} className="cursor-pointer truncate">
+                        {label}
+                    </CardTitle>
+                  )}
                 </div>
 
                 <DropdownMenu>
