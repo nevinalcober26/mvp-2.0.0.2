@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Upload, Image as ImageIcon, LayoutGrid, List } from 'lucide-react';
+import { Upload, Image as ImageIcon, LayoutGrid, List, CheckCircle } from 'lucide-react';
 import { UniqueIdentifier } from '@dnd-kit/core';
 import { getCategoryOptions } from './utils';
 import type { Column } from './types';
@@ -99,6 +99,19 @@ export function AddCategorySheet({
     },
     mode: 'onChange',
   });
+  
+  const { errors } = form.formState;
+  const isGeneralComplete = !errors.name && !!form.watch('name');
+  const isDisplayComplete = !!errors.viewFormat;
+  const isAdvancedComplete = !errors.externalLink;
+  const isSpecialComplete = !form.watch('enableSpecial') || (form.watch('enableSpecial') && !!form.watch('specialType'));
+
+  const tabsConfig = [
+      { value: 'general', label: 'General', isComplete: isGeneralComplete },
+      { value: 'display', label: 'Display', isComplete: isDisplayComplete },
+      { value: 'advanced', label: 'Advanced', isComplete: isAdvancedComplete },
+      { value: 'special', label: 'Special', isComplete: isSpecialComplete }
+  ];
 
   useEffect(() => {
     if (open) {
@@ -158,11 +171,52 @@ export function AddCategorySheet({
             </SheetHeader>
             <ScrollArea className="flex-grow">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="p-6">
-                <TabsList className="grid w-full grid-cols-4 mb-6">
-                  <TabsTrigger value="general">General</TabsTrigger>
-                  <TabsTrigger value="display">Display</TabsTrigger>
-                  <TabsTrigger value="advanced">Advanced</TabsTrigger>
-                  <TabsTrigger value="special">Special</TabsTrigger>
+                <TabsList className="w-full justify-start rounded-none border-b px-0 py-2 h-auto bg-transparent mb-6">
+                    <div className="flex items-center gap-2">
+                        {tabsConfig.map((tab, index) => {
+                            const isActive = activeTab === tab.value;
+                            const isComplete = tab.isComplete;
+                            return (
+                                <TabsTrigger
+                                  key={tab.value}
+                                  value={tab.value}
+                                  className={cn(
+                                    "relative flex items-center gap-3 p-2 transition-colors",
+                                    isActive ? "" : "rounded-lg hover:bg-muted/50"
+                                  )}
+                                >
+                                  {isComplete && !isActive ? (
+                                    <CheckCircle className="h-5 w-5 text-green-500" />
+                                  ) : (
+                                    <div
+                                        className={cn(
+                                        'flex h-5 w-5 items-center justify-center rounded-md border text-xs font-bold',
+                                        'transition-colors',
+                                        isActive
+                                            ? 'bg-primary text-primary-foreground border-primary'
+                                            : 'bg-background text-muted-foreground',
+                                        !isComplete && !isActive && 'border-destructive text-destructive'
+                                        )}
+                                    >
+                                        {index + 1}
+                                    </div>
+                                  )}
+                                  <span
+                                    className={cn(
+                                      'font-medium transition-colors',
+                                      isActive ? 'text-foreground' : 'text-muted-foreground',
+                                      isComplete && !isActive && 'text-foreground'
+                                    )}
+                                  >
+                                    {tab.label}
+                                  </span>
+                                  {isActive && (
+                                    <div className="absolute bottom-[-9px] left-0 right-0 h-0.5 bg-primary" />
+                                  )}
+                                </TabsTrigger>
+                            );
+                        })}
+                    </div>
                 </TabsList>
                 
                 <TabsContent value="general">
