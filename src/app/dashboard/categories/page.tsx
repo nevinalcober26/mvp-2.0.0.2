@@ -183,6 +183,9 @@ export default function CategoriesPage() {
   );
 
   const columnIds = useMemo(() => board.map((c) => c.id), [board]);
+  
+  const isAnyDrawerOpen = useMemo(() => isAddCategorySheetOpen || isScheduleSheetOpen || !!selectedCategory, [isAddCategorySheetOpen, isScheduleSheetOpen, selectedCategory]);
+
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveItem(event.active.data.current?.item as Item | Column | null);
@@ -523,7 +526,7 @@ export default function CategoriesPage() {
 
         <div className="flex-grow p-4 sm:p-6 lg:p-8 overflow-x-auto">
           <DndContext
-            sensors={sensors}
+            sensors={isAnyDrawerOpen ? [] : sensors}
             collisionDetection={closestCenter}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
