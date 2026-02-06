@@ -191,41 +191,41 @@ export function CategoryScheduleSheet({
                     <CardContent>
                         <div className="space-y-4">
                             {displayHours.map(({ day, schedules }) => (
-                            <div key={day}>
-                                <p className="font-semibold mb-2">{day}</p>
+                            <div key={day} className="rounded-lg border bg-card p-4">
+                                <p className="font-semibold mb-3 text-card-foreground">{day}</p>
                                 {schedules.length === 0 ? (
-                                <div className="flex items-center gap-2 p-3 rounded-lg bg-green-100 text-sm border border-green-200">
-                                    <CheckCircle className="h-4 w-4 text-green-600" />
-                                    <span className="font-medium text-green-700">Available all day</span>
-                                </div>
-                                ) : (
-                                <div className="space-y-2">
-                                    {schedules.map((rule) => (
-                                    <div key={rule.id} className="flex items-center justify-between p-3 rounded-lg bg-orange-100 text-sm border border-orange-200">
-                                        <div className="flex items-center gap-2">
-                                        <AlertTriangle className="h-4 w-4 text-orange-600" />
-                                        <div>
-                                            <p className="font-medium text-orange-700">
-                                            {rule.allDay
-                                                ? 'Unavailable all day'
-                                                : `Unavailable: ${rule.from} - ${rule.to}`}
-                                            </p>
-                                            {rule.disableOrder && (
-                                            <p className="text-xs text-orange-700 font-semibold">Ordering will be disabled</p>
-                                            )}
-                                        </div>
-                                        </div>
-                                        <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-7 w-7 text-muted-foreground hover:bg-orange-100 hover:text-destructive"
-                                        onClick={() => handleDeleteRule(rule.id)}
-                                        >
-                                        <X className="h-4 w-4" />
-                                        </Button>
+                                    <div className="flex items-center gap-3 p-3 rounded-md bg-green-50 text-sm border border-green-200">
+                                        <CheckCircle className="h-5 w-5 text-green-600" />
+                                        <span className="font-medium text-green-800">Available all day</span>
                                     </div>
-                                    ))}
-                                </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {schedules.map((rule) => (
+                                        <div key={rule.id} className="flex items-start justify-between p-3 rounded-md bg-red-50 text-sm border border-red-200">
+                                            <div className="flex items-start gap-3">
+                                                <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5" />
+                                                <div>
+                                                    <p className="font-medium text-red-800">
+                                                    {rule.allDay
+                                                        ? 'Unavailable all day'
+                                                        : `Unavailable: ${rule.from} - ${rule.to}`}
+                                                    </p>
+                                                    {rule.disableOrder && (
+                                                    <p className="text-xs text-red-700">Ordering will be disabled</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-7 w-7 text-muted-foreground hover:bg-red-100 hover:text-destructive -mr-1 -mt-1"
+                                            onClick={() => handleDeleteRule(rule.id)}
+                                            >
+                                            <X className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                        ))}
+                                    </div>
                                 )}
                             </div>
                             ))}
