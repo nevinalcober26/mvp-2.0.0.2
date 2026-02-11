@@ -16,35 +16,49 @@ import { Label } from '@/components/ui/label';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
 import { AuthCardSkeleton } from '@/components/dashboard/skeletons';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/firebase';
+import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
+import { Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState('');
+  const auth = useAuth();
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isSigningIn, setIsSigningIn] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    // This effect runs on the client after component mount
-    if (localStorage.getItem('isLoggedIn') === 'true') {
-      router.push('/dashboard');
-    } else {
-      setIsLoading(false);
-    }
-  }, [router]);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        localStorage.setItem('isLoggedIn', 'true');
+        router.push('/dashboard');
+      } else {
+        setIsLoading(false);
+      }
+    });
+    return () => unsubscribe();
+  }, [auth, router]);
 
-  const handleSignIn = () => {
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError('');
-    if (username === 'admin' && password === 'admin') {
-      toast({
-        title: 'Welcome, Admin!',
-        description: 'You have successfully logged in.',
-      });
+    setIsSigningIn(true);
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
       localStorage.setItem('isLoggedIn', 'true');
+      toast({
+        title: 'Welcome back!',
+        description: 'Redirecting to your dashboard...',
+      });
       router.push('/dashboard');
-    } else {
-      setError('Invalid username or password. Use "admin" for both.');
+    } catch (e: any) {
+      console.error(e);
+      setError('Invalid email or password. Please try again.');
+      setIsSigningIn(false);
     }
   };
 
@@ -53,7 +67,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
+    <div className="flex items-center justify-center min-h-screen bg-background p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-4">
@@ -64,42 +78,51 @@ export default function LoginPage() {
             Enter your credentials to access your account
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="username">Username</Label>
-            <Input
-              id="username"
-              type="text"
-              placeholder="admin"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="admin"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-        </CardContent>
-        <CardFooter className="flex flex-col gap-4">
-          <Button className="w-full" onClick={handleSignIn}>
-            Sign in
-          </Button>
-          <div className="text-center text-sm">
-            Don&apos;t have an account?{' '}
-            <NextLink href="/signup" className="underline">
-              Sign up
-            </NextLink>
-          </div>
-        </CardFooter>
+        <form onSubmit={handleSignIn}>
+          <CardContent className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="admin@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            {error && <p className="text-destructive text-sm text-center">{error}</p>}
+          </CardContent>
+          <CardFooter className="flex flex-col gap-4">
+            <Button className="w-full" type="submit" disabled={isSigningIn}>
+              {isSigningIn ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                'Sign in'
+              )}
+            </Button>
+            <div className="text-center text-sm">
+              Don&apos;t have an account?{' '}
+              <NextLink href="/signup" className="underline">
+                Sign up
+              </NextLink>
+            </div>
+          </CardFooter>
+        </form>
       </Card>
     </div>
   );
