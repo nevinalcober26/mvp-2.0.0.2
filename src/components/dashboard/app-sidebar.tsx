@@ -322,7 +322,7 @@ export function AppSidebar() {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="flex h-auto w-full items-center justify-between gap-2 rounded-xl bg-gray-800 p-3 text-left text-white hover:bg-gray-700/50 border border-white/5"
+                className="flex h-auto w-full items-center justify-between gap-2 rounded-xl bg-white p-3 text-left text-gray-900 hover:bg-gray-50 border border-gray-200 transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <div className="relative shrink-0">
@@ -332,25 +332,25 @@ export function AppSidebar() {
                         width={40}
                         height={40}
                         alt="Restaurant logo"
-                        className="rounded-full bg-white p-0.5 border border-white/20 h-10 w-10 object-cover"
+                        className="rounded-full bg-white p-0.5 border border-gray-200 h-10 w-10 object-cover"
                         data-ai-hint={restaurantLogo.imageHint}
                       />
                     )}
                     <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 border-2 border-gray-800"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 border-2 border-white"></span>
                     </span>
                   </div>
                   <div className="flex flex-col overflow-hidden">
-                    <span className="truncate text-sm font-bold text-white tracking-tight">
+                    <span className="truncate text-sm font-bold tracking-tight">
                       Bloomsbury's
                     </span>
-                    <span className="truncate text-xs font-medium text-gray-400">
+                    <span className="truncate text-xs font-medium text-gray-500">
                       Ras Al Khaimah
                     </span>
                   </div>
                 </div>
-                <ChevronDown className="h-4 w-4 text-gray-500" />
+                <ChevronDown className="h-4 w-4 text-gray-400" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
