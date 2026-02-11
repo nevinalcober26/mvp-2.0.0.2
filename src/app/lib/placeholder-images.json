@@ -16,37 +16,37 @@
     {
       "id": "restaurant-1",
       "description": "The Elegant Table",
-      "imageUrl": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-      "imageHint": "restaurant interior"
+      "imageUrl": "https://picsum.photos/seed/res1/600/400",
+      "imageHint": "fine dining"
     },
     {
       "id": "restaurant-2",
       "description": "Urban Bites",
-      "imageUrl": "https://images.unsplash.com/photo-1552566626-52f8b828add9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+      "imageUrl": "https://picsum.photos/seed/res2/600/400",
       "imageHint": "modern cafe"
     },
     {
       "id": "restaurant-3",
       "description": "Morning Brew",
-      "imageUrl": "https://images.unsplash.com/photo-1445116572660-236099ec97a0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+      "imageUrl": "https://picsum.photos/seed/res3/600/400",
       "imageHint": "coffee shop"
     },
     {
       "id": "restaurant-4",
       "description": "Bella Italia",
-      "imageUrl": "https://images.unsplash.com/photo-1551183053-bf91a1d81141?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+      "imageUrl": "https://picsum.photos/seed/res4/600/400",
       "imageHint": "italian restaurant"
     },
     {
       "id": "restaurant-5",
       "description": "Sakura Sushi",
-      "imageUrl": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+      "imageUrl": "https://picsum.photos/seed/res5/600/400",
       "imageHint": "sushi restaurant"
     },
     {
       "id": "restaurant-6",
       "description": "Burger Haven",
-      "imageUrl": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+      "imageUrl": "https://picsum.photos/seed/res6/600/400",
       "imageHint": "burger joint"
     }
   ]
