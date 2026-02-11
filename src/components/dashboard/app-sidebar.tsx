@@ -48,10 +48,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const restaurantLogo = PlaceHolderImages.find(
   (img) => img.id === 'restaurant-logo'
 );
+
+const branches = [
+  { id: '1', name: "Ras Al Khaimah", type: 'Boutique Café', image: 'https://picsum.photos/seed/res1/100/100' },
+  { id: '2', name: "Dubai Mall", type: 'Signature Store', image: 'https://picsum.photos/seed/res2/100/100' },
+  { id: '3', name: "Al Ain", type: 'Boutique Café', image: 'https://picsum.photos/seed/res3/100/100' },
+  { id: '4', name: "Abu Dhabi", type: 'Boutique Café', image: 'https://picsum.photos/seed/res4/100/100' },
+  { id: '5', name: "Sharjah", type: 'Boutique Café', image: 'https://picsum.photos/seed/res5/100/100' },
+  { id: '6', name: "Ajman", type: 'Boutique Café', image: 'https://picsum.photos/seed/res6/100/100' },
+];
 
 export const EMenuIcon = () => (
   <svg
@@ -345,33 +355,47 @@ export function AppSidebar() {
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="start"
-              className="mb-2 w-[240px] border-gray-700 bg-gray-900 text-white"
+              className="mb-2 w-[260px] border-gray-700 bg-gray-900 text-white p-0 overflow-hidden shadow-2xl"
             >
-              <DropdownMenuLabel>Select a Branch</DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-gray-700" />
-              <DropdownMenuItem className="cursor-pointer focus:bg-gray-700">
-                <div className="flex items-center gap-3">
-                  <Image
-                    src={restaurantLogo?.imageUrl || ''}
-                    width={24}
-                    height={24}
-                    alt="Restaurant logo"
-                    className="rounded-full bg-white p-0.5"
-                  />
-                  <div className="flex flex-col">
-                    <span>Dubai Mall</span>
-                    <span className="text-xs text-gray-400">Restaurant</span>
-                  </div>
+              <div className="p-4">
+                <DropdownMenuLabel className="p-0 text-lg font-bold">Select a Branch</DropdownMenuLabel>
+              </div>
+              <DropdownMenuSeparator className="bg-gray-700 m-0" />
+              
+              <ScrollArea className="h-[200px]">
+                <div className="p-1">
+                  {branches.map((branch) => (
+                    <DropdownMenuItem 
+                      key={branch.id} 
+                      className="cursor-pointer focus:bg-gray-800 p-3 rounded-lg flex items-center gap-3 transition-colors"
+                    >
+                      <div className="shrink-0">
+                        <Image
+                          src={branch.image}
+                          width={40}
+                          height={40}
+                          alt={branch.name}
+                          className="rounded-full bg-white p-0.5 object-cover h-10 w-10"
+                        />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-bold text-sm truncate">{branch.name}</span>
+                        <span className="text-xs text-gray-400 truncate">{branch.type}</span>
+                      </div>
+                    </DropdownMenuItem>
+                  ))}
                 </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer focus:bg-gray-700">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-700">
-                    <Plus className="h-4 w-4" />
+              </ScrollArea>
+
+              <DropdownMenuSeparator className="bg-gray-700 m-0" />
+              <div className="p-1">
+                <DropdownMenuItem className="cursor-pointer focus:bg-gray-800 p-3 rounded-lg flex items-center gap-3 text-gray-300">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-800 border border-white/5">
+                    <Plus className="h-5 w-5" />
                   </div>
-                  <span>Add New Branch</span>
-                </div>
-              </DropdownMenuItem>
+                  <span className="font-bold text-sm">Add New Branch</span>
+                </DropdownMenuItem>
+              </div>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
