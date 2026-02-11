@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -18,17 +17,14 @@ import {
   Users,
   Calendar,
   MoreHorizontal,
-  ArrowUpRight,
-  TrendingUp,
-  Store,
-  CheckCircle2,
-  Users2,
-  ChefHat,
-  ChevronLeft,
-  ChevronRight,
   Settings,
   ClipboardList,
   Edit,
+  ChevronLeft,
+  ChevronRight,
+  Store,
+  CheckCircle2,
+  Users2,
 } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
@@ -49,11 +45,13 @@ interface Restaurant {
   todayReservations: number;
 }
 
+const DEFAULT_RESTAURANT_IMAGE = 'https://picsum.photos/seed/restaurant/600/400';
+
 const mockRestaurants: Restaurant[] = [
   {
     id: '1',
     name: 'The Elegant Table',
-    image: PlaceHolderImages.find(img => img.id === 'restaurant-1')?.imageUrl || '',
+    image: PlaceHolderImages.find(img => img.id === 'restaurant-1')?.imageUrl || DEFAULT_RESTAURANT_IMAGE,
     status: 'Open',
     rating: 4.9,
     type: 'Fine Dining',
@@ -65,7 +63,7 @@ const mockRestaurants: Restaurant[] = [
   {
     id: '2',
     name: 'Urban Bites',
-    image: PlaceHolderImages.find(img => img.id === 'restaurant-2')?.imageUrl || '',
+    image: PlaceHolderImages.find(img => img.id === 'restaurant-2')?.imageUrl || DEFAULT_RESTAURANT_IMAGE,
     status: 'Open',
     rating: 4.7,
     type: 'Casual',
@@ -77,7 +75,7 @@ const mockRestaurants: Restaurant[] = [
   {
     id: '3',
     name: 'Morning Brew',
-    image: PlaceHolderImages.find(img => img.id === 'restaurant-3')?.imageUrl || '',
+    image: PlaceHolderImages.find(img => img.id === 'restaurant-3')?.imageUrl || DEFAULT_RESTAURANT_IMAGE,
     status: 'Open',
     rating: 4.8,
     type: 'Café',
@@ -89,7 +87,7 @@ const mockRestaurants: Restaurant[] = [
   {
     id: '4',
     name: 'Bella Italia',
-    image: PlaceHolderImages.find(img => img.id === 'restaurant-4')?.imageUrl || '',
+    image: PlaceHolderImages.find(img => img.id === 'restaurant-4')?.imageUrl || DEFAULT_RESTAURANT_IMAGE,
     status: 'Open',
     rating: 4.6,
     type: 'Fine Dining',
@@ -101,7 +99,7 @@ const mockRestaurants: Restaurant[] = [
   {
     id: '5',
     name: 'Sakura Sushi',
-    image: PlaceHolderImages.find(img => img.id === 'restaurant-5')?.imageUrl || '',
+    image: PlaceHolderImages.find(img => img.id === 'restaurant-5')?.imageUrl || DEFAULT_RESTAURANT_IMAGE,
     status: 'Open',
     rating: 4.8,
     type: 'Fine Dining',
@@ -113,7 +111,7 @@ const mockRestaurants: Restaurant[] = [
   {
     id: '6',
     name: 'Burger Haven',
-    image: PlaceHolderImages.find(img => img.id === 'restaurant-6')?.imageUrl || '',
+    image: PlaceHolderImages.find(img => img.id === 'restaurant-6')?.imageUrl || DEFAULT_RESTAURANT_IMAGE,
     status: 'Closed',
     rating: 4.5,
     type: 'Fast Food',
@@ -147,14 +145,20 @@ const StatCard = ({ title, value, icon: Icon, change, iconColor, bgIcon }: { tit
 
 const RestaurantCard = ({ restaurant }: { restaurant: Restaurant }) => (
   <Card className="overflow-hidden group hover:shadow-md transition-shadow">
-    <div className="relative aspect-[16/9] w-full">
-      <Image
-        src={restaurant.image}
-        alt={restaurant.name}
-        fill
-        className="object-cover transition-transform group-hover:scale-105"
-        data-ai-hint="restaurant interior"
-      />
+    <div className="relative aspect-[16/9] w-full bg-muted">
+      {restaurant.image ? (
+        <Image
+          src={restaurant.image}
+          alt={restaurant.name}
+          fill
+          className="object-cover transition-transform group-hover:scale-105"
+          data-ai-hint="restaurant interior"
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+          <Store className="h-12 w-12 opacity-20" />
+        </div>
+      )}
       <div className="absolute top-3 left-3 flex gap-2">
         <button className="h-8 w-8 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60 backdrop-blur-sm">
           <MoreHorizontal className="h-4 w-4" />
