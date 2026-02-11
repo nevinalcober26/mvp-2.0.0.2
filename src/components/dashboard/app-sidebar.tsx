@@ -37,7 +37,7 @@ import {
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import NextLink from 'next/link';
 import { cn } from '@/lib/utils';
 import { Input } from '../ui/input';
@@ -52,10 +52,6 @@ import {
   DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
-
-const restaurantLogo = PlaceHolderImages.find(
-  (img) => img.id === 'restaurant-logo'
-);
 
 const branches = [
   { id: '1', name: "Ras Al Khaimah", type: 'Boutique Café' },
@@ -175,12 +171,21 @@ export function AppSidebar() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeMenus, setActiveMenu] = useState<string[]>(['settings']);
   const [isBranchSwitcherOpen, setIsBranchSwitcherOpen] = useState(false);
+  const [isBranchSearching, setIsBranchSearching] = useState(false);
+  const [branchSearchQuery, setBranchSearchQuery] = useState('');
 
   const handleMenuToggle = (menu: string) => {
     setActiveMenu((prev) => 
       prev.includes(menu) ? prev.filter(m => m !== menu) : [...prev, menu]
     );
   };
+
+  const filteredBranches = useMemo(() => {
+    return branches.filter((branch) =>
+      branch.name.toLowerCase().includes(branchSearchQuery.toLowerCase()) ||
+      branch.type.toLowerCase().includes(branchSearchQuery.toLowerCase())
+    );
+  }, [branchSearchQuery]);
 
   const renderSidebarItem = (item: SidebarItem) => {
     const isExpanded = activeMenus.includes(item.id);
@@ -331,7 +336,16 @@ export function AppSidebar() {
 
         <SidebarFooter className="flex flex-col gap-2 p-4 bg-[#0a1414] rounded-tl-[24px] rounded-tr-[24px] relative z-[50]">
           <div className="group-data-[collapsible=icon]:hidden">
-            <DropdownMenu open={isBranchSwitcherOpen} onOpenChange={setIsBranchSwitcherOpen}>
+            <DropdownMenu 
+              open={isBranchSwitcherOpen} 
+              onOpenChange={(open) => {
+                setIsBranchSwitcherOpen(open);
+                if (!open) {
+                  setIsBranchSearching(false);
+                  setBranchSearchQuery('');
+                }
+              }}
+            >
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
@@ -371,29 +385,68 @@ export function AppSidebar() {
                   side="top"
                   className="mb-4 w-[280px] border-gray-200 bg-white text-gray-900 p-0 overflow-hidden shadow-2xl rounded-2xl animate-in slide-in-from-bottom-2 duration-300"
                 >
-                  <div className="p-5 border-b bg-gray-50/50">
-                    <DropdownMenuLabel className="p-0 text-xl font-black tracking-tight text-gray-900">Select a Branch</DropdownMenuLabel>
+                  <div 
+                    className="p-5 border-b bg-gray-50/50 flex items-center justify-between min-h-[73px]"
+                    onMouseLeave={() => {
+                      setIsBranchSearching(false);
+                      setBranchSearchQuery('');
+                    }}
+                  >
+                    {!isBranchSearching ? (
+                      <>
+                        <DropdownMenuLabel className="p-0 text-xl font-black tracking-tight text-gray-900">Select a Branch</DropdownMenuLabel>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 rounded-full hover:bg-gray-200 transition-colors"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setIsBranchSearching(true);
+                          }}
+                        >
+                          <Search className="h-4 w-4 text-gray-500" />
+                        </Button>
+                      </>
+                    ) : (
+                      <div className="flex items-center w-full gap-2 animate-in fade-in slide-in-from-right-2 duration-300">
+                        <Search className="h-4 w-4 text-gray-400 shrink-0" />
+                        <Input
+                          autoFocus
+                          placeholder="Search branches..."
+                          value={branchSearchQuery}
+                          onChange={(e) => setBranchSearchQuery(e.target.value)}
+                          className="h-9 border-0 bg-transparent p-0 shadow-none focus-visible:ring-0 text-gray-900 placeholder:text-gray-400 font-bold"
+                        />
+                      </div>
+                    )}
                   </div>
                   
                   <ScrollArea className="h-[220px]">
                     <div className="p-2">
-                      {branches.map((branch) => (
-                        <DropdownMenuItem 
-                          key={branch.id} 
-                          className={cn(
-                            "cursor-pointer focus:bg-primary/5 p-3 rounded-xl flex items-center justify-between transition-all group mb-1",
-                            branch.name === "Ras Al Khaimah" ? "bg-primary/5 border border-primary/10" : "border border-transparent"
-                          )}
-                        >
-                          <div className="flex flex-col min-w-0">
-                            <span className="font-bold text-sm text-gray-900 truncate group-hover:text-primary transition-colors">{branch.name}</span>
-                            <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400 truncate">{branch.type}</span>
-                          </div>
-                          {branch.name === "Ras Al Khaimah" && (
-                            <div className="h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_rgba(24,180,166,0.5)]" />
-                          )}
-                        </DropdownMenuItem>
-                      ))}
+                      {filteredBranches.length > 0 ? (
+                        filteredBranches.map((branch) => (
+                          <DropdownMenuItem 
+                            key={branch.id} 
+                            className={cn(
+                              "cursor-pointer focus:bg-primary/5 p-3 rounded-xl flex items-center justify-between transition-all group mb-1",
+                              branch.name === "Ras Al Khaimah" ? "bg-primary/5 border border-primary/10" : "border border-transparent"
+                            )}
+                          >
+                            <div className="flex flex-col min-w-0">
+                              <span className="font-bold text-sm text-gray-900 truncate group-hover:text-primary transition-colors">{branch.name}</span>
+                              <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400 truncate">{branch.type}</span>
+                            </div>
+                            {branch.name === "Ras Al Khaimah" && (
+                              <div className="h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_rgba(24,180,166,0.5)]" />
+                            )}
+                          </DropdownMenuItem>
+                        ))
+                      ) : (
+                        <div className="p-8 text-center text-sm text-muted-foreground">
+                          No branches found matching &quot;{branchSearchQuery}&quot;
+                        </div>
+                      )}
                     </div>
                   </ScrollArea>
 
@@ -410,16 +463,13 @@ export function AppSidebar() {
           <div className="hidden group-data-[collapsible=icon]:block">
             <NextLink href="#">
               <div className="relative">
-                {restaurantLogo && (
-                  <Image
-                    src={restaurantLogo.imageUrl}
-                    width={32}
-                    height={32}
-                    alt="Restaurant logo"
-                    className="rounded-full bg-white p-0.5"
-                    data-ai-hint={restaurantLogo.imageHint}
-                  />
-                )}
+                <Image
+                  src="https://picsum.photos/seed/brand/100/100"
+                  width={32}
+                  height={32}
+                  alt="Restaurant logo"
+                  className="rounded-full bg-white p-0.5"
+                />
                 <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500 border border-gray-800"></span>
                 </span>
