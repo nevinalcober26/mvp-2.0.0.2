@@ -47,8 +47,8 @@ export default function LoginPage() {
     setError('');
     setIsSigningIn(true);
 
-    // Hardcoded check for demo credentials as requested: admin / password
-    if (email === 'admin' && password === 'password') {
+    // Hardcoded check for demo credentials as requested: admin / admin
+    if (email === 'admin' && password === 'admin') {
       localStorage.setItem('isLoggedIn', 'true');
       toast({
         title: 'Welcome back!',
@@ -109,7 +109,7 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type="password"
-                placeholder="password"
+                placeholder="admin"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
