@@ -11,6 +11,8 @@ import {
   Settings,
   LayoutGrid,
   ChevronDown,
+  Store,
+  MapPin,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +30,7 @@ import { PosSyncStatus } from './pos-sync-status';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AppSwitcher } from './app-switcher';
 import { NotificationMenu } from './notification-menu';
+import { cn } from '@/lib/utils';
 
 const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
 
@@ -141,7 +144,7 @@ export function DashboardHeader() {
         <div className="hidden md:block">
           <SidebarTrigger />
         </div>
-        <div className="relative w-full max-w-md">
+        <div className="relative w-full max-w-md hidden sm:block">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
@@ -149,12 +152,27 @@ export function DashboardHeader() {
             className="w-full rounded-lg bg-background pl-10"
           />
         </div>
-        <PosSyncStatus />
+        
+        {/* Branch Identifier - Global contextual pill */}
+        <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 text-primary shadow-sm hidden lg:flex hover:bg-primary/10 transition-colors cursor-default">
+          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <Store className="h-3.5 w-3.5" />
+          </div>
+          <div className="flex flex-col -space-y-0.5">
+            <span className="text-[9px] font-black uppercase tracking-tighter opacity-70">Active Branch</span>
+            <span className="text-xs font-bold whitespace-nowrap">Bloomsbury's - Ras Al Khaimah</span>
+          </div>
+        </div>
+
+        <div className="hidden xl:block">
+          <PosSyncStatus />
+        </div>
       </div>
+      
       <div className="flex items-center gap-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="gap-2">
+            <Button variant="ghost" className="gap-2 text-xs font-semibold hidden md:flex">
               English (EN)
               <ChevronDown className="h-4 w-4" />
             </Button>
