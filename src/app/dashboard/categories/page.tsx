@@ -29,6 +29,7 @@ import {
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 import { CategoriesPageSkeleton } from '@/components/dashboard/skeletons';
+import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
 
 type RestaurantStatus = 'Open' | 'Closed';
 
@@ -122,27 +123,6 @@ const mockRestaurants: Restaurant[] = [
   },
 ];
 
-const StatCard = ({ title, value, icon: Icon, change, iconColor, bgIcon }: { title: string; value: string; icon: any; change?: string; iconColor: string; bgIcon: string }) => (
-  <Card className="border-0 shadow-sm">
-    <CardContent className="p-6 flex items-center gap-4">
-      <div className={cn("h-12 w-12 rounded-lg flex items-center justify-center shrink-0", bgIcon)}>
-        <Icon className={cn("h-6 w-6", iconColor)} />
-      </div>
-      <div>
-        <p className="text-sm font-medium text-muted-foreground">{title}</p>
-        <div className="flex items-baseline gap-2">
-          <h3 className="text-2xl font-bold">{value}</h3>
-          {change && (
-            <span className={cn("text-xs font-bold flex items-center gap-0.5", change.startsWith('+') || change.includes('↑') ? "text-green-600" : "text-red-600")}>
-              {change}
-            </span>
-          )}
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-);
-
 const RestaurantCard = ({ restaurant }: { restaurant: Restaurant }) => (
   <Card className="overflow-hidden group hover:shadow-md transition-shadow">
     <div className="relative aspect-[16/9] w-full bg-muted">
@@ -222,6 +202,44 @@ export default function ManageRestaurantPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
 
+  const kpiCards: StatCardData[] = useMemo(() => [
+    {
+      title: 'Total Restaurants',
+      value: '18',
+      change: '+2',
+      changeDescription: 'new this month',
+      icon: Store,
+      color: 'orange',
+      tooltipText: 'Total number of restaurant branches managed.',
+    },
+    {
+      title: 'Total Reservations',
+      value: '1,284',
+      change: '+8%',
+      changeDescription: 'vs last month',
+      icon: CheckCircle2,
+      color: 'green',
+      tooltipText: 'Total number of completed table reservations today.',
+    },
+    {
+      title: 'Total Capacity',
+      value: '456',
+      changeDescription: 'total seats',
+      icon: Users2,
+      color: 'blue',
+      tooltipText: 'Total seating capacity across all branches.',
+    },
+    {
+      title: 'Avg. Rating',
+      value: '4.7',
+      change: '+0.2',
+      changeDescription: 'vs last month',
+      icon: Star,
+      color: 'purple',
+      tooltipText: 'Average customer rating across all locations.',
+    },
+  ], []);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -259,40 +277,7 @@ export default function ManageRestaurantPage() {
           </div>
 
           {/* Stats Overview */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard
-              title="Total Restaurants"
-              value="18"
-              change="↑ 2"
-              icon={Store}
-              iconColor="text-orange-600"
-              bgIcon="bg-orange-50"
-            />
-            <StatCard
-              title="Total Reservations"
-              value="1,284"
-              change="↑ 8%"
-              icon={CheckCircle2}
-              iconColor="text-green-600"
-              bgIcon="bg-green-50"
-            />
-            <StatCard
-              title="Total Capacity"
-              value="456"
-              change="seats"
-              icon={Users2}
-              iconColor="text-blue-600"
-              bgIcon="bg-blue-50"
-            />
-            <StatCard
-              title="Avg. Rating"
-              value="4.7"
-              change="↑ 0.2"
-              icon={Star}
-              iconColor="text-purple-600"
-              bgIcon="bg-purple-50"
-            />
-          </div>
+          <StatCards cards={kpiCards} />
 
           {/* Filters and Search */}
           <div className="flex items-center gap-4 bg-background p-4 rounded-xl border shadow-sm">
