@@ -8,43 +8,43 @@
     },
     {
       "id": "restaurant-logo",
-      "description": "Restaurant food dish",
+      "description": "Bloomsbury's logo reference",
       "imageUrl": "https://images.unsplash.com/photo-1550367363-ea12860cc124?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyZXN0YXVyYW50JTIwZm9vZHxlbnwwfHx8fDE3Njk5NzU0NzJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "restaurant food"
     },
     {
       "id": "restaurant-1",
-      "description": "The Elegant Table",
+      "description": "Bloomsbury's Ras Al Khaimah",
       "imageUrl": "https://images.unsplash.com/photo-1643879397174-4f10ac503566?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxmaW5lJTIwZGluaW5nfGVufDB8fHx8MTc3MDgwODUwMnww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "fine dining"
     },
     {
       "id": "restaurant-2",
-      "description": "Urban Bites",
+      "description": "Bloomsbury's Dubai Mall",
       "imageUrl": "https://images.unsplash.com/photo-1648808694138-6706c5efc80a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxtb2Rlcm4lMjBjYWZlfGVufDB8fHx8MTc3MDgwODUwMnww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "modern cafe"
     },
     {
       "id": "restaurant-3",
-      "description": "Morning Brew",
+      "description": "Bloomsbury's Al Ain",
       "imageUrl": "https://images.unsplash.com/photo-1511920170033-f8396924c348?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxjb2ZmZWUlMjBzaG9wfGVufDB8fHx8MTc3MDcyOTY5MXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "coffee shop"
     },
     {
       "id": "restaurant-4",
-      "description": "Bella Italia",
+      "description": "Bloomsbury's Abu Dhabi",
       "imageUrl": "https://images.unsplash.com/photo-1579926545913-448d525562db?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxpdGFsaWFuJTIwcmVzdGF1cmFudHxlbnwwfHx8fDE3NzA3NTE2MDZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "italian restaurant"
     },
     {
       "id": "restaurant-5",
-      "description": "Sakura Sushi",
+      "description": "Bloomsbury's Sharjah",
       "imageUrl": "https://images.unsplash.com/photo-1634714434666-ef41b76b9cc9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxzdXNoaSUyMHJlc3RhdXJhbnR8ZW58MHx8fHwxNzcwNzUxNjA2fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "sushi restaurant"
     },
     {
       "id": "restaurant-6",
-      "description": "Burger Haven",
+      "description": "Bloomsbury's Ajman",
       "imageUrl": "https://images.unsplash.com/photo-1695606392868-b9ed053e1c0c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxidXJnZXIlMjBqb2ludHxlbnwwfHx8fDE3NzA4MDg1MDJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "burger joint"
     }

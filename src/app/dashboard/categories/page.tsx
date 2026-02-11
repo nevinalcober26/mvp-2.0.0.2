@@ -44,80 +44,80 @@ interface Restaurant {
   scansToday: number;
 }
 
-const DEFAULT_RESTAURANT_IMAGE = 'https://picsum.photos/seed/restaurant/600/400';
+const DEFAULT_RESTAURANT_IMAGE = 'https://picsum.photos/seed/bloomsbury/600/400';
 
 const mockRestaurants: Restaurant[] = [
   {
     id: '1',
-    name: 'The Elegant Table',
+    name: "Bloomsbury's - Ras Al Khaimah",
     image: PlaceHolderImages.find(img => img.id === 'restaurant-1')?.imageUrl || DEFAULT_RESTAURANT_IMAGE,
     status: 'Open',
     rating: 4.9,
-    type: 'Fine Dining',
-    location: 'Downtown',
-    address: '123 Main St, Downtown',
+    type: 'Boutique Café',
+    location: 'RAK Mall',
+    address: 'Level 1, RAK Mall, Ras Al Khaimah',
     menuItems: 142,
     scansToday: 284,
   },
   {
     id: '2',
-    name: 'Urban Bites',
+    name: "Bloomsbury's - Dubai Mall",
     image: PlaceHolderImages.find(img => img.id === 'restaurant-2')?.imageUrl || DEFAULT_RESTAURANT_IMAGE,
     status: 'Open',
-    rating: 4.7,
-    type: 'Casual',
-    location: 'Uptown',
-    address: '456 Oak Rd, Uptown',
-    menuItems: 86,
-    scansToday: 512,
+    rating: 4.8,
+    type: 'Signature Store',
+    location: 'Downtown',
+    address: 'Lower Ground, Dubai Mall, Dubai',
+    menuItems: 156,
+    scansToday: 1240,
   },
   {
     id: '3',
-    name: 'Morning Brew',
+    name: "Bloomsbury's - Al Ain",
     image: PlaceHolderImages.find(img => img.id === 'restaurant-3')?.imageUrl || DEFAULT_RESTAURANT_IMAGE,
     status: 'Open',
-    rating: 4.8,
-    type: 'Café',
-    location: 'West Side',
-    address: '789 Pine Ln, West Side',
-    menuItems: 64,
-    scansToday: 890,
+    rating: 4.7,
+    type: 'Boutique Café',
+    location: 'Al Ain Mall',
+    address: 'Ground Floor, Al Ain Mall, Al Ain',
+    menuItems: 98,
+    scansToday: 412,
   },
   {
     id: '4',
-    name: 'Bella Italia',
+    name: "Bloomsbury's - Abu Dhabi",
     image: PlaceHolderImages.find(img => img.id === 'restaurant-4')?.imageUrl || DEFAULT_RESTAURANT_IMAGE,
     status: 'Open',
-    rating: 4.6,
-    type: 'Fine Dining',
-    location: 'Downtown',
-    address: '321 Maple Dr, Downtown',
+    rating: 4.8,
+    type: 'Boutique Café',
+    location: 'Al Mushrif',
+    address: 'Al Mushrif Mall, Abu Dhabi',
     menuItems: 110,
-    scansToday: 156,
+    scansToday: 650,
   },
   {
     id: '5',
-    name: 'Sakura Sushi',
+    name: "Bloomsbury's - Sharjah",
     image: PlaceHolderImages.find(img => img.id === 'restaurant-5')?.imageUrl || DEFAULT_RESTAURANT_IMAGE,
     status: 'Open',
-    rating: 4.8,
-    type: 'Fine Dining',
-    location: 'East Side',
-    address: '654 Cedar Ct, East Side',
-    menuItems: 95,
-    scansToday: 420,
+    rating: 4.6,
+    type: 'Boutique Café',
+    location: 'Zero 6 Mall',
+    address: 'Zero 6 Mall, Sharjah',
+    menuItems: 85,
+    scansToday: 320,
   },
   {
     id: '6',
-    name: 'Burger Haven',
+    name: "Bloomsbury's - Ajman",
     image: PlaceHolderImages.find(img => img.id === 'restaurant-6')?.imageUrl || DEFAULT_RESTAURANT_IMAGE,
     status: 'Closed',
     rating: 4.5,
-    type: 'Fast Food',
-    location: 'Uptown',
-    address: '987 Birch Way, Uptown',
-    menuItems: 52,
-    scansToday: 310,
+    type: 'Boutique Café',
+    location: 'City Centre',
+    address: 'City Centre Ajman, Ajman',
+    menuItems: 72,
+    scansToday: 180,
   },
 ];
 
@@ -130,7 +130,7 @@ const RestaurantCard = ({ restaurant }: { restaurant: Restaurant }) => (
           alt={restaurant.name}
           fill
           className="object-cover transition-transform group-hover:scale-105"
-          data-ai-hint="restaurant interior"
+          data-ai-hint="boutique cafe"
         />
       ) : (
         <div className="w-full h-full flex items-center justify-center text-muted-foreground">
@@ -172,7 +172,7 @@ const RestaurantCard = ({ restaurant }: { restaurant: Restaurant }) => (
       </div>
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Package className="h-4 w-4 shrink-0" />
-        <span>Menu Items: {restaurant.menuItems}</span>
+        <span>Active Menu Items: {restaurant.menuItems}</span>
       </div>
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <QrCode className="h-4 w-4 shrink-0" />
@@ -186,7 +186,7 @@ const RestaurantCard = ({ restaurant }: { restaurant: Restaurant }) => (
       </Button>
       <Button size="sm" className="flex-1 font-semibold gap-2 bg-primary hover:bg-primary/90 text-primary-foreground">
         <Edit className="h-4 w-4" />
-        Edit
+        Edit Branch
       </Button>
     </CardFooter>
   </Card>
@@ -198,13 +198,13 @@ export default function ManageRestaurantPage() {
 
   const kpiCards: StatCardData[] = useMemo(() => [
     {
-      title: 'Managed Outlets',
+      title: "Bloomsbury's Outlets",
       value: '18',
       change: '+2',
-      changeDescription: 'new this month',
+      changeDescription: 'new branches',
       icon: Store,
       color: 'orange',
-      tooltipText: 'Total number of restaurant branches managed across the network.',
+      tooltipText: 'Total number of Bloomsbury\'s branches managed across the network.',
     },
     {
       title: 'Digital Orders',
@@ -213,7 +213,7 @@ export default function ManageRestaurantPage() {
       changeDescription: 'vs last month',
       icon: TrendingUp,
       color: 'green',
-      tooltipText: 'Total volume of orders placed via digital menus today.',
+      tooltipText: 'Total volume of orders placed via digital menus today across all branches.',
     },
     {
       title: 'QR Menu Scans',
@@ -222,16 +222,16 @@ export default function ManageRestaurantPage() {
       changeDescription: 'vs yesterday',
       icon: QrCode,
       color: 'blue',
-      tooltipText: 'Number of times digital menu QR codes were scanned across all outlets.',
+      tooltipText: 'Number of times digital menu QR codes were scanned across all branches.',
     },
     {
-      title: 'Avg. Satisfaction',
-      value: '4.7',
-      change: '+0.2',
+      title: 'Avg. Rating',
+      value: '4.8',
+      change: '+0.1',
       changeDescription: 'vs last month',
       icon: Star,
       color: 'purple',
-      tooltipText: 'Average customer rating across all locations.',
+      tooltipText: 'Average customer rating across all managed branches.',
     },
   ], []);
 
@@ -254,19 +254,19 @@ export default function ManageRestaurantPage() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Manage Restaurant</h1>
+              <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Manage Branches</h1>
               <p className="text-muted-foreground mt-1">
-                Overview and configuration for all your digital menu outlets
+                Overview and configuration for all Bloomsbury&apos;s outlets
               </p>
             </div>
             <div className="flex items-center gap-3">
               <Button variant="outline" className="gap-2 font-semibold">
                 <Download className="h-4 w-4" />
-                Export
+                Export Data
               </Button>
               <Button className="gap-2 font-bold bg-primary hover:bg-primary/90 text-primary-foreground">
                 <Plus className="h-5 w-5" />
-                New Restaurant
+                Add New Branch
               </Button>
             </div>
           </div>
@@ -279,7 +279,7 @@ export default function ManageRestaurantPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search restaurant name"
+                placeholder="Search branch location or name"
                 className="pl-10 border-0 bg-transparent focus-visible:ring-0 text-base"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -301,7 +301,7 @@ export default function ManageRestaurantPage() {
           {/* Pagination */}
           <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t">
             <p className="text-sm text-muted-foreground">
-              Showing <strong>1 to 6</strong> of <strong>124</strong> results
+              Showing <strong>1 to 6</strong> of <strong>18</strong> branches
             </p>
             <div className="flex items-center gap-1">
               <Button variant="ghost" size="icon" className="h-9 w-9">
@@ -310,8 +310,6 @@ export default function ManageRestaurantPage() {
               <Button size="sm" className="h-9 w-9 bg-primary text-primary-foreground font-bold">1</Button>
               <Button variant="ghost" size="sm" className="h-9 w-9 font-medium">2</Button>
               <Button variant="ghost" size="sm" className="h-9 w-9 font-medium">3</Button>
-              <span className="px-2 text-muted-foreground">...</span>
-              <Button variant="ghost" size="sm" className="h-9 w-9 font-medium">21</Button>
               <Button variant="ghost" size="icon" className="h-9 w-9">
                 <ChevronRight className="h-4 w-4" />
               </Button>
