@@ -28,6 +28,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 import { CategoriesPageSkeleton } from '@/components/dashboard/skeletons';
 import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
+import { QuickSettingsSheet } from './quick-settings-sheet';
 
 type RestaurantStatus = 'Open' | 'Closed';
 
@@ -121,7 +122,13 @@ const mockRestaurants: Restaurant[] = [
   },
 ];
 
-const RestaurantCard = ({ restaurant }: { restaurant: Restaurant }) => (
+const RestaurantCard = ({ 
+  restaurant, 
+  onQuickSettings 
+}: { 
+  restaurant: Restaurant;
+  onQuickSettings: (r: Restaurant) => void;
+}) => (
   <Card className="overflow-hidden group hover:shadow-md transition-shadow">
     <div className="relative aspect-[16/9] w-full bg-muted">
       {restaurant.image && restaurant.image !== "" ? (
@@ -180,7 +187,12 @@ const RestaurantCard = ({ restaurant }: { restaurant: Restaurant }) => (
       </div>
     </CardContent>
     <CardFooter className="p-5 pt-0 flex gap-2">
-      <Button variant="outline" size="sm" className="flex-1 font-semibold gap-2">
+      <Button 
+        variant="outline" 
+        size="sm" 
+        className="flex-1 font-semibold gap-2"
+        onClick={() => onQuickSettings(restaurant)}
+      >
         <Settings className="h-4 w-4" />
         Settings
       </Button>
@@ -195,6 +207,8 @@ const RestaurantCard = ({ restaurant }: { restaurant: Restaurant }) => (
 export default function ManageRestaurantPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [selectedBranch, setSelectedBranch] = useState<Restaurant | null>(null);
+  const [isQuickSettingsOpen, setIsQuickSettingsOpen] = useState(false);
 
   const kpiCards: StatCardData[] = useMemo(() => [
     {
@@ -241,6 +255,11 @@ export default function ManageRestaurantPage() {
     }, 1000);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleOpenQuickSettings = (restaurant: Restaurant) => {
+    setSelectedBranch(restaurant);
+    setIsQuickSettingsOpen(true);
+  };
 
   if (isLoading) {
     return <CategoriesPageSkeleton view="gallery" />;
@@ -294,7 +313,11 @@ export default function ManageRestaurantPage() {
           {/* Restaurants Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {mockRestaurants.map((restaurant) => (
-              <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+              <RestaurantCard 
+                key={restaurant.id} 
+                restaurant={restaurant} 
+                onQuickSettings={handleOpenQuickSettings}
+              />
             ))}
           </div>
 
@@ -317,6 +340,12 @@ export default function ManageRestaurantPage() {
           </div>
         </div>
       </main>
+
+      <QuickSettingsSheet 
+        open={isQuickSettingsOpen} 
+        onOpenChange={setIsQuickSettingsOpen}
+        restaurant={selectedBranch}
+      />
     </>
   );
 }
