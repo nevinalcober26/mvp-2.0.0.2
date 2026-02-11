@@ -27,15 +27,12 @@ import {
   Info,
   Image as ImageIcon,
   Clock,
-  CalendarCheck,
   Palette,
   Upload,
-  ArrowLeft,
-  MapPin,
   ExternalLink,
-  Edit2,
   Save,
-  Rocket
+  Rocket,
+  ArrowLeft
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
@@ -49,8 +46,15 @@ export default function AddNewBranchPage() {
 
   const handleSave = () => {
     toast({
-      title: "Branch Created",
-      description: "New branch has been added successfully.",
+      title: "Draft Saved",
+      description: "Branch details have been saved as a draft.",
+    });
+  };
+
+  const handlePublish = () => {
+    toast({
+      title: "Branch Published",
+      description: "New branch has been published successfully.",
     });
     router.push('/dashboard/categories');
   };
@@ -68,24 +72,33 @@ export default function AddNewBranchPage() {
           <Breadcrumbs items={breadcrumbItems} />
           
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-            <div>
-              <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Add New Branch</h1>
-              <p className="text-muted-foreground mt-1">Configure your new outlet details and operating hours</p>
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div>
+                <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Add New Branch</h1>
+                <p className="text-muted-foreground mt-1">Configure your new outlet details and operating hours</p>
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <Button variant="outline" className="gap-2 font-semibold" onClick={() => router.back()}>
                 Cancel
               </Button>
-              <Button className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold" onClick={handleSave}>
+              <Button variant="outline" className="gap-2 font-semibold" onClick={handleSave}>
+                <Save className="h-4 w-4" />
+                Save
+              </Button>
+              <Button className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold" onClick={handlePublish}>
                 <Rocket className="h-4 w-4" />
-                Publish Branch
+                Publish
               </Button>
             </div>
           </div>
 
           <Card className="shadow-smooth border-0 overflow-hidden">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="w-full justify-start rounded-none border-b bg-background px-6 h-14">
+              <TabsList className="w-full justify-start rounded-none border-b bg-background px-6 h-14 sticky top-0 z-20">
                 <TabsTrigger 
                   value="basic" 
                   className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent rounded-none h-full gap-2 text-xs font-bold uppercase tracking-wider"
@@ -233,10 +246,15 @@ export default function AddNewBranchPage() {
 
           <div className="mt-8 flex justify-end gap-3">
             <Button variant="outline" className="px-8 font-bold" onClick={() => router.back()}>
-              Discard
+              Cancel
             </Button>
-            <Button className="px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-bold" onClick={handleSave}>
-              Save and Publish
+            <Button variant="outline" className="px-8 font-bold gap-2" onClick={handleSave}>
+              <Save className="h-4 w-4" />
+              Save
+            </Button>
+            <Button className="px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-bold gap-2" onClick={handlePublish}>
+              <Rocket className="h-4 w-4" />
+              Publish
             </Button>
           </div>
         </div>
