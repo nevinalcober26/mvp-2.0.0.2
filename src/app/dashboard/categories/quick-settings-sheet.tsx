@@ -17,9 +17,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { 
   Store, 
   ShoppingBag, 
-  QrCode, 
-  Gift, 
-  Bell, 
   Clock,
   ShieldCheck
 } from 'lucide-react';
@@ -101,45 +98,6 @@ export function QuickSettingsSheet({
                     </div>
                   </div>
                   <Switch id="online-orders" defaultChecked />
-                </div>
-
-                <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
-                  <div className="flex items-center gap-3">
-                    <QrCode className="h-5 w-5 text-muted-foreground" />
-                    <div className="grid gap-0.5">
-                      <Label htmlFor="table-orders" className="font-bold">Table Ordering</Label>
-                      <p className="text-xs text-muted-foreground">Allow customers to order via QR codes.</p>
-                    </div>
-                  </div>
-                  <Switch id="table-orders" defaultChecked />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Features & Alerts</h3>
-              
-              <div className="grid gap-3">
-                <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
-                  <div className="flex items-center gap-3">
-                    <Gift className="h-5 w-5 text-muted-foreground" />
-                    <div className="grid gap-0.5">
-                      <Label htmlFor="loyalty" className="font-bold">Loyalty Program</Label>
-                      <p className="text-xs text-muted-foreground">Enable points collection at this branch.</p>
-                    </div>
-                  </div>
-                  <Switch id="loyalty" defaultChecked />
-                </div>
-
-                <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
-                  <div className="flex items-center gap-3">
-                    <Bell className="h-5 w-5 text-muted-foreground" />
-                    <div className="grid gap-0.5">
-                      <Label htmlFor="notifications" className="font-bold">Staff Notifications</Label>
-                      <p className="text-xs text-muted-foreground">Alert staff for new incoming orders.</p>
-                    </div>
-                  </div>
-                  <Switch id="notifications" defaultChecked />
                 </div>
               </div>
             </div>
