@@ -77,6 +77,10 @@ export default function PosIntegrationPage() {
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
   
+  // Dependent fields state for Step 2
+  const [locationValue, setLocationValue] = useState<string | null>(null);
+  const [revenueCenterValue, setRevenueCenterValue] = useState<string | null>(null);
+  
   const [connections, setConnections] = useState<PosConnection[]>([
     { 
       id: '1', 
@@ -100,6 +104,8 @@ export default function PosIntegrationPage() {
     if (!isConnectDrawerOpen) {
       setCurrentStep(1);
       setSelectedProvider(null);
+      setLocationValue(null);
+      setRevenueCenterValue(null);
     }
   }, [isConnectDrawerOpen]);
 
@@ -302,15 +308,22 @@ export default function PosIntegrationPage() {
                       {currentStep === 2 && selectedProvider === 'oracle-simphony' && (
                         <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
                           <div className="text-center space-y-2">
-                            <h3 className="text-2xl font-bold tracking-tight">Configuration</h3>
-                            <p className="text-sm text-muted-foreground">Complete your POS configuration to enable syncing.</p>
+                            <h3 className="text-2xl font-bold tracking-tight">Venue Configuration</h3>
+                            <p className="text-sm text-muted-foreground">Map your technical credentials to your physical layout.</p>
                           </div>
 
                           <div className="rounded-2xl border border-muted-foreground/10 bg-card p-8 shadow-sm space-y-8">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                               <div className="space-y-2">
                                 <Label className="text-sm font-semibold">Location</Label>
-                                <Select>
+                                <Select 
+                                  value={locationValue || ""} 
+                                  onValueChange={(val) => {
+                                    setLocationValue(val);
+                                    // Reset child dependencies
+                                    setRevenueCenterValue(null);
+                                  }}
+                                >
                                   <SelectTrigger className="h-11 bg-muted/20 border-muted-foreground/10">
                                     <SelectValue placeholder="Select a location" />
                                   </SelectTrigger>
@@ -322,10 +335,14 @@ export default function PosIntegrationPage() {
                               </div>
 
                               <div className="space-y-2">
-                                <Label className="text-sm font-semibold">Revenue Center</Label>
-                                <Select>
-                                  <SelectTrigger className="h-11 bg-muted/20 border-muted-foreground/10">
-                                    <SelectValue placeholder="Select Revenue Center" />
+                                <Label className={cn("text-sm font-semibold transition-opacity", !locationValue && "opacity-50")}>Revenue Center</Label>
+                                <Select 
+                                  disabled={!locationValue}
+                                  value={revenueCenterValue || ""}
+                                  onValueChange={setRevenueCenterValue}
+                                >
+                                  <SelectTrigger className={cn("h-11 border-muted-foreground/10 transition-colors", !locationValue ? "bg-muted cursor-not-allowed" : "bg-muted/20")}>
+                                    <SelectValue placeholder={!locationValue ? "Select location first" : "Select Revenue Center"} />
                                   </SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="food">Dine-in Food</SelectItem>
@@ -337,10 +354,10 @@ export default function PosIntegrationPage() {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                               <div className="space-y-2">
-                                <Label className="text-sm font-semibold">Tender</Label>
-                                <Select>
-                                  <SelectTrigger className="h-11 bg-muted/20 border-muted-foreground/10">
-                                    <SelectValue placeholder="Select Tender" />
+                                <Label className={cn("text-sm font-semibold transition-opacity", !revenueCenterValue && "opacity-50")}>Tender</Label>
+                                <Select disabled={!revenueCenterValue}>
+                                  <SelectTrigger className={cn("h-11 border-muted-foreground/10 transition-colors", !revenueCenterValue ? "bg-muted cursor-not-allowed" : "bg-muted/20")}>
+                                    <SelectValue placeholder={!revenueCenterValue ? "Select center first" : "Select Tender"} />
                                   </SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="visa">Visa/Mastercard</SelectItem>
@@ -350,10 +367,21 @@ export default function PosIntegrationPage() {
                               </div>
 
                               <div className="space-y-2">
-                                <Label className="text-sm font-semibold">Employee ID</Label>
-                                <Input placeholder="Enter Employee's ID" className="h-11 bg-muted/20 border-muted-foreground/10" />
+                                <Label className={cn("text-sm font-semibold transition-opacity", !revenueCenterValue && "opacity-50")}>Employee ID</Label>
+                                <Input 
+                                  disabled={!revenueCenterValue}
+                                  placeholder="Enter Employee's ID" 
+                                  className={cn("h-11 border-muted-foreground/10 transition-colors", !revenueCenterValue ? "bg-muted cursor-not-allowed" : "bg-muted/20")} 
+                                />
                               </div>
                             </div>
+                          </div>
+                          
+                          <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 flex items-start gap-3">
+                            <Info className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                            <p className="text-xs text-muted-foreground leading-relaxed italic">
+                              Selections are filtered based on your previous choices to ensure data integrity with Oracle Simphony.
+                            </p>
                           </div>
                         </div>
                       )}
@@ -382,6 +410,7 @@ export default function PosIntegrationPage() {
                         <Button 
                           className="font-bold bg-primary text-primary-foreground px-10 h-11 shadow-lg" 
                           onClick={handleConnect}
+                          disabled={!revenueCenterValue}
                         >
                           Verify & Connect
                         </Button>
