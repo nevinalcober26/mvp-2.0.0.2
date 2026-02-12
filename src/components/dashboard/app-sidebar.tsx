@@ -123,7 +123,7 @@ export const EMenuIcon = () => (
     />
     <path
       fillOpacity=".2"
-      d="M1197.3 262.5c0 3.8.2 5.3.4 3.2.2-2 .2-5.2 0-7-.2-1.7-.4-.1-.4 3.8m76.1 69.5c0 19 .2 26.7.3 17.2.2-9.4.2-25 0-34.5-.1-9.4-.3-1.7-.3 17.3m-76 4c0 16.8.2 23.6.3 15.2.2-8.3.2-22.1 0-30.5-.1-8.3-.3-1.5-.3 15.3m-163.2-25c0 1.4.2 1.9.5 1.2.2-.6.2-1.8 0-2.5-.3-.6-.5-.1-.5 1.3m313.1 27.7c.4.3 1 .3 1.4 0 .3-.4 0-.7-.7-.7s-1 .3-.7.7m-568 29c.4.3 1 .3 1.4 0 .3-.4 0-.7-.7-.7s-1 .3-.7.7"
+      d="M1197.3 262.5c0 3.8.2 5.3.4 3.2.2-2 .2-5.2 0-7-.2-1.7-.4-.1-.4 3.8m76.1 69.5c0 19 .2 26.7.3 17.2.2-94.2-25 0-34.5-.1-9.4-.3-1.7-.3 17.3m-76 4c0 16.8.2 23.6.3 15.2.2-8.3.2-22.1 0-30.5-.1-8.3-.3-1.5-.3 15.3m-163.2-25c0 1.4.2 1.9.5 1.2.2-.6.2-1.8 0-2.5-.3-.6-.5-.1-.5 1.3m313.1 27.7c.4.3 1 .3 1.4 0 .3-.4 0-.7-.7-.7s-1 .3-.7.7m-568 29c.4.3 1 .3 1.4 0 .3-.4 0-.7-.7-.7s-1 .3-.7.7"
     />
     <path
       fillOpacity=".5"
@@ -203,6 +203,7 @@ export function AppSidebar() {
   const [isBranchSwitcherOpen, setIsBranchSwitcherOpen] = useState(false);
   const [isBranchSearching, setIsBranchSearching] = useState(false);
   const [branchSearchQuery, setBranchSearchQuery] = useState('');
+  const [activeBranch, setActiveBranch] = useState(branches[0]);
 
   useEffect(() => {
     const allGroups = [...MANAGEMENT, ...CONNECTIONS];
@@ -425,7 +426,7 @@ export function AppSidebar() {
                         BLOOMSBURY&apos;S
                       </span>
                       <h4 className="truncate text-[17px] font-black text-white tracking-tight leading-tight">
-                        Ras Al Khaimah
+                        {activeBranch.name}
                       </h4>
                     </div>
                   </div>
@@ -481,16 +482,20 @@ export function AppSidebar() {
                         filteredBranches.map((branch) => (
                           <DropdownMenuItem 
                             key={branch.id} 
+                            onClick={() => {
+                              setActiveBranch(branch);
+                              setIsBranchSwitcherOpen(false);
+                            }}
                             className={cn(
                               "cursor-pointer focus:bg-primary/5 p-3 rounded-xl flex items-center justify-between transition-all group mb-1",
-                              branch.name === "Ras Al Khaimah" ? "bg-primary/5 border border-primary/10" : "border border-transparent"
+                              branch.id === activeBranch.id ? "bg-primary/5 border border-primary/10" : "border border-transparent"
                             )}
                           >
                             <div className="flex flex-col min-w-0">
                               <span className="font-bold text-sm text-gray-900 truncate group-hover:text-primary transition-colors">{branch.name}</span>
                               <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400 truncate">{branch.type}</span>
                             </div>
-                            {branch.name === "Ras Al Khaimah" && (
+                            {branch.id === activeBranch.id && (
                               <div className="h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_rgba(24,180,166,0.5)]" />
                             )}
                           </DropdownMenuItem>
