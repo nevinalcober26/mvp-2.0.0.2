@@ -34,7 +34,9 @@ import {
   ChevronDown,
   Maximize2,
   Minimize2,
-  Sparkles
+  Sparkles,
+  Filter,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -54,6 +56,17 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuLabel,
+} from '@/components/ui/dropdown-menu';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -151,18 +164,36 @@ export default function PosIntegrationPage() {
   
   // Verification List States
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'visible' | 'hidden'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [selectedItemIds, setSelectedItems] = useState<Set<string>>(new Set());
   const [items, setItems] = useState(MOCK_ITEMS);
 
+  // Unique categories for filtering
+  const uniqueCategories = useMemo(() => {
+    const cats = Array.from(new Set(items.map(i => i.category)));
+    return cats.sort();
+  }, [items]);
+
   const filteredItems = useMemo(() => {
     const query = searchQuery.toLowerCase();
-    return items.filter(item => 
-      item.name.toLowerCase().includes(query) || 
-      item.category.toLowerCase().includes(query) ||
-      item.subCategory.toLowerCase().includes(query) ||
-      item.posId.toLowerCase().includes(query)
-    );
-  }, [items, searchQuery]);
+    return items.filter(item => {
+      const matchesSearch = item.name.toLowerCase().includes(query) || 
+                           item.category.toLowerCase().includes(query) ||
+                           item.subCategory.toLowerCase().includes(query) ||
+                           item.posId.toLowerCase().includes(query);
+      
+      const matchesStatus = statusFilter === 'all' 
+        ? true 
+        : statusFilter === 'visible' ? item.enabled : !item.enabled;
+      
+      const matchesCategory = categoryFilter === 'all' 
+        ? true 
+        : item.category === categoryFilter;
+
+      return matchesSearch && matchesStatus && matchesCategory;
+    });
+  }, [items, searchQuery, statusFilter, categoryFilter]);
 
   const itemsByCategory = useMemo(() => {
     const groups: Record<string, Record<string, typeof items>> = {};
@@ -202,6 +233,12 @@ export default function PosIntegrationPage() {
       description: `${selectedItemIds.size} items have been ${action === 'enable' ? 'activated' : 'locked'}.`
     });
     setSelectedItems(new Set());
+  };
+
+  const resetFilters = () => {
+    setSearchQuery('');
+    setStatusFilter('all');
+    setCategoryFilter('all');
   };
 
   const [connections] = useState<PosConnection[]>([
@@ -643,7 +680,7 @@ export default function PosIntegrationPage() {
                 {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
               </Button>
               <div className="h-8 w-px bg-border mx-2" />
-              <Button variant="ghost" className="h-10 font-bold gap-2 text-muted-foreground hover:text-primary">
+              <Button variant="ghost" className="h-10 font-bold gap-2 text-muted-foreground hover:text-primary" onClick={resetFilters}>
                 <RefreshCw className="h-4 w-4" /> Refresh Data
               </Button>
             </div>
@@ -651,14 +688,73 @@ export default function PosIntegrationPage() {
 
           {/* Search & Bulk Actions - LIGHT */}
           <div className="p-4 border-b bg-muted/20 flex flex-col sm:flex-row items-center gap-4 justify-between">
-            <div className="relative w-full sm:max-w-lg">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Find a product by name or ID..." 
-                className="pl-10 h-11 bg-white border-muted-foreground/20 shadow-sm rounded-xl font-medium"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+            <div className="flex items-center gap-4 flex-1 w-full sm:max-w-2xl">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Find a product by name or ID..." 
+                  className="pl-10 h-11 bg-white border-muted-foreground/20 shadow-sm rounded-xl font-medium"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Status Filter Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className={cn(
+                    "h-11 gap-2 text-[10px] font-bold uppercase tracking-widest bg-white rounded-xl shadow-sm border-muted-foreground/20",
+                    statusFilter !== 'all' && "border-primary bg-primary/5 text-primary"
+                  )}>
+                    <ListFilter className="h-4 w-4" /> 
+                    {statusFilter === 'all' ? 'Filter Status' : statusFilter === 'visible' ? 'Visible Only' : 'Hidden Only'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48 rounded-xl shadow-xl border-muted-foreground/10">
+                  <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-3 py-2">Select Visibility</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuRadioGroup value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
+                    <DropdownMenuRadioItem value="all" className="font-bold py-2.5">Show All Items</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="visible" className="font-bold py-2.5 text-primary">Visible Items</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="hidden" className="font-bold py-2.5 text-muted-foreground">Hidden Items</DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Category Filter Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className={cn(
+                    "h-11 gap-2 text-[10px] font-bold uppercase tracking-widest bg-white rounded-xl shadow-sm border-muted-foreground/20",
+                    categoryFilter !== 'all' && "border-primary bg-primary/5 text-primary"
+                  )}>
+                    <Layers className="h-4 w-4" /> 
+                    {categoryFilter === 'all' ? 'Categories' : categoryFilter}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56 rounded-xl shadow-xl border-muted-foreground/10">
+                  <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-3 py-2">Menu Sections</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <ScrollArea className="h-[280px]">
+                    <DropdownMenuRadioGroup value={categoryFilter} onValueChange={setCategoryFilter}>
+                      <DropdownMenuRadioItem value="all" className="font-bold py-2.5">All Categories</DropdownMenuRadioItem>
+                      {uniqueCategories.map(cat => (
+                        <DropdownMenuRadioItem key={cat} value={cat} className="font-bold py-2.5">
+                          {cat}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </ScrollArea>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             {selectedItemIds.size > 0 ? (
@@ -673,16 +769,7 @@ export default function PosIntegrationPage() {
                   </Button>
                 </div>
               </div>
-            ) : (
-              <div className="flex items-center gap-3">
-                <Button variant="outline" className="h-10 gap-2 text-[10px] font-bold uppercase tracking-widest bg-white rounded-xl shadow-sm">
-                  <ListFilter className="h-4 w-4" /> Filter Status
-                </Button>
-                <Button variant="outline" className="h-10 gap-2 text-[10px] font-bold uppercase tracking-widest bg-white rounded-xl shadow-sm">
-                  <Layers className="h-4 w-4" /> Categories
-                </Button>
-              </div>
-            )}
+            ) : null}
           </div>
 
           {/* The Large Table - LIGHT */}
@@ -797,8 +884,8 @@ export default function PosIntegrationPage() {
                   <div className="h-20 w-20 rounded-2xl bg-muted/30 flex items-center justify-center mx-auto mb-5">
                     <Search className="h-10 w-10 text-muted-foreground opacity-30" />
                   </div>
-                  <p className="text-sm font-bold text-muted-foreground">No items found matching "{searchQuery}"</p>
-                  <Button variant="link" className="mt-2 text-primary font-bold" onClick={() => setSearchQuery('')}>Clear all search filters</Button>
+                  <p className="text-sm font-bold text-muted-foreground">No items found matching current filters</p>
+                  <Button variant="link" className="mt-2 text-primary font-bold" onClick={resetFilters}>Clear all filters</Button>
                 </div>
               )}
             </ScrollArea>
