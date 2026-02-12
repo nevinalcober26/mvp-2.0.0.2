@@ -324,9 +324,6 @@ export default function AddNewBranchPage() {
                             />
                             <label htmlFor={`closed-${hour.day}`} className="text-xs font-bold text-muted-foreground cursor-pointer">Closed</label>
                           </div>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Copy className="h-4 w-4 text-muted-foreground" />
-                          </Button>
                         </div>
                       </div>
                     ))}
