@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,8 +14,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { Check, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Check, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 const steps = [
   { id: 1, label: 'Signup', status: 'completed' },
@@ -27,21 +28,59 @@ const steps = [
 
 export default function BusinessProfilePage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleContinue = () => {
-    // For demo purposes, we skip directly to dashboard or plan selection
+  // Form State
+  const [formData, setFormData] = useState({
+    companyName: '',
+    businessType: '',
+    timezone: '',
+    businessEmail: '',
+    businessPhone: '',
+    address1: '',
+    address2: '',
+    city: '',
+    state: '',
+    zip: '',
+    country: 'ae',
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleContinue = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    // Simulate saving data to a real database
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Save to LocalStorage "Database"
+    localStorage.setItem('businessProfile', JSON.stringify(formData));
+
+    toast({
+      title: 'Profile Updated',
+      description: 'Your business profile has been saved successfully.',
+    });
+
+    // In a real flow, you'd go to plan selection. For this prototype, we go to dashboard.
     router.push('/dashboard');
   };
 
   return (
     <div className="relative flex flex-col min-h-screen bg-[#fafbfc]">
-      {/* Top Header with Logo */}
       <header className="relative z-20 w-full bg-white border-b border-gray-100 py-4 flex justify-center shrink-0">
         <EMenuIcon />
       </header>
 
       <main className="relative flex-1 flex flex-col items-center p-4 pt-12 overflow-auto">
-        {/* Background Gradients */}
         <div className="absolute inset-0 z-0 pointer-events-none fixed">
           <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-[#e6f7f6] blur-[120px] opacity-60" />
           <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-[#fffcf0] blur-[120px] opacity-60" />
@@ -49,7 +88,6 @@ export default function BusinessProfilePage() {
           <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-[#fff5f8] blur-[120px] opacity-60" />
         </div>
 
-        {/* Stepper */}
         <div className="relative z-10 w-full max-w-[800px] mb-12">
           <div className="flex items-center justify-between">
             {steps.map((step, index) => (
@@ -69,7 +107,7 @@ export default function BusinessProfilePage() {
                   </div>
                   <span
                     className={cn(
-                      "text-[13px] font-bold group-data-[collapsible=icon]:hidden whitespace-nowrap",
+                      "text-[13px] font-bold whitespace-nowrap",
                       step.status === 'upcoming' ? "text-gray-400" : "text-gray-900"
                     )}
                   >
@@ -102,128 +140,168 @@ export default function BusinessProfilePage() {
           </div>
 
           <Card className="border-0 shadow-[0_20px_50px_rgba(0,0,0,0.06)] rounded-[24px] overflow-hidden bg-white/90 backdrop-blur-xl">
-            <CardContent className="p-8 sm:p-10 space-y-10">
-              {/* Business Information */}
-              <section className="space-y-6">
-                <div className="space-y-1 border-b border-gray-100 pb-4">
-                  <h3 className="text-[18px] font-bold text-[#142424]">Business Information</h3>
-                  <p className="text-[12px] text-gray-400 font-medium">This information will be used to set up your tenant profile</p>
-                </div>
+            <CardContent className="p-8 sm:p-10">
+              <form onSubmit={handleContinue} className="space-y-10">
+                {/* Business Information */}
+                <section className="space-y-6">
+                  <div className="space-y-1 border-b border-gray-100 pb-4">
+                    <h3 className="text-[18px] font-bold text-[#142424]">Business Information</h3>
+                    <p className="text-[12px] text-gray-400 font-medium">This information will be used to set up your tenant profile</p>
+                  </div>
 
-                <div className="space-y-4">
-                  <div className="space-y-1.5">
-                    <Label className="text-[12px] font-bold text-[#142424]">
-                      Company Name <span className="text-red-500">*</span>
-                    </Label>
-                    <Input placeholder="Enter your Company Name" className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px]" />
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-[12px] font-bold text-[#142424]">
+                        Company Name <span className="text-red-500">*</span>
+                      </Label>
+                      <Input 
+                        name="companyName"
+                        value={formData.companyName}
+                        onChange={handleInputChange}
+                        placeholder="Enter your Company Name" 
+                        required 
+                        className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px]" 
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-[12px] font-bold text-[#142424]">
+                          Business Type <span className="text-red-500">*</span>
+                        </Label>
+                        <Select 
+                          onValueChange={(val) => handleSelectChange('businessType', val)}
+                          required
+                        >
+                          <SelectTrigger className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px]">
+                            <SelectValue placeholder="Select business type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="restaurant">Restaurant</SelectItem>
+                            <SelectItem value="cafe">Cafe</SelectItem>
+                            <SelectItem value="hotel">Hotel</SelectItem>
+                            <SelectItem value="bar">Bar</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-[12px] font-bold text-[#142424]">
+                          Timezone <span className="text-red-500">*</span>
+                        </Label>
+                        <Select 
+                          onValueChange={(val) => handleSelectChange('timezone', val)}
+                          required
+                        >
+                          <SelectTrigger className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px]">
+                            <SelectValue placeholder="Select your timezone" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="utc+4">(UTC+04:00) Abu Dhabi, Muscat</SelectItem>
+                            <SelectItem value="utc+0">(UTC+00:00) London</SelectItem>
+                            <SelectItem value="utc-5">(UTC-05:00) New York</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Contact Information */}
+                <section className="space-y-6">
+                  <div className="space-y-1 border-b border-gray-100 pb-4">
+                    <h3 className="text-[18px] font-bold text-[#142424]">Contact Information</h3>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <Label className="text-[12px] font-bold text-[#142424]">
-                        Business Type <span className="text-red-500">*</span>
+                        Business Email <span className="text-red-500">*</span>
                       </Label>
-                      <Select>
-                        <SelectTrigger className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px]">
-                          <SelectValue placeholder="Select business type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="restaurant">Restaurant</SelectItem>
-                          <SelectItem value="cafe">Cafe</SelectItem>
-                          <SelectItem value="hotel">Hotel</SelectItem>
-                          <SelectItem value="bar">Bar</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Input 
+                        name="businessEmail"
+                        type="email" 
+                        value={formData.businessEmail}
+                        onChange={handleInputChange}
+                        placeholder="email@example.com" 
+                        required 
+                        className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px]" 
+                      />
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-[12px] font-bold text-[#142424]">
-                        Timezone <span className="text-red-500">*</span>
+                        Business Phone <span className="text-red-500">*</span>
                       </Label>
-                      <Select>
-                        <SelectTrigger className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px]">
-                          <SelectValue placeholder="Select your timezone" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="utc+4">(UTC+04:00) Abu Dhabi, Muscat</SelectItem>
-                          <SelectItem value="utc+0">(UTC+00:00) London</SelectItem>
-                          <SelectItem value="utc-5">(UTC-05:00) New York</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Input 
+                        name="businessPhone"
+                        value={formData.businessPhone}
+                        onChange={handleInputChange}
+                        placeholder="+1 (555) 000-0000" 
+                        required 
+                        className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px]" 
+                      />
                     </div>
                   </div>
-                </div>
-              </section>
+                </section>
 
-              {/* Contact Information */}
-              <section className="space-y-6">
-                <div className="space-y-1 border-b border-gray-100 pb-4">
-                  <h3 className="text-[18px] font-bold text-[#142424]">Contact Information</h3>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label className="text-[12px] font-bold text-[#142424]">
-                      Business Email <span className="text-red-500">*</span>
-                    </Label>
-                    <Input type="email" placeholder="email@example.com" className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px]" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-[12px] font-bold text-[#142424]">
-                      Business Phone <span className="text-red-500">*</span>
-                    </Label>
-                    <Input placeholder="+1 (555) 000-0000" className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px]" />
-                  </div>
-                </div>
-              </section>
-
-              {/* Business Address */}
-              <section className="space-y-6">
-                <div className="space-y-1 border-b border-gray-100 pb-4">
-                  <h3 className="text-[18px] font-bold text-[#142424]">Business Address</h3>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="space-y-1.5">
-                    <Label className="text-[12px] font-bold text-[#142424]">
-                      Address Line 1 <span className="text-red-500">*</span>
-                    </Label>
-                    <Input placeholder="Street address" className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px]" />
+                {/* Business Address */}
+                <section className="space-y-6">
+                  <div className="space-y-1 border-b border-gray-100 pb-4">
+                    <h3 className="text-[18px] font-bold text-[#142424]">Business Address</h3>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <Label className="text-[12px] font-bold text-[#142424]">
-                      Address Line 2
-                    </Label>
-                    <Input placeholder="Apt, Suite, Building (optional)" className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px]" />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-4">
                     <div className="space-y-1.5">
                       <Label className="text-[12px] font-bold text-[#142424]">
-                        City <span className="text-red-500">*</span>
+                        Address Line 1 <span className="text-red-500">*</span>
                       </Label>
-                      <Input placeholder="City" className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px]" />
+                      <Input 
+                        name="address1"
+                        value={formData.address1}
+                        onChange={handleInputChange}
+                        placeholder="Street address" 
+                        required 
+                        className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px]" 
+                      />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-[12px] font-bold text-[#142424]">
-                        State/Province <span className="text-red-500">*</span>
-                      </Label>
-                      <Input placeholder="State/Province" className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px]" />
-                    </div>
-                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <Label className="text-[12px] font-bold text-[#142424]">
-                        Zip/Postal Code <span className="text-red-500">*</span>
-                      </Label>
-                      <Input placeholder="Zip/Postal Code" className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px]" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-[12px] font-bold text-[#142424]">
+                          City <span className="text-red-500">*</span>
+                        </Label>
+                        <Input 
+                          name="city"
+                          value={formData.city}
+                          onChange={handleInputChange}
+                          placeholder="City" 
+                          required 
+                          className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px]" 
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-[12px] font-bold text-[#142424]">
+                          Zip/Postal Code <span className="text-red-500">*</span>
+                        </Label>
+                        <Input 
+                          name="zip"
+                          value={formData.zip}
+                          onChange={handleInputChange}
+                          placeholder="Zip/Postal Code" 
+                          required 
+                          className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px]" 
+                        />
+                      </div>
                     </div>
+
                     <div className="space-y-1.5">
                       <Label className="text-[12px] font-bold text-[#142424]">
                         Country <span className="text-red-500">*</span>
                       </Label>
-                      <Select>
+                      <Select 
+                        onValueChange={(val) => handleSelectChange('country', val)}
+                        defaultValue="ae"
+                        required
+                      >
                         <SelectTrigger className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px]">
                           <SelectValue placeholder="Select country" />
                         </SelectTrigger>
@@ -235,27 +313,38 @@ export default function BusinessProfilePage() {
                       </Select>
                     </div>
                   </div>
+                </section>
+
+                {/* Action Buttons */}
+                <div className="flex items-center justify-between pt-4 pb-12">
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    className="h-11 bg-white border-gray-200 rounded-xl px-8 text-[13px] font-bold text-gray-500 hover:bg-gray-50"
+                    onClick={() => router.back()}
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                  </Button>
+                  <Button 
+                    type="submit"
+                    className="h-11 bg-[#18B4A6] hover:bg-[#149d94] text-white font-bold text-[13px] rounded-xl px-10 shadow-lg shadow-[#18B4A6]/20 transition-all active:scale-[0.98]"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        Continue <ArrowRight className="ml-2 h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
                 </div>
-              </section>
+              </form>
             </CardContent>
           </Card>
-
-          {/* Action Buttons */}
-          <div className="flex items-center justify-between pt-4 pb-12">
-            <Button 
-              variant="outline" 
-              className="h-11 bg-white border-gray-200 rounded-xl px-8 text-[13px] font-bold text-gray-500 hover:bg-gray-50"
-              onClick={() => router.back()}
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" /> Back
-            </Button>
-            <Button 
-              className="h-11 bg-[#18B4A6] hover:bg-[#149d94] text-white font-bold text-[13px] rounded-xl px-10 shadow-lg shadow-[#18B4A6]/20 transition-all active:scale-[0.98]"
-              onClick={handleContinue}
-            >
-              Continue <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
         </div>
       </main>
     </div>

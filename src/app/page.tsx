@@ -12,14 +12,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
 import { AuthCardSkeleton } from '@/components/dashboard/skeletons';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/firebase';
-import { signInWithEmailAndPassword, onAuthStateChanged, createUserWithEmailAndPassword } from 'firebase/auth';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function LoginPage() {
   const router = useRouter();
-  const auth = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -34,45 +31,43 @@ export default function LoginPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        localStorage.setItem('isLoggedIn', 'true');
-        // If the user just signed in, check if they need setup
-        // For this demo, we assume fresh signups go to setup
-      } else {
-        setIsLoading(false);
-      }
-    });
-    return () => unsubscribe();
-  }, [auth, router]);
+    // Check if user is already logged in
+    const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    if (loggedIn) {
+      router.push('/dashboard');
+    } else {
+      setIsLoading(false);
+    }
+  }, [router]);
 
   const handleAuthAction = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsSubmitting(true);
 
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 800));
+
     if (activeTab === 'login') {
+      // Admin backdoor
       if (email === 'admin' && password === 'admin') {
         localStorage.setItem('isLoggedIn', 'true');
-        toast({
-          title: 'Welcome back!',
-          description: 'Redirecting to your dashboard...',
-        });
+        localStorage.setItem('currentUser', JSON.stringify({ email: 'admin@example.com', firstName: 'Admin', lastName: 'User' }));
+        toast({ title: 'Welcome back!', description: 'Redirecting to your dashboard...' });
         router.push('/dashboard');
         return;
       }
 
-      try {
-        const loginEmail = email.includes('@') ? email : `${email}@example.com`;
-        await signInWithEmailAndPassword(auth, loginEmail, password);
+      // Check LocalStorage "database"
+      const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
+      const user = storedUsers.find((u: any) => u.email === email && u.password === password);
+
+      if (user) {
         localStorage.setItem('isLoggedIn', 'true');
-        toast({
-          title: 'Welcome back!',
-          description: 'Redirecting to your dashboard...',
-        });
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        toast({ title: 'Welcome back!', description: 'Redirecting to your dashboard...' });
         router.push('/dashboard');
-      } catch (e: any) {
-        console.error(e);
+      } else {
         setError('Invalid email or password. Please try again.');
         setIsSubmitting(false);
       }
@@ -83,20 +78,28 @@ export default function LoginPage() {
         setIsSubmitting(false);
         return;
       }
-      try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        localStorage.setItem('isLoggedIn', 'true');
-        toast({
-          title: 'Account created!',
-          description: 'Welcome to eMenu Table.',
-        });
-        // Redirect to Business Profile Setup instead of Dashboard
-        router.push('/setup/business-profile');
-      } catch (e: any) {
-        console.error(e);
-        setError(e.message || 'Could not create account. Please try again.');
+
+      const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
+      if (storedUsers.some((u: any) => u.email === email)) {
+        setError('User with this email already exists.');
         setIsSubmitting(false);
+        return;
       }
+
+      const newUser = { firstName, lastName, email, password };
+      storedUsers.push(newUser);
+      
+      // Save to LocalStorage "Database"
+      localStorage.setItem('users', JSON.stringify(storedUsers));
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('currentUser', JSON.stringify(newUser));
+
+      toast({
+        title: 'Account created!',
+        description: 'Welcome to eMenu Table.',
+      });
+      
+      router.push('/setup/business-profile');
     }
   };
 
@@ -106,13 +109,11 @@ export default function LoginPage() {
 
   return (
     <div className="relative flex flex-col min-h-screen bg-[#fafbfc]">
-      {/* Top Header with Logo */}
       <header className="relative z-20 w-full bg-white border-b border-gray-100 py-4 flex justify-center shrink-0">
         <EMenuIcon />
       </header>
 
       <main className="relative flex-1 flex flex-col items-center justify-center p-4 overflow-auto">
-        {/* Background Gradients */}
         <div className="absolute inset-0 z-0 pointer-events-none fixed">
           <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-[#e6f7f6] blur-[120px] opacity-60" />
           <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-[#fffcf0] blur-[120px] opacity-60" />
@@ -122,7 +123,6 @@ export default function LoginPage() {
 
         <div className="relative z-10 w-full max-w-[480px] py-6 my-auto">
           <Card className="border-0 shadow-[0_20px_50px_rgba(0,0,0,0.06)] rounded-[24px] overflow-hidden bg-white/80 backdrop-blur-xl">
-            {/* Tab Navigation */}
             <div className="flex w-full border-b border-gray-100">
               <button
                 onClick={() => setActiveTab('login')}
@@ -233,11 +233,6 @@ export default function LoginPage() {
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
-                    {activeTab === 'signup' && (
-                      <p className="text-[10px] text-gray-400">
-                        Must be at least 8 characters with numbers and letters
-                      </p>
-                    )}
                   </div>
 
                   {activeTab === 'signup' && (
@@ -294,15 +289,6 @@ export default function LoginPage() {
                         />
                         <label htmlFor="tos" className="text-[11px] font-medium text-gray-500 leading-tight">
                           I agree to the <span className="text-[#18B4A6] font-bold cursor-pointer">Terms of Service</span> and <span className="text-[#18B4A6] font-bold cursor-pointer">Privacy Policy</span>
-                        </label>
-                      </div>
-                      <div className="flex items-start space-x-3">
-                        <Checkbox 
-                          id="marketing" 
-                          className="mt-0.5 border-gray-300 rounded-md data-[state=checked]:bg-[#18B4A6] data-[state=checked]:border-[#18B4A6]" 
-                        />
-                        <label htmlFor="marketing" className="text-[11px] font-medium text-gray-500 leading-tight">
-                          Send me product updates and marketing emails
                         </label>
                       </div>
                     </div>
