@@ -20,7 +20,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('admin');
+  const [email, setEmail] = useState('admin@domain.com');
   const [password, setPassword] = useState('admin');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -53,9 +53,9 @@ export default function LoginPage() {
 
     if (activeTab === 'login') {
       // Admin backdoor
-      if (email === 'admin' && password === 'admin') {
+      if (email === 'admin@domain.com' && password === 'admin') {
         localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('currentUser', JSON.stringify({ email: 'admin@example.com', firstName: 'Admin', lastName: 'User' }));
+        localStorage.setItem('currentUser', JSON.stringify({ email: 'admin@domain.com', firstName: 'Admin', lastName: 'User' }));
         toast({ title: 'Welcome back!', description: 'Redirecting to your dashboard...' });
         router.push('/dashboard');
         return;
