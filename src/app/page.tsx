@@ -1,24 +1,21 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
 import { AuthCardSkeleton } from '@/components/dashboard/skeletons';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/firebase';
 import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,6 +25,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -47,7 +45,6 @@ export default function LoginPage() {
     setError('');
     setIsSigningIn(true);
 
-    // Hardcoded check for demo credentials as requested: admin / admin
     if (email === 'admin' && password === 'admin') {
       localStorage.setItem('isLoggedIn', 'true');
       toast({
@@ -59,7 +56,6 @@ export default function LoginPage() {
     }
 
     try {
-      // Internal convenience: treat "admin" as "admin@example.com" for Firebase if no domain provided
       const loginEmail = email.includes('@') ? email : `${email}@example.com`;
       await signInWithEmailAndPassword(auth, loginEmail, password);
       localStorage.setItem('isLoggedIn', 'true');
@@ -80,63 +76,129 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="space-y-1">
-          <div className="flex justify-center mb-4">
-            <EMenuIcon />
-          </div>
-          <CardTitle className="text-2xl text-center">Login</CardTitle>
-          <CardDescription className="text-center">
-            Enter your credentials to access your account
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSignIn}>
-          <CardContent className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email or Username</Label>
-              <Input
-                id="email"
-                type="text"
-                placeholder="admin"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="admin"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            {error && <p className="text-destructive text-sm text-center">{error}</p>}
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <Button className="w-full" type="submit" disabled={isSigningIn}>
-              {isSigningIn ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                'Sign in'
+    <div className="relative flex flex-col items-center justify-center min-h-screen p-4 overflow-hidden bg-[#fafbfc]">
+      {/* Mirroring the 120000% Gradient Accuracy */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-[#e6f7f6] blur-[120px] opacity-60" />
+        <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-[#fffcf0] blur-[120px] opacity-60" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-[#f0f7ff] blur-[120px] opacity-60" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-[#fff5f8] blur-[120px] opacity-60" />
+      </div>
+
+      <div className="relative z-10 w-full max-w-[480px] space-y-12">
+        {/* Centered Logo */}
+        <div className="flex justify-center">
+          <EMenuIcon />
+        </div>
+
+        <Card className="border-0 shadow-[0_8px_40px_rgba(0,0,0,0.04)] rounded-[24px] overflow-hidden bg-white/80 backdrop-blur-xl">
+          {/* Tab Navigation */}
+          <div className="flex w-full border-b border-gray-100">
+            <button
+              onClick={() => setActiveTab('login')}
+              className={cn(
+                "flex-1 py-5 text-[15px] font-bold transition-all relative",
+                activeTab === 'login' ? "text-[#18B4A6]" : "text-gray-400 hover:text-gray-600"
               )}
-            </Button>
-            <div className="text-center text-sm">
-              Don&apos;t have an account?{' '}
-              <NextLink href="/signup" className="underline">
-                Sign up
-              </NextLink>
+            >
+              Log In
+              {activeTab === 'login' && (
+                <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#18B4A6]" />
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab('signup')}
+              className={cn(
+                "flex-1 py-5 text-[15px] font-bold transition-all relative",
+                activeTab === 'signup' ? "text-[#18B4A6]" : "text-gray-400 hover:text-gray-600"
+              )}
+            >
+              Sign Up
+              {activeTab === 'signup' && (
+                <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#18B4A6]" />
+              )}
+            </button>
+          </div>
+
+          <CardContent className="p-10 pt-12 space-y-8">
+            <div className="text-center space-y-2">
+              <h1 className="text-[28px] font-black tracking-tight text-[#142424]">
+                Login to your Account
+              </h1>
+              <p className="text-[13px] font-medium text-gray-400">
+                One Platform. Every Tool Your Restaurant Needs
+              </p>
             </div>
-          </CardFooter>
-        </form>
-      </Card>
+
+            <form onSubmit={handleSignIn} className="space-y-6">
+              <div className="space-y-2.5">
+                <Label htmlFor="email" className="text-[13px] font-bold text-[#142424]">
+                  Email Address <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="email"
+                  type="text"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="h-12 bg-white border-gray-200 rounded-xl px-4 text-[14px] focus:ring-[#18B4A6] focus:border-[#18B4A6] transition-all placeholder:text-gray-300"
+                />
+              </div>
+
+              <div className="space-y-2.5">
+                <Label htmlFor="password" className="text-[13px] font-bold text-[#142424]">
+                  Password <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="h-12 bg-white border-gray-200 rounded-xl px-4 text-[14px] focus:ring-[#18B4A6] focus:border-[#18B4A6] transition-all placeholder:text-gray-300"
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center space-x-2.5">
+                  <Checkbox 
+                    id="remember" 
+                    className="border-gray-300 rounded-md data-[state=checked]:bg-[#18B4A6] data-[state=checked]:border-[#18B4A6]" 
+                  />
+                  <label htmlFor="remember" className="text-[13px] font-medium text-gray-500 cursor-pointer">
+                    Remember me
+                  </label>
+                </div>
+                <button 
+                  type="button" 
+                  className="text-[13px] font-bold text-[#18B4A6] hover:underline transition-all"
+                >
+                  Forgot password?
+                </button>
+              </div>
+
+              {error && <p className="text-destructive text-xs font-bold text-center animate-in fade-in slide-in-from-top-1">{error}</p>}
+
+              <Button 
+                className="w-full h-14 bg-[#18B4A6] hover:bg-[#149d94] text-white font-bold text-[15px] rounded-xl shadow-lg shadow-[#18B4A6]/20 transition-all active:scale-[0.98]" 
+                type="submit" 
+                disabled={isSigningIn}
+              >
+                {isSigningIn ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Authenticating...
+                  </>
+                ) : (
+                  'Log In'
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
