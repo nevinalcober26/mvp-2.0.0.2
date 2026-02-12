@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardHeader } from "@/components/dashboard/header";
 import { 
   Card, 
@@ -25,7 +25,8 @@ import {
   Globe,
   User,
   Hash,
-  X
+  ArrowLeft,
+  ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -74,6 +75,7 @@ export default function PosIntegrationPage() {
   const { toast } = useToast();
   const [isConnectDrawerOpen, setIsConnectDrawerOpen] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState(1);
   
   const [connections, setConnections] = useState<PosConnection[]>([
     { 
@@ -94,6 +96,13 @@ export default function PosIntegrationPage() {
     },
   ]);
 
+  useEffect(() => {
+    if (!isConnectDrawerOpen) {
+      setCurrentStep(1);
+      setSelectedProvider(null);
+    }
+  }, [isConnectDrawerOpen]);
+
   const handleSyncAll = () => {
     toast({
       title: "Global Sync Initiated",
@@ -106,6 +115,22 @@ export default function PosIntegrationPage() {
     toast({
       title: "Connection Removed",
       description: "The POS system has been successfully disconnected.",
+    });
+  };
+
+  const handleNextStep = () => {
+    setCurrentStep(prev => prev + 1);
+  };
+
+  const handlePreviousStep = () => {
+    setCurrentStep(prev => prev - 1);
+  };
+
+  const handleConnect = () => {
+    setIsConnectDrawerOpen(false);
+    toast({
+      title: "Connection Established",
+      description: "Your POS system has been successfully verified and linked.",
     });
   };
 
@@ -138,10 +163,7 @@ export default function PosIntegrationPage() {
                 <RefreshCw className="h-4 w-4" />
                 Sync All
               </Button>
-              <Sheet open={isConnectDrawerOpen} onOpenChange={(open) => {
-                setIsConnectDrawerOpen(open);
-                if (!open) setSelectedProvider(null);
-              }}>
+              <Sheet open={isConnectDrawerOpen} onOpenChange={setIsConnectDrawerOpen}>
                 <SheetTrigger asChild>
                   <Button className="gap-2 font-bold bg-primary hover:bg-primary/90 shadow-md">
                     <Plus className="h-5 w-5" />
@@ -153,128 +175,218 @@ export default function PosIntegrationPage() {
                     <SheetHeader className="text-left space-y-2">
                       <SheetTitle className="text-2xl font-bold text-white">Add POS Connection</SheetTitle>
                       <SheetDescription className="text-primary-foreground/80 font-medium">
-                        Select a provider and enter your terminal credentials to sync your menu.
+                        {currentStep === 1 
+                          ? "Select a provider and enter your credentials." 
+                          : "Complete your POS configuration to enable syncing."}
                       </SheetDescription>
                     </SheetHeader>
+                    {selectedProvider === 'oracle-simphony' && (
+                      <div className="mt-6 flex items-center gap-2">
+                        <div className={cn("h-1.5 flex-1 rounded-full transition-colors", currentStep >= 1 ? "bg-white" : "bg-white/20")} />
+                        <div className={cn("h-1.5 flex-1 rounded-full transition-colors", currentStep >= 2 ? "bg-white" : "bg-white/20")} />
+                      </div>
+                    )}
                   </div>
                   
                   <ScrollArea className="flex-1">
                     <div className="p-8 space-y-8">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground">Select Provider</Label>
-                        <Select value={selectedProvider || ""} onValueChange={setSelectedProvider}>
-                          <SelectTrigger className="h-12 text-base font-semibold">
-                            <SelectValue placeholder="Choose POS brand" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {SUPPORTED_POS.map(pos => (
-                              <SelectItem key={pos.id} value={pos.id}>
-                                <div className="flex flex-col py-1">
-                                  <span className="font-bold">{pos.name}</span>
-                                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{pos.description}</span>
+                      {currentStep === 1 && (
+                        <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+                          <div className="space-y-2">
+                            <Label className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground">Select Provider</Label>
+                            <Select value={selectedProvider || ""} onValueChange={setSelectedProvider}>
+                              <SelectTrigger className="h-12 text-base font-semibold">
+                                <SelectValue placeholder="Choose POS brand" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {SUPPORTED_POS.map(pos => (
+                                  <SelectItem key={pos.id} value={pos.id}>
+                                    <div className="flex flex-col py-1">
+                                      <span className="font-bold">{pos.name}</span>
+                                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{pos.description}</span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {selectedProvider === 'oracle-simphony' && (
+                            <div className="space-y-6">
+                              <div className="flex items-center gap-2 mb-4">
+                                <div className="h-px flex-1 bg-border" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-2 whitespace-nowrap">Step 1: Simphony Credentials</span>
+                                <div className="h-px flex-1 bg-border" />
+                              </div>
+                              
+                              <div className="grid gap-6">
+                                <div className="space-y-2">
+                                  <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                                    <Globe className="h-3.5 w-3.5" /> OIDC URL
+                                  </Label>
+                                  <Input placeholder="https://act-omra-idm.oracleindustry.com" className="h-11 font-medium bg-muted/30 border-muted-foreground/20" />
                                 </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
 
-                      {selectedProvider === 'oracle-simphony' ? (
-                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                          <div className="flex items-center gap-2 mb-4">
-                            <div className="h-px flex-1 bg-border" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-2 whitespace-nowrap">Simphony Credentials</span>
-                            <div className="h-px flex-1 bg-border" />
-                          </div>
-                          
-                          <div className="grid gap-6">
-                            <div className="space-y-2">
-                              <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                <Globe className="h-3.5 w-3.5" /> OIDC URL
-                              </Label>
-                              <Input placeholder="https://act-omra-idm.oracleindustry.com" className="h-11 font-medium bg-muted/30 border-muted-foreground/20" />
-                            </div>
+                                <div className="space-y-2">
+                                  <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                                    <Globe className="h-3.5 w-3.5" /> STS URL
+                                  </Label>
+                                  <Input placeholder="https://act-sts.oraclecloud.com" className="h-11 font-medium bg-muted/30 border-muted-foreground/20" />
+                                </div>
 
-                            <div className="space-y-2">
-                              <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                <Globe className="h-3.5 w-3.5" /> STS URL
-                              </Label>
-                              <Input placeholder="https://act-sts.oraclecloud.com" className="h-11 font-medium bg-muted/30 border-muted-foreground/20" />
-                            </div>
+                                <div className="space-y-2">
+                                  <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                                    <Lock className="h-3.5 w-3.5" /> Client ID
+                                  </Label>
+                                  <Input placeholder="Enter your Client ID..." className="h-11 font-mono text-sm bg-muted/30 border-muted-foreground/20" />
+                                </div>
 
-                            <div className="space-y-2">
-                              <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                <Lock className="h-3.5 w-3.5" /> Client ID
-                              </Label>
-                              <Input placeholder="Enter your Client ID..." className="h-11 font-mono text-sm bg-muted/30 border-muted-foreground/20" />
-                            </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                  <div className="space-y-2">
+                                    <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                                      <User className="h-3.5 w-3.5" /> Username
+                                    </Label>
+                                    <Input placeholder="KPTAC" className="h-11 font-medium bg-muted/30 border-muted-foreground/20" />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                                      <Lock className="h-3.5 w-3.5" /> Password
+                                    </Label>
+                                    <Input type="password" placeholder="••••••••••••" className="h-11 font-medium bg-muted/30 border-muted-foreground/20" />
+                                  </div>
+                                </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              <div className="space-y-2">
-                                <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                  <User className="h-3.5 w-3.5" /> Username
-                                </Label>
-                                <Input placeholder="KPTAC" className="h-11 font-medium bg-muted/30 border-muted-foreground/20" />
-                              </div>
-                              <div className="space-y-2">
-                                <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                  <Lock className="h-3.5 w-3.5" /> Password
-                                </Label>
-                                <Input type="password" placeholder="••••••••••••" className="h-11 font-medium bg-muted/30 border-muted-foreground/20" />
+                                <div className="space-y-2">
+                                  <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                                    <Hash className="h-3.5 w-3.5" /> Org Short Name
+                                  </Label>
+                                  <Input placeholder="ACT" className="h-11 font-medium bg-muted/30 border-muted-foreground/20" />
+                                </div>
                               </div>
                             </div>
+                          )}
 
-                            <div className="space-y-2">
-                              <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                <Hash className="h-3.5 w-3.5" /> Org Short Name
-                              </Label>
-                              <Input placeholder="ACT" className="h-11 font-medium bg-muted/30 border-muted-foreground/20" />
+                          {selectedProvider && selectedProvider !== 'oracle-simphony' && (
+                            <div className="space-y-6">
+                              <div className="grid gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                  <div className="space-y-2">
+                                    <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Internal Label</Label>
+                                    <Input placeholder="e.g. Bar Terminal" className="h-11 font-medium" />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Machine / Zone ID</Label>
+                                    <Input placeholder="e.g. BAR-01" className="h-11 font-medium" />
+                                  </div>
+                                </div>
+                                <div className="space-y-2 pt-2">
+                                  <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                                    <Lock className="h-3.5 w-3.5" /> Secure API Key
+                                  </Label>
+                                  <Input placeholder="Access Token" type="password" className="h-11" />
+                                  <p className="text-[10px] text-muted-foreground italic">Required for secure real-time data sync.</p>
+                                </div>
+                              </div>
                             </div>
-                          </div>
+                          )}
+
+                          {!selectedProvider && (
+                            <div className="py-20 text-center space-y-4 bg-muted/20 rounded-2xl border-2 border-dashed border-muted-foreground/10">
+                              <Monitor className="h-12 w-12 text-muted-foreground mx-auto opacity-20" />
+                              <p className="text-sm text-muted-foreground font-semibold px-12 leading-relaxed">Please select a POS provider from the list above to configure your connection.</p>
+                            </div>
+                          )}
                         </div>
-                      ) : selectedProvider ? (
-                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                          <div className="grid gap-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      )}
+
+                      {currentStep === 2 && selectedProvider === 'oracle-simphony' && (
+                        <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+                          <div className="text-center space-y-2">
+                            <h3 className="text-2xl font-bold tracking-tight">Configuration</h3>
+                            <p className="text-sm text-muted-foreground">Complete your POS configuration to enable syncing.</p>
+                          </div>
+
+                          <div className="rounded-2xl border border-muted-foreground/10 bg-card p-8 shadow-sm space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                               <div className="space-y-2">
-                                <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Internal Label</Label>
-                                <Input placeholder="e.g. Bar Terminal" className="h-11 font-medium" />
+                                <Label className="text-sm font-semibold">Location</Label>
+                                <Select>
+                                  <SelectTrigger className="h-11 bg-muted/20 border-muted-foreground/10">
+                                    <SelectValue placeholder="Select a location" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="main">Main Outlet</SelectItem>
+                                    <SelectItem value="annex">Annex Lounge</SelectItem>
+                                  </SelectContent>
+                                </Select>
                               </div>
+
                               <div className="space-y-2">
-                                <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Machine / Zone ID</Label>
-                                <Input placeholder="e.g. BAR-01" className="h-11 font-medium" />
+                                <Label className="text-sm font-semibold">Revenue Center</Label>
+                                <Select>
+                                  <SelectTrigger className="h-11 bg-muted/20 border-muted-foreground/10">
+                                    <SelectValue placeholder="Select Revenue Center" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="food">Dine-in Food</SelectItem>
+                                    <SelectItem value="bar">Bar Revenue</SelectItem>
+                                  </SelectContent>
+                                </Select>
                               </div>
                             </div>
-                            <div className="space-y-2 pt-2">
-                              <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                <Lock className="h-3.5 w-3.5" /> Secure API Key
-                              </Label>
-                              <Input placeholder="Access Token" type="password" className="h-11" />
-                              <p className="text-[10px] text-muted-foreground italic">Required for secure real-time data sync.</p>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                              <div className="space-y-2">
+                                <Label className="text-sm font-semibold">Tender</Label>
+                                <Select>
+                                  <SelectTrigger className="h-11 bg-muted/20 border-muted-foreground/10">
+                                    <SelectValue placeholder="Select Tender" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="visa">Visa/Mastercard</SelectItem>
+                                    <SelectItem value="cash">Cash Tender</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-sm font-semibold">Employee ID</Label>
+                                <Input placeholder="Enter Employee's ID" className="h-11 bg-muted/20 border-muted-foreground/10" />
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ) : (
-                        <div className="py-20 text-center space-y-4 bg-muted/20 rounded-2xl border-2 border-dashed border-muted-foreground/10">
-                          <Monitor className="h-12 w-12 text-muted-foreground mx-auto opacity-20" />
-                          <p className="text-sm text-muted-foreground font-semibold px-12 leading-relaxed">Please select a POS provider from the list above to configure your connection.</p>
                         </div>
                       )}
                     </div>
                   </ScrollArea>
 
                   <SheetFooter className="p-6 bg-muted/30 border-t shrink-0 flex flex-row items-center justify-between gap-4">
-                    <Button variant="ghost" className="font-bold px-8 h-11" onClick={() => setIsConnectDrawerOpen(false)}>Cancel</Button>
-                    <Button 
-                      className="font-bold bg-primary text-primary-foreground px-10 h-11 shadow-lg" 
-                      disabled={!selectedProvider}
-                      onClick={() => {
-                        setIsConnectDrawerOpen(false);
-                        toast({ title: "Connection Established", description: "Your POS system has been successfully verified and linked." });
-                      }}
-                    >
-                      Verify & Connect
-                    </Button>
+                    {currentStep === 1 ? (
+                      <>
+                        <Button variant="ghost" className="font-bold px-8 h-11" onClick={() => setIsConnectDrawerOpen(false)}>Cancel</Button>
+                        <Button 
+                          className="font-bold bg-primary text-primary-foreground px-10 h-11 shadow-lg gap-2" 
+                          disabled={!selectedProvider}
+                          onClick={selectedProvider === 'oracle-simphony' ? handleNextStep : handleConnect}
+                        >
+                          {selectedProvider === 'oracle-simphony' ? (
+                            <>Next <ChevronRight className="h-4 w-4" /></>
+                          ) : "Verify & Connect"}
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button variant="outline" className="font-bold px-8 h-11 gap-2" onClick={handlePreviousStep}>
+                          <ArrowLeft className="h-4 w-4" /> Back
+                        </Button>
+                        <Button 
+                          className="font-bold bg-primary text-primary-foreground px-10 h-11 shadow-lg" 
+                          onClick={handleConnect}
+                        >
+                          Verify & Connect
+                        </Button>
+                      </>
+                    )}
                   </SheetFooter>
                 </SheetContent>
               </Sheet>
