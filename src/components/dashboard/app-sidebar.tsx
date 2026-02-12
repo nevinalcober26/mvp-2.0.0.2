@@ -1,3 +1,4 @@
+
 'use client';
 import {
   PieChart,
@@ -57,6 +58,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { mockDataStore, type Branch } from '@/lib/mock-data-store';
+import { useToast } from '@/hooks/use-toast';
 
 export const EMenuIcon = () => (
   <svg
@@ -186,6 +188,7 @@ const CONNECTIONS: SidebarItem[] = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeMenus, setActiveMenu] = useState<string[]>([]);
   const [isBranchSwitcherOpen, setIsBranchSwitcherOpen] = useState(false);
@@ -510,6 +513,16 @@ export function AppSidebar() {
                           <DropdownMenuItem 
                             key={branch.id} 
                             onClick={() => {
+                              if (branch.id === activeBranch.id) {
+                                setIsBranchSwitcherOpen(false);
+                                return;
+                              }
+
+                              toast({
+                                title: "Switching Outlet",
+                                description: `Accessing data for ${branch.name.replace("Bloomsbury's - ", "")}...`,
+                              });
+
                               setActiveBranch(branch);
                               setIsBranchSwitcherOpen(false);
                               localStorage.setItem('activeBranch', JSON.stringify({

@@ -1,3 +1,4 @@
+
 'use client'; // This page now needs to be a client component for state and effects
 
 import { useState, useEffect } from 'react';
@@ -76,6 +77,13 @@ export default function DashboardPage() {
   useEffect(() => {
     const loadTimer = setTimeout(() => setIsLoading(false), 1500);
 
+    const handleBranchChange = () => {
+      setIsLoading(true);
+      setTimeout(() => setIsLoading(false), 1000);
+    };
+
+    window.addEventListener('branch-changed', handleBranchChange);
+
     const interval = setInterval(() => {
       // Simulate real-time updates for Stat Cards
       setStatCardsData(prevData => prevData.map(card => {
@@ -104,6 +112,7 @@ export default function DashboardPage() {
     return () => {
       clearTimeout(loadTimer);
       clearInterval(interval);
+      window.removeEventListener('branch-changed', handleBranchChange);
     };
   }, []);
 

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -200,7 +201,27 @@ export default function ManageRestaurantPage() {
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1000);
-    return () => clearTimeout(timer);
+
+    const handleBranchChange = () => {
+      // Sync local ID state
+      const updatedBranch = localStorage.getItem('activeBranch');
+      if (updatedBranch) {
+        try {
+          const branchData = JSON.parse(updatedBranch);
+          setActiveBranchId(branchData.id);
+        } catch (e) {}
+      }
+      
+      setIsLoading(true);
+      setTimeout(() => setIsLoading(false), 1000);
+    };
+
+    window.addEventListener('branch-changed', handleBranchChange);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('branch-changed', handleBranchChange);
+    };
   }, []);
 
   useEffect(() => {
@@ -240,8 +261,6 @@ export default function ManageRestaurantPage() {
 
   const handleSelectBranch = (restaurant: Branch) => {
     if (activeBranchId === restaurant.id) return;
-    
-    setActiveBranchId(restaurant.id);
     
     localStorage.setItem('activeBranch', JSON.stringify({
       id: restaurant.id,
@@ -311,7 +330,7 @@ export default function ManageRestaurantPage() {
     <>
       <DashboardHeader />
       <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-muted/30">
-        <div className="max-w-7xl mx-auto space-y-8">
+        <div className="max-w-7xl auto space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="text-left">
               <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Manage Branches</h1>
