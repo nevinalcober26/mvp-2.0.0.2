@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
@@ -11,14 +11,6 @@ import { EMenuIcon } from '@/components/dashboard/app-sidebar';
 import { CreditCard, Lock, ShieldCheck, Check, ArrowRight, Loader2, RefreshCw, Crown, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-
-const steps = [
-  { id: 1, label: 'Signup', status: 'completed' },
-  { id: 2, label: 'Business Profile', status: 'completed' },
-  { id: 3, label: 'Choose a Plan', status: 'completed' },
-  { id: 4, label: 'Payment', status: 'current' },
-  { id: 5, label: 'Confirmation', status: 'upcoming' },
-];
 
 export default function PaymentGatewayPage() {
   const router = useRouter();
@@ -54,20 +46,20 @@ export default function PaymentGatewayPage() {
     return (
       <div className="relative flex flex-col min-h-screen items-center justify-center bg-[#fafbfc]">
         <div className="absolute inset-0 z-0 pointer-events-none fixed">
-          <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-[#e6f7f6] blur-[120px] opacity-60" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-[#fffcf0] blur-[120px] opacity-60" />
+          <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-[#fef3eb] blur-[120px] opacity-60" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-[#f0f7ff] blur-[120px] opacity-60" />
         </div>
         <div className="relative z-10 flex flex-col items-center space-y-8 animate-in fade-in zoom-in duration-500">
           <div className="relative">
-            <div className="h-24 w-24 rounded-full border-4 border-[#18B4A6]/20 flex items-center justify-center animate-pulse">
-              <ShieldCheck className="h-12 w-12 text-[#18B4A6]" />
+            <div className="h-24 w-24 rounded-full border-4 border-[#EE7623]/20 flex items-center justify-center animate-pulse">
+              <ShieldCheck className="h-12 w-12 text-[#EE7623]" />
             </div>
-            <div className="absolute inset-0 h-24 w-24 rounded-full border-t-4 border-[#18B4A6] animate-spin" />
+            <div className="absolute inset-0 h-24 w-24 rounded-full border-t-4 border-[#EE7623] animate-spin" />
           </div>
           <div className="text-center space-y-3">
             <h2 className="text-3xl font-black text-[#142424]">Securing Transaction</h2>
             <p className="text-[15px] font-medium text-gray-400 max-w-[300px]">
-              Communicating with your bank through a secure encrypted channel...
+              Processing through Network International secure servers...
             </p>
           </div>
         </div>
@@ -77,63 +69,28 @@ export default function PaymentGatewayPage() {
 
   return (
     <div className="relative flex flex-col min-h-screen bg-[#fafbfc]">
-      <header className="relative z-20 w-full bg-white border-b border-gray-100 py-4 flex justify-center shrink-0">
+      <header className="relative z-20 w-full bg-white border-b border-gray-100 py-4 px-8 flex justify-between items-center shrink-0">
         <EMenuIcon />
+        <div className="flex items-center gap-3">
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Powered by</span>
+            <div className="flex items-center gap-1.5">
+                <div className="h-6 w-6 rounded-md bg-[#EE7623] flex items-center justify-center text-white font-black text-[10px]">NI</div>
+                <span className="text-sm font-black text-[#142424] tracking-tight">Network International</span>
+            </div>
+        </div>
       </header>
 
       <main className="relative flex-1 flex flex-col items-center p-4 pt-12 overflow-auto">
         <div className="absolute inset-0 z-0 pointer-events-none fixed">
-          <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-[#e6f7f6] blur-[120px] opacity-60" />
+          <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-[#fef3eb] blur-[120px] opacity-60" />
           <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-[#fffcf0] blur-[120px] opacity-60" />
-        </div>
-
-        {/* Stepper */}
-        <div className="relative z-10 w-full max-w-[800px] mb-12">
-          <div className="flex items-center justify-between">
-            {steps.map((step, index) => (
-              <React.Fragment key={step.id}>
-                <div className="flex items-center gap-3">
-                  <div
-                    className={cn(
-                      "flex h-8 w-8 items-center justify-center rounded-full text-[13px] font-bold transition-all duration-300",
-                      step.status === 'completed'
-                        ? "bg-[#18B4A6] text-white"
-                        : step.status === 'current'
-                        ? "bg-[#18B4A6] text-white ring-4 ring-[#18B4A6]/10"
-                        : "bg-gray-200 text-gray-400"
-                    )}
-                  >
-                    {step.status === 'completed' ? <Check className="h-4 w-4" strokeWidth={3} /> : step.id}
-                  </div>
-                  <span
-                    className={cn(
-                      "text-[13px] font-bold whitespace-nowrap",
-                      step.status === 'upcoming' ? "text-gray-400" : "text-gray-900"
-                    )}
-                  >
-                    {step.label}
-                  </span>
-                </div>
-                {index < steps.length - 1 && (
-                  <div className="flex-1 mx-4 h-[2px] bg-gray-200">
-                    <div 
-                      className={cn(
-                        "h-full bg-[#18B4A6] transition-all duration-500",
-                        step.status === 'completed' ? "w-full" : "w-0"
-                      )} 
-                    />
-                  </div>
-                )}
-              </React.Fragment>
-            ))}
-          </div>
         </div>
 
         <div className="relative z-10 w-full max-w-[900px] grid grid-cols-1 lg:grid-cols-12 gap-8 mb-24">
           <div className="lg:col-span-7 space-y-8 animate-in fade-in slide-in-from-left-4 duration-700">
             <div className="space-y-2">
               <h1 className="text-[32px] font-black tracking-tight text-[#142424]">Complete Your Purchase</h1>
-              <p className="text-[15px] font-medium text-gray-400">Secure checkout for your Pro license activation</p>
+              <p className="text-[15px] font-medium text-gray-400">Secure hosted checkout for your Pro license activation</p>
             </div>
 
             <Card className="border-0 shadow-[0_20px_50px_rgba(0,0,0,0.06)] rounded-[24px] overflow-hidden bg-white/90 backdrop-blur-xl">
@@ -151,8 +108,8 @@ export default function PaymentGatewayPage() {
 
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-[#18B4A6]/10 flex items-center justify-center">
-                      <CreditCard className="h-5 w-5 text-[#18B4A6]" />
+                    <div className="h-10 w-10 rounded-full bg-[#EE7623]/10 flex items-center justify-center">
+                      <CreditCard className="h-5 w-5 text-[#EE7623]" />
                     </div>
                     <div>
                       <p className="text-[14px] font-bold text-[#142424]">Credit Card</p>
@@ -194,7 +151,7 @@ export default function PaymentGatewayPage() {
                   </div>
 
                   <Button 
-                    className="w-full h-14 bg-[#18B4A6] hover:bg-[#149d94] text-white font-black uppercase tracking-widest text-[15px] rounded-xl shadow-xl shadow-[#18B4A6]/20 transition-all active:scale-[0.98]"
+                    className="w-full h-14 bg-[#EE7623] hover:bg-[#d6651d] text-white font-black uppercase tracking-widest text-[15px] rounded-xl shadow-xl shadow-[#EE7623]/20 transition-all active:scale-[0.98]"
                     type="submit"
                   >
                     Pay ${planData?.price || 0}.00 Now
@@ -202,7 +159,7 @@ export default function PaymentGatewayPage() {
 
                   <div className="flex items-center justify-center gap-2 text-[11px] font-bold text-gray-400 uppercase tracking-widest">
                     <Lock className="h-3 w-3" />
-                    Secure Encrypted Payment
+                    Secure Encrypted Transaction via NI
                   </div>
                 </form>
               </CardContent>
@@ -215,10 +172,10 @@ export default function PaymentGatewayPage() {
               <CardContent className="p-8 space-y-6">
                 <div className="flex items-center justify-between border-b border-gray-100 pb-6">
                   <div className="space-y-1 text-left">
-                    <Badge className="bg-[#18B4A6]/10 text-[#18B4A6] font-black text-[9px] uppercase px-2 py-0.5 border-0 shadow-none">PRO PLAN</Badge>
+                    <Badge className="bg-[#EE7623]/10 text-[#EE7623] font-black text-[9px] uppercase px-2 py-0.5 border-0 shadow-none">PRO PLAN</Badge>
                     <h4 className="text-xl font-black">eMenu Digital Hub</h4>
                   </div>
-                  <Crown className="h-8 w-8 text-[#18B4A6]" />
+                  <Crown className="h-8 w-8 text-[#EE7623]" />
                 </div>
 
                 <div className="space-y-4">
@@ -232,13 +189,13 @@ export default function PaymentGatewayPage() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500 font-bold">Setup Fee</span>
-                    <span className="text-[#18B4A6] font-black uppercase tracking-wider">WAIVED</span>
+                    <span className="text-[#EE7623] font-black uppercase tracking-wider">WAIVED</span>
                   </div>
                 </div>
 
                 <div className="border-t border-gray-100 pt-6 flex justify-between items-center">
                   <span className="text-lg font-black tracking-tight">Total Amount</span>
-                  <span className="text-3xl font-black text-[#18B4A6] tabular-nums">${planData?.price || 0}.00</span>
+                  <span className="text-3xl font-black text-[#EE7623] tabular-nums">${planData?.price || 0}.00</span>
                 </div>
               </CardContent>
             </Card>
@@ -248,7 +205,7 @@ export default function PaymentGatewayPage() {
               <ul className="space-y-3">
                 {['Up to 5 locations', 'Priority 24/7 Support', 'Advanced Analytics'].map(item => (
                   <li key={item} className="flex items-center gap-2 text-[12px] font-bold text-gray-500">
-                    <Check className="h-4 w-4 text-[#18B4A6]" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-[#EE7623]" strokeWidth={3} />
                     {item}
                   </li>
                 ))}
