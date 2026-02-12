@@ -403,7 +403,7 @@ export default function PosIntegrationPage() {
                       <SheetDescription className="text-muted-foreground font-medium">
                         {currentStep === 1 
                           ? "Select your provider to begin the connection process." 
-                          : "Map your connection to your venue locations and centers."}
+                          : "Configure your machine credentials and venue mapping."}
                       </SheetDescription>
                     </SheetHeader>
                     {selectedProvider && (
@@ -451,9 +451,16 @@ export default function PosIntegrationPage() {
                               ))}
                             </div>
                           </div>
-
+                        </div>
+                      ) : (
+                        <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-300">
+                          {/* Provider Specific Credentials Form */}
                           {selectedProvider === 'oracle-simphony' && (
-                            <div className="space-y-6 pt-4 border-t border-dashed animate-in fade-in slide-in-from-top-4 duration-500">
+                            <section className="space-y-6">
+                              <div className="flex items-center gap-2">
+                                <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Machine Configuration</h3>
+                              </div>
                               <div className="grid gap-6">
                                 <div className="space-y-2">
                                   <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
@@ -498,12 +505,15 @@ export default function PosIntegrationPage() {
                                   <Input placeholder="ACT" className="h-11 font-medium bg-background border-muted-foreground/20" />
                                 </div>
                               </div>
-                            </div>
+                            </section>
                           )}
-                        </div>
-                      ) : (
-                        <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-                          <div className="rounded-2xl border border-muted-foreground/10 bg-card p-8 shadow-sm space-y-8">
+
+                          {/* Terminal Mapping Section */}
+                          <section className="space-y-6 pt-4 border-t border-muted">
+                            <div className="flex items-center gap-2">
+                              <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Terminal Mapping</h3>
+                            </div>
                             <div className="grid grid-cols-1 gap-8">
                               <div className="space-y-2">
                                 <Label className="text-sm font-bold flex items-center gap-2">
@@ -513,7 +523,7 @@ export default function PosIntegrationPage() {
                                   placeholder="e.g. Main Kitchen, Bar Hub" 
                                   value={terminalLabel}
                                   onChange={(e) => setTerminalLabel(e.target.value)}
-                                  className="h-11 bg-background"
+                                  className="h-11 bg-background font-medium"
                                 />
                                 <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">How this terminal appears on your integration grid.</p>
                               </div>
@@ -527,7 +537,7 @@ export default function PosIntegrationPage() {
                                     setRevenueCenterValue(null);
                                   }}
                                 >
-                                  <SelectTrigger className="h-11 bg-background">
+                                  <SelectTrigger className="h-11 bg-background font-medium">
                                     <SelectValue placeholder="Select a location" />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -544,7 +554,7 @@ export default function PosIntegrationPage() {
                                   value={revenueCenterValue || ""}
                                   onValueChange={setRevenueCenterValue}
                                 >
-                                  <SelectTrigger className={cn("h-11 transition-colors", !locationValue ? "bg-muted cursor-not-allowed" : "bg-background")}>
+                                  <SelectTrigger className={cn("h-11 transition-colors font-medium", !locationValue ? "bg-muted cursor-not-allowed" : "bg-background")}>
                                     <SelectValue placeholder={!locationValue ? "Select location first" : "Select Revenue Center"} />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -554,29 +564,31 @@ export default function PosIntegrationPage() {
                                 </Select>
                               </div>
 
-                              <div className="space-y-2">
-                                <Label className={cn("text-sm font-bold transition-opacity", !revenueCenterValue && "opacity-50")}>Tender</Label>
-                                <Select disabled={!revenueCenterValue}>
-                                  <SelectTrigger className={cn("h-11 transition-colors", !revenueCenterValue ? "bg-muted cursor-not-allowed" : "bg-background")}>
-                                    <SelectValue placeholder={!revenueCenterValue ? "Select center first" : "Select Tender"} />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="visa">Visa/Mastercard</SelectItem>
-                                    <SelectItem value="cash">Cash Tender</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
+                              <div className="grid grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                  <Label className={cn("text-sm font-bold transition-opacity", !revenueCenterValue && "opacity-50")}>Tender Type</Label>
+                                  <Select disabled={!revenueCenterValue}>
+                                    <SelectTrigger className={cn("h-11 transition-colors font-medium", !revenueCenterValue ? "bg-muted cursor-not-allowed" : "bg-background")}>
+                                      <SelectValue placeholder={!revenueCenterValue ? "..." : "Select Tender"} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="visa">Visa/Mastercard</SelectItem>
+                                      <SelectItem value="cash">Cash Tender</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
 
-                              <div className="space-y-2">
-                                <Label className={cn("text-sm font-bold transition-opacity", !revenueCenterValue && "opacity-50")}>Employee ID</Label>
-                                <Input 
-                                  disabled={!revenueCenterValue}
-                                  placeholder="Enter Employee's ID" 
-                                  className={cn("h-11 transition-colors", !revenueCenterValue ? "bg-muted cursor-not-allowed" : "bg-background")} 
-                                />
+                                <div className="space-y-2">
+                                  <Label className={cn("text-sm font-bold transition-opacity", !revenueCenterValue && "opacity-50")}>Employee ID</Label>
+                                  <Input 
+                                    disabled={!revenueCenterValue}
+                                    placeholder="Employee ID" 
+                                    className={cn("h-11 transition-colors", !revenueCenterValue ? "bg-muted cursor-not-allowed" : "bg-background")} 
+                                  />
+                                </div>
                               </div>
                             </div>
-                          </div>
+                          </section>
                         </div>
                       )}
                     </div>
