@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { DashboardHeader } from "@/components/dashboard/header";
 import { 
   Card, 
@@ -29,14 +29,12 @@ import {
   Hash,
   ArrowRight,
   Database,
-  ListFilter,
   Layers,
   ChevronDown,
   Maximize2,
   Minimize2,
-  Sparkles,
-  Filter,
-  X
+  X,
+  ListFilter
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -59,10 +57,8 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-  DropdownMenuCheckboxItem,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuLabel,
@@ -152,6 +148,26 @@ export default function PosIntegrationPage() {
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
   
+  // Connections Grid State
+  const [connections, setConnections] = useState<PosConnection[]>([
+    { 
+      id: '1', 
+      brand: 'Oracle Micros Simphony', 
+      label: 'Main Kitchen Hub', 
+      status: 'active', 
+      lastSync: 'just now',
+      terminalId: 'ORCL-SYMPH-01'
+    },
+    { 
+      id: '2', 
+      brand: 'Square', 
+      label: 'Express Bar', 
+      status: 'error', 
+      lastSync: '1 hour ago',
+      terminalId: 'SQ-BAR-99'
+    },
+  ]);
+
   // Connection Flow States
   const [locationValue, setLocationValue] = useState<string | null>(null);
   const [revenueCenterValue, setRevenueCenterValue] = useState<string | null>(null);
@@ -241,30 +257,11 @@ export default function PosIntegrationPage() {
     setCategoryFilter('all');
   };
 
-  const [connections] = useState<PosConnection[]>([
-    { 
-      id: '1', 
-      brand: 'Oracle Micros Simphony', 
-      label: 'Main Kitchen Hub', 
-      status: 'active', 
-      lastSync: 'just now',
-      terminalId: 'ORCL-SYMPH-01'
-    },
-    { 
-      id: '2', 
-      brand: 'Square', 
-      label: 'Express Bar', 
-      status: 'error', 
-      lastSync: '1 hour ago',
-      terminalId: 'SQ-BAR-99'
-    },
-  ]);
-
   const startSyncProcess = () => {
     setIsSyncing(true);
     let progress = 0;
     const interval = setInterval(() => {
-      progress += Math.floor(Math.random() * 15) + 5;
+      progress += Math.floor(Math.random() * 15) + 10;
       if (progress >= 100) {
         progress = 100;
         setSyncProgress(100);
@@ -273,7 +270,7 @@ export default function PosIntegrationPage() {
       } else {
         setSyncProgress(progress);
       }
-    }, 400);
+    }, 300);
   };
 
   const handleReviewMenu = () => {
@@ -283,8 +280,37 @@ export default function PosIntegrationPage() {
   };
 
   const handleFinishSync = () => {
+    // Determine provider and location names for the display card
+    const providerName = SUPPORTED_POS.find(p => p.id === selectedProvider)?.name || 'New POS';
+    const locationName = locationValue === 'main' ? 'Main Outlet' : locationValue === 'annex' ? 'Annex Lounge' : 'Terminal';
+    
+    const newConnection: PosConnection = {
+      id: Date.now().toString(),
+      brand: providerName,
+      label: `${locationName} Hub`,
+      status: 'active',
+      lastSync: 'just now',
+      terminalId: `${selectedProvider?.substring(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`
+    };
+
+    // Add to dynamic list
+    setConnections(prev => [newConnection, ...prev]);
+
+    // Close verification modal and show final success
     setIsVerificationModalOpen(false);
     setShowSuccessDialog(true);
+
+    // Reset workflow states for future additions
+    resetWorkflow();
+  };
+
+  const resetWorkflow = () => {
+    setSelectedProvider(null);
+    setCurrentStep(1);
+    setLocationValue(null);
+    setRevenueCenterValue(null);
+    setIsSyncComplete(false);
+    setSyncProgress(0);
   };
 
   const getStatusBadge = (status: PosStatus) => {
@@ -300,6 +326,14 @@ export default function PosIntegrationPage() {
     }
   };
 
+  const handleDeleteConnection = (id: string) => {
+    setConnections(prev => prev.filter(c => c.id !== id));
+    toast({
+      title: "Connection Removed",
+      description: "The POS terminal has been disconnected."
+    });
+  };
+
   return (
     <>
       <DashboardHeader />
@@ -312,7 +346,7 @@ export default function PosIntegrationPage() {
               <p className="text-muted-foreground text-sm font-medium">Manage your venue terminals and real-time menu synchronization.</p>
             </div>
             <div className="flex items-center gap-3">
-              <Button variant="outline" className="gap-2 font-semibold shadow-sm" onClick={() => toast({ title: "Sync Initiated" })}>
+              <Button variant="outline" className="gap-2 font-semibold shadow-sm" onClick={() => toast({ title: "Sync Initiated", description: "Global manual refresh started." })}>
                 <RefreshCw className="h-4 w-4" />
                 Sync All
               </Button>
@@ -565,11 +599,11 @@ export default function PosIntegrationPage() {
                     <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-foreground rounded-lg">
                       <Settings className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-9 w-9 text-destructive hover:bg-destructive/10 rounded-lg">
+                    <Button variant="ghost" size="icon" className="h-9 w-9 text-destructive hover:bg-destructive/10 rounded-lg" onClick={() => handleDeleteConnection(conn.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
-                  <Button variant="outline" size="sm" className="h-9 text-[10px] font-bold uppercase tracking-widest px-4 gap-2 border-muted-foreground/20 rounded-lg">
+                  <Button variant="outline" size="sm" className="h-9 text-[10px] font-bold uppercase tracking-widest px-4 gap-2 border-muted-foreground/20 rounded-lg" onClick={() => toast({ title: "Manual Refresh", description: `Updating ${conn.label} data...` })}>
                     <RefreshCw className="h-3.5 w-3.5" />
                     Manual Refresh
                   </Button>
@@ -615,7 +649,7 @@ export default function PosIntegrationPage() {
 
             <div className="space-y-2 w-full">
               <DialogTitle className="text-2xl font-bold text-foreground">
-                {isSyncComplete ? "Successfully Connected" : "Connecting to Simphony"}
+                {isSyncComplete ? "Successfully Connected" : "Connecting to Machine"}
               </DialogTitle>
               <DialogDescription className="font-medium text-muted-foreground text-sm">
                 {isSyncComplete 
@@ -669,7 +703,7 @@ export default function PosIntegrationPage() {
                 <h2 className="text-2xl font-bold tracking-tight text-foreground">Menu Review</h2>
                 <div className="flex items-center gap-2 text-muted-foreground font-medium text-xs">
                   <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-widest py-0.5">Machine Active</Badge>
-                  <span>Oracle Micros Simphony • Main Outlet</span>
+                  <span>{SUPPORTED_POS.find(p => p.id === selectedProvider)?.name || 'Machine Connection'}</span>
                 </div>
               </div>
             </div>
@@ -936,7 +970,7 @@ export default function PosIntegrationPage() {
                 Synchronization Accomplished!
               </DialogTitle>
               <DialogDescription className="text-muted-foreground text-base font-medium leading-relaxed max-w-[280px] mx-auto">
-                Your digital menu is now connected to your POS machine. Prices and stock will now stay updated automatically.
+                Your digital menu is now connected to your machine. Prices and stock will now stay updated automatically.
               </DialogDescription>
             </div>
 
