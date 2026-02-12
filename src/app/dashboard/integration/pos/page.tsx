@@ -113,41 +113,46 @@ const SUPPORTED_POS = [
   { id: 'clover', name: 'Clover', description: 'Integrated merchant services' },
 ];
 
-const generateMockItems = () => {
-  const categories = ['Main Courses', 'Appetizers', 'Beverages', 'Sides', 'Desserts', 'Breakfast'];
-  const subCategories: Record<string, string[]> = {
-    'Main Courses': ['Steaks', 'Pastas', 'Seafood', 'Burgers'],
-    'Appetizers': ['Cold Starters', 'Hot Bites', 'Soups'],
-    'Beverages': ['Signature Cocktails', 'Wines', 'Draft Beer', 'Soft Drinks', 'Coffee'],
-    'Sides': ['Fries', 'Vegetables', 'Salads'],
-    'Desserts': ['Cakes', 'Pastries', 'Ice Cream'],
-    'Breakfast': ['Eggs', 'Bowls', 'Griddle']
-  };
+// Reflecting the provided Simphony JSON Schema
+interface SimphonyProduct {
+  id: string;
+  name: string;
+  subtitle: string;
+  machineIdentifier: string;
+  basePrice: number;
+  currency: string;
+  isVisible: boolean;
+  category: string; // Mapping "Section" title here
+}
 
-  const items = [];
-  let id = 1;
-
-  for (const cat of categories) {
-    for (const sub of subCategories[cat]) {
-      const numItems = Math.floor(Math.random() * 15) + 10;
-      for (let i = 0; i < numItems; i++) {
-        items.push({
-          id: `item-${id}`,
-          posId: `SIM-${1000 + id}`,
-          name: `${sub} ${cat === 'Beverages' ? 'Specialty' : 'Selection'} #${i + 1}`,
-          category: cat,
-          subCategory: sub,
-          price: (Math.random() * 40 + 10).toFixed(2),
-          enabled: Math.random() > 0.1
-        });
-        id++;
-      }
-    }
-  }
-  return items;
-};
-
-const MOCK_ITEMS = generateMockItems();
+const SIMPHONY_MOCK_DATA: SimphonyProduct[] = [
+  { id: "prd_sim_1013", name: "Pastas Selection #1", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-1013", basePrice: 21.65, currency: "USD", isVisible: true, category: "Main Courses" },
+  { id: "prd_sim_1014", name: "Pastas Selection #2", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-1014", basePrice: 24.95, currency: "USD", isVisible: true, category: "Main Courses" },
+  { id: "prd_sim_1015", name: "Pastas Selection #3", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-1015", basePrice: 28.8, currency: "USD", isVisible: true, category: "Main Courses" },
+  { id: "prd_sim_1016", name: "Pastas Selection #4", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-1016", basePrice: 32.2, currency: "USD", isVisible: true, category: "Main Courses" },
+  { id: "prd_sim_1017", name: "Pastas Selection #5", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-1017", basePrice: 30.15, currency: "USD", isVisible: true, category: "Main Courses" },
+  { id: "prd_sim_1018", name: "Pastas Selection #6", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-1018", basePrice: 33.45, currency: "USD", isVisible: true, category: "Main Courses" },
+  { id: "prd_sim_1019", name: "Pastas Selection #7", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-1019", basePrice: 49.85, currency: "USD", isVisible: true, category: "Main Courses" },
+  { id: "prd_sim_1020", name: "Pastas Selection #8", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-1020", basePrice: 32.85, currency: "USD", isVisible: true, category: "Main Courses" },
+  { id: "prd_sim_1021", name: "Pastas Selection #9", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-1021", basePrice: 17.15, currency: "USD", isVisible: true, category: "Main Courses" },
+  { id: "prd_sim_1022", name: "Pastas Selection #10", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-1022", basePrice: 48.57, currency: "USD", isVisible: true, category: "Main Courses" },
+  { id: "prd_sim_1023", name: "Pastas Selection #11", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-1023", basePrice: 45.65, currency: "USD", isVisible: false, category: "Main Courses" },
+  { id: "prd_sim_1024", name: "Pastas Selection #12", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-1024", basePrice: 20.3, currency: "USD", isVisible: true, category: "Main Courses" },
+  { id: "prd_sim_1025", name: "Pastas Selection #13", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-1025", basePrice: 23.7, currency: "USD", isVisible: true, category: "Main Courses" },
+  { id: "prd_sim_1026", name: "Pastas Selection #14", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-1026", basePrice: 27.25, currency: "USD", isVisible: true, category: "Main Courses" },
+  { id: "prd_sim_1027", name: "Pastas Selection #15", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-1027", basePrice: 25.4, currency: "USD", isVisible: true, category: "Main Courses" },
+  { id: "prd_sim_1028", name: "Pastas Selection #16", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-1028", basePrice: 28.9, currency: "USD", isVisible: true, category: "Main Courses" },
+  { id: "prd_sim_1029", name: "Pastas Selection #17", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-1029", basePrice: 32.8, currency: "USD", isVisible: true, category: "Main Courses" },
+  { id: "prd_sim_1030", name: "Pastas Selection #18", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-1030", basePrice: 35.45, currency: "USD", isVisible: true, category: "Main Courses" },
+  { id: "prd_sim_1031", name: "Pastas Selection #19", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-1031", basePrice: 39.75, currency: "USD", isVisible: true, category: "Main Courses" },
+  { id: "prd_sim_1032", name: "Pastas Selection #20", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-1032", basePrice: 37.15, currency: "USD", isVisible: true, category: "Main Courses" },
+  { id: "prd_sim_1033", name: "Pastas Selection #21", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-1033", basePrice: 41.15, currency: "USD", isVisible: true, category: "Main Courses" },
+  { id: "prd_sim_1034", name: "Pastas Selection #22", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-1034", basePrice: 44.4, currency: "USD", isVisible: false, category: "Main Courses" },
+  { id: "prd_sim_1035", name: "Pastas Selection #23", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-1035", basePrice: 47.55, currency: "USD", isVisible: true, category: "Main Courses" },
+  // Adding variety categories
+  { id: "prd_sim_2001", name: "Cappuccino", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-2001", basePrice: 4.50, currency: "USD", isVisible: true, category: "Beverages" },
+  { id: "prd_sim_2002", name: "Iced Latte", subtitle: "DIRECT FROM YOUR MACHINE", machineIdentifier: "SIM-2002", basePrice: 5.25, currency: "USD", isVisible: true, category: "Beverages" },
+];
 
 export default function PosIntegrationPage() {
   const { toast } = useToast();
@@ -173,8 +178,8 @@ export default function PosIntegrationPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'visible' | 'hidden'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [selectedItemIds, setSelectedItems] = useState<Set<string>>(new Set());
-  const [items, setItems] = useState(MOCK_ITEMS);
-  const [editingItem, setEditingItem] = useState<typeof MOCK_ITEMS[0] | null>(null);
+  const [items, setItems] = useState<SimphonyProduct[]>(SIMPHONY_MOCK_DATA);
+  const [editingItem, setEditingItem] = useState<SimphonyProduct | null>(null);
 
   // Settings Temp State
   const [tempSettings, setTempSettings] = useState<Partial<PosConnection>>({});
@@ -190,12 +195,11 @@ export default function PosIntegrationPage() {
     return items.filter(item => {
       const matchesSearch = item.name.toLowerCase().includes(query) || 
                            item.category.toLowerCase().includes(query) ||
-                           item.subCategory.toLowerCase().includes(query) ||
-                           item.posId.toLowerCase().includes(query);
+                           item.machineIdentifier.toLowerCase().includes(query);
       
       const matchesStatus = statusFilter === 'all' 
         ? true 
-        : statusFilter === 'visible' ? item.enabled : !item.enabled;
+        : statusFilter === 'visible' ? item.isVisible : !item.isVisible;
       
       const matchesCategory = categoryFilter === 'all' 
         ? true 
@@ -206,11 +210,10 @@ export default function PosIntegrationPage() {
   }, [items, searchQuery, statusFilter, categoryFilter]);
 
   const itemsByCategory = useMemo(() => {
-    const groups: Record<string, Record<string, typeof items>> = {};
+    const groups: Record<string, typeof items> = {};
     filteredItems.forEach(item => {
-      if (!groups[item.category]) groups[item.category] = {};
-      if (!groups[item.category][item.subCategory]) groups[item.category][item.subCategory] = [];
-      groups[item.category][item.subCategory].push(item);
+      if (!groups[item.category]) groups[item.category] = [];
+      groups[item.category].push(item);
     });
     return groups;
   }, [filteredItems]);
@@ -233,7 +236,7 @@ export default function PosIntegrationPage() {
   const handleBulkAction = (action: 'enable' | 'disable') => {
     const updatedItems = items.map(item => {
       if (selectedItemIds.has(item.id)) {
-        return { ...item, enabled: action === 'enable' };
+        return { ...item, isVisible: action === 'enable' };
       }
       return item;
     });
@@ -952,7 +955,7 @@ export default function PosIntegrationPage() {
                     categoryFilter !== 'all' && "border-primary bg-primary/5 text-primary"
                   )}>
                     <Layers className="h-4 w-4" /> 
-                    {categoryFilter === 'all' ? 'Categories' : categoryFilter}
+                    {categoryFilter === 'all' ? 'Sections' : categoryFilter}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-56 rounded-xl shadow-xl border-muted-foreground/10">
@@ -960,7 +963,7 @@ export default function PosIntegrationPage() {
                   <DropdownMenuSeparator />
                   <ScrollArea className="h-[280px]">
                     <DropdownMenuRadioGroup value={categoryFilter} onValueChange={setCategoryFilter}>
-                      <DropdownMenuRadioItem value="all" className="font-bold py-2.5">All Categories</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="all" className="font-bold py-2.5">All Sections</DropdownMenuRadioItem>
                       {uniqueCategories.map(cat => (
                         <DropdownMenuRadioItem key={cat} value={cat} className="font-bold py-2.5">
                           {cat}
@@ -1006,7 +1009,7 @@ export default function PosIntegrationPage() {
                   </TableRow>
                 </TableHeader>
                 
-                {Object.entries(itemsByCategory).map(([category, subCats]) => (
+                {Object.entries(itemsByCategory).map(([category, catItems]) => (
                   <TableBody key={category} className="border-t-0">
                     <TableRow className="bg-[#f4fbf9] hover:bg-[#ebf7f5] border-y sticky top-[48px] z-30 transition-colors">
                       <TableCell colSpan={6} className="py-4 px-6">
@@ -1021,84 +1024,71 @@ export default function PosIntegrationPage() {
                             </div>
                           </div>
                           <Badge variant="outline" className="font-bold text-[9px] px-3 bg-white/50 border-primary/10">
-                            {Object.values(subCats).flat().length} PRODUCTS
+                            {catItems.length} PRODUCTS
                           </Badge>
                         </div>
                       </TableCell>
                     </TableRow>
 
-                    {Object.entries(subCats).map(([subCat, subItems]) => (
-                      <React.Fragment key={subCat}>
-                        <TableRow className="bg-muted/10 hover:bg-muted/20 border-b border-muted/30">
-                          <TableCell colSpan={6} className="py-3 pl-16 pr-6">
-                            <div className="flex items-center gap-3">
-                              <div className="h-4 w-[2px] bg-primary/40 rounded-full" />
-                              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.15em]">{subCat}</span>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-
-                        {subItems.map((item) => (
-                          <TableRow key={item.id} className={cn(
-                            "group transition-colors border-b last:border-0",
-                            selectedItemIds.has(item.id) ? "bg-primary/[0.02] hover:bg-primary/[0.04]" : "hover:bg-muted/5",
-                            !item.enabled && "opacity-60 grayscale-[0.5]"
-                          )}>
-                            <TableCell className="px-6">
-                              <Checkbox 
-                                checked={item.id === selectedProvider ? true : selectedItemIds.has(item.id)}
-                                onCheckedChange={() => toggleItemSelection(item.id)}
-                              />
-                            </TableCell>
-                            <TableCell className="pl-16">
-                              <div className="flex flex-col py-2">
-                                <span className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
-                                <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight flex items-center gap-1.5 mt-0.5">
-                                  <CheckCircle2 className="h-3 w-3 text-green-500/60" /> Direct from your machine
-                                </span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <code className="bg-muted px-2 py-1 rounded text-[10px] font-bold text-muted-foreground border shadow-inner">
-                                {item.posId}
-                              </code>
-                            </TableCell>
-                            <TableCell className="text-right font-bold font-mono text-sm text-foreground">
-                              ${item.price}
-                            </TableCell>
-                            <TableCell className="text-right pr-10">
-                              <div className="flex justify-end items-center gap-4">
-                                <span className={cn(
-                                  "text-[9px] font-bold uppercase tracking-widest",
-                                  item.enabled ? "text-primary" : "text-muted-foreground"
-                                )}>
-                                  {item.enabled ? 'Visible' : 'Hidden'}
-                                </span>
-                                <Switch 
-                                  checked={item.enabled} 
-                                  onCheckedChange={(checked) => {
-                                    const newItems = items.map(i => i.id === item.id ? { ...i, enabled: checked } : i);
-                                    setItems(newItems);
-                                  }} 
-                                />
-                              </div>
-                            </TableCell>
-                            <TableCell className="pr-6">
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-8 w-8 text-muted-foreground hover:text-primary rounded-lg"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setEditingItem(item);
-                                }}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </React.Fragment>
+                    {catItems.map((item) => (
+                      <TableRow key={item.id} className={cn(
+                        "group transition-colors border-b last:border-0",
+                        selectedItemIds.has(item.id) ? "bg-primary/[0.02] hover:bg-primary/[0.04]" : "hover:bg-muted/5",
+                        !item.isVisible && "opacity-60 grayscale-[0.5]"
+                      )}>
+                        <TableCell className="px-6">
+                          <Checkbox 
+                            checked={selectedItemIds.has(item.id)}
+                            onCheckedChange={() => toggleItemSelection(item.id)}
+                          />
+                        </TableCell>
+                        <TableCell className="pl-6">
+                          <div className="flex flex-col py-2">
+                            <span className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
+                            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight flex items-center gap-1.5 mt-0.5">
+                              <CheckCircle2 className="h-3 w-3 text-green-500/60" /> {item.subtitle}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <code className="bg-muted px-2 py-1 rounded text-[10px] font-bold text-muted-foreground border shadow-inner">
+                            {item.machineIdentifier}
+                          </code>
+                        </TableCell>
+                        <TableCell className="text-right font-bold font-mono text-sm text-foreground">
+                          ${item.basePrice.toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-right pr-10">
+                          <div className="flex justify-end items-center gap-4">
+                            <span className={cn(
+                              "text-[9px] font-bold uppercase tracking-widest",
+                              item.isVisible ? "text-primary" : "text-muted-foreground"
+                            )}>
+                              {item.isVisible ? 'Visible' : 'Hidden'}
+                            </span>
+                            <Switch 
+                              checked={item.isVisible} 
+                              onCheckedChange={(checked) => {
+                                const newItems = items.map(i => i.id === item.id ? { ...i, isVisible: checked } : i);
+                                setItems(newItems);
+                              }} 
+                            />
+                          </div>
+                        </TableCell>
+                        <TableCell className="pr-6">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 text-muted-foreground hover:text-primary rounded-lg"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingItem(item);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
                     ))}
                   </TableBody>
                 ))}
@@ -1124,7 +1114,7 @@ export default function PosIntegrationPage() {
               <div className="h-10 w-px bg-border" />
               <div className="flex flex-col">
                 <span className="text-[10px] font-bold text-primary/70 uppercase tracking-[0.15em] mb-1">Ready to Publish</span>
-                <span className="text-2xl font-bold text-primary tabular-nums">{items.filter(i => i.enabled).length}</span>
+                <span className="text-2xl font-bold text-primary tabular-nums">{items.filter(i => i.isVisible).length}</span>
               </div>
             </div>
             
@@ -1162,15 +1152,15 @@ export default function PosIntegrationPage() {
                   <Input 
                     type="number"
                     step="0.01"
-                    value={editingItem?.price || ""} 
-                    onChange={(e) => setEditingItem(prev => prev ? { ...prev, price: e.target.value } : null)}
+                    value={editingItem?.basePrice || ""} 
+                    onChange={(e) => setEditingItem(prev => prev ? { ...prev, basePrice: parseFloat(e.target.value) } : null)}
                     className="h-11 font-mono font-bold bg-background"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">POS Identifier</Label>
                   <div className="h-11 flex items-center px-4 rounded-md bg-muted/50 border border-dashed font-mono text-[10px] font-bold text-muted-foreground">
-                    {editingItem?.posId}
+                    {editingItem?.machineIdentifier}
                   </div>
                 </div>
               </div>
