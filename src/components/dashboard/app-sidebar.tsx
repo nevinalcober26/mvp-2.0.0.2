@@ -14,6 +14,7 @@ import {
   ChevronDown,
   MapPin,
   PlusCircle,
+  QrCode,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -158,8 +159,22 @@ const MANAGEMENT: SidebarItem[] = [
       { label: 'Manage Restaurant', path: '/dashboard/categories' }
     ] 
   },
-  { label: 'Operations', id: 'operations', icon: Briefcase, items: [] },
-  { label: 'Orders', id: 'orders', icon: ClipboardList, items: [] },
+  { 
+    label: 'Operations', 
+    id: 'operations', 
+    icon: Briefcase, 
+    items: [
+      { label: 'QR Code', path: '/dashboard/operations/qr-code' }
+    ] 
+  },
+  { 
+    label: 'Orders', 
+    id: 'orders', 
+    icon: ClipboardList, 
+    items: [
+      { label: 'All Orders', path: '/dashboard/orders' }
+    ] 
+  },
 ];
 
 const CONNECTIONS: SidebarItem[] = [
@@ -169,7 +184,7 @@ const CONNECTIONS: SidebarItem[] = [
 export function AppSidebar() {
   const pathname = usePathname();
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeMenus, setActiveMenu] = useState<string[]>(['settings']);
+  const [activeMenus, setActiveMenu] = useState<string[]>(['settings', 'operations']);
   const [isBranchSwitcherOpen, setIsBranchSwitcherOpen] = useState(false);
   const [isBranchSearching, setIsBranchSearching] = useState(false);
   const [branchSearchQuery, setBranchSearchQuery] = useState('');
@@ -376,7 +391,7 @@ export function AppSidebar() {
                     </div>
                     <div className="flex flex-col overflow-hidden">
                       <span className="truncate text-[11px] font-black uppercase tracking-[0.18em] text-[#18B4A6]">
-                        Bloomsbury&apos;s
+                        BLOOMSBURY&apos;S
                       </span>
                       <h4 className="truncate text-[17px] font-black text-white tracking-tight leading-tight">
                         Ras Al Khaimah
