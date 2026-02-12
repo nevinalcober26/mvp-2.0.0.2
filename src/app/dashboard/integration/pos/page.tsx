@@ -674,7 +674,7 @@ export default function PosIntegrationPage() {
           <div className="flex-1 overflow-hidden flex flex-col">
             <ScrollArea className="flex-1">
               <Table>
-                <TableHeader className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm shadow-sm">
+                <TableHeader className="sticky top-0 z-30 bg-background shadow-sm">
                   <TableRow className="border-b-2">
                     <TableHead className="w-12 px-6">
                       <Checkbox 
@@ -691,15 +691,18 @@ export default function PosIntegrationPage() {
                 <TableBody>
                   {Object.entries(itemsByCategory).map(([category, subCats]) => (
                     <React.Fragment key={category}>
-                      {/* CATEGORY LEVEL HEADER */}
-                      <TableRow className="bg-[#142424]/5 hover:bg-[#142424]/5 border-y border-border/50 sticky top-12 z-20">
-                        <TableCell colSpan={5} className="py-3 px-6">
-                          <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                              <ChevronDown className="h-4 w-4 text-primary" />
+                      {/* CATEGORY LEVEL HEADER - Solid bg to prevent stacking ghosting */}
+                      <TableRow className="bg-background hover:bg-background border-y-2 border-border/80 sticky top-[48px] z-20 shadow-sm">
+                        <TableCell colSpan={5} className="py-4 px-6">
+                          <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 rounded-xl bg-[#142424] flex items-center justify-center shadow-lg">
+                              <ChevronDown className="h-5 w-5 text-primary" />
                             </div>
-                            <span className="text-sm font-black uppercase tracking-[0.2em] text-foreground">{category}</span>
-                            <Badge variant="outline" className="text-[9px] font-bold opacity-60 ml-2">
+                            <div className="flex flex-col">
+                              <span className="text-xs font-black uppercase tracking-[0.25em] text-primary leading-none mb-1">Menu Section</span>
+                              <span className="text-lg font-black uppercase tracking-tight text-foreground leading-none">{category}</span>
+                            </div>
+                            <Badge variant="secondary" className="font-bold text-[10px] px-3 ml-2">
                               {Object.values(subCats).flat().length} PRODUCTS
                             </Badge>
                           </div>
@@ -709,11 +712,11 @@ export default function PosIntegrationPage() {
                       {Object.entries(subCats).map(([subCat, subItems]) => (
                         <React.Fragment key={subCat}>
                           {/* SUBCATEGORY LEVEL HEADER */}
-                          <TableRow className="bg-muted/30 hover:bg-muted/30 border-b border-border/30">
-                            <TableCell colSpan={5} className="py-2 pl-12 pr-6">
-                              <div className="flex items-center gap-2">
-                                <div className="h-1.5 w-1.5 rounded-full bg-primary/40" />
-                                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{subCat}</span>
+                          <TableRow className="bg-muted/40 hover:bg-muted/40 border-b border-border/30">
+                            <TableCell colSpan={5} className="py-3 pl-16 pr-6">
+                              <div className="flex items-center gap-3">
+                                <div className="h-4 w-[2px] bg-primary/30 rounded-full" />
+                                <span className="text-sm font-bold text-muted-foreground uppercase tracking-widest">{subCat}</span>
                               </div>
                             </TableCell>
                           </TableRow>
@@ -731,14 +734,14 @@ export default function PosIntegrationPage() {
                                   onCheckedChange={() => toggleItemSelection(item.id)}
                                 />
                               </TableCell>
-                              <TableCell>
-                                <div className="flex flex-col py-1">
-                                  <span className="font-bold text-sm text-foreground">{item.name}</span>
-                                  <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tighter">Verified from Simphony DB</span>
+                              <TableCell className="pl-16">
+                                <div className="flex flex-col py-2">
+                                  <span className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
+                                  <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tighter">Handshake verified</span>
                                 </div>
                               </TableCell>
                               <TableCell>
-                                <code className="bg-muted px-2 py-1 rounded text-[11px] font-bold text-foreground/70">
+                                <code className="bg-muted px-2 py-1 rounded text-[11px] font-bold text-foreground/70 border border-border/50 shadow-inner">
                                   {item.posId}
                                 </code>
                               </TableCell>
