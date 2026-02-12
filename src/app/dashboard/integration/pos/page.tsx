@@ -62,6 +62,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuRadioGroup,
@@ -597,7 +598,7 @@ export default function PosIntegrationPage() {
               </Sheet>
             </div>
           ) : (
-            <div className="flex justify-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex justify-start animate-in fade-in slide-in-from-bottom-4 duration-500">
               {connections.map((conn) => (
                 <Card key={conn.id} className={cn(
                   "overflow-hidden border-2 transition-all hover:shadow-xl rounded-3xl w-full max-w-xl",
