@@ -27,12 +27,14 @@ export default function ActivationConfirmationPage() {
   
   const handleGoToDashboard = async () => {
     setIsLoading(true);
+    // Simulate activation delay
     await new Promise(resolve => setTimeout(resolve, 1200));
     toast({
       title: "Welcome to eMenu!",
       description: "Redirecting to your workspace...",
     });
-    router.push('/dashboard');
+    // Redirect to dashboard with tutorial trigger
+    router.push('/dashboard?tutorial=true');
   };
 
   return (

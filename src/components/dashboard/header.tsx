@@ -142,7 +142,7 @@ export function DashboardHeader() {
         <div className="hidden md:block">
           <SidebarTrigger />
         </div>
-        <div className="relative w-full max-w-md hidden sm:block">
+        <div className="relative w-full max-w-md hidden sm:block" id="global-search">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
@@ -156,7 +156,7 @@ export function DashboardHeader() {
         </div>
       </div>
       
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4" id="header-actions">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="gap-2 text-xs font-semibold hidden md:flex">

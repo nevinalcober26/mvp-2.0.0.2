@@ -333,7 +333,7 @@ export function AppSidebar() {
         </SidebarHeader>
 
         <SidebarContent className="p-0 pb-4">
-          <SidebarGroup>
+          <SidebarGroup id="sidebar-nav">
             <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden uppercase tracking-wider text-[10px] font-bold">
               Overview
             </SidebarGroupLabel>
@@ -366,7 +366,7 @@ export function AppSidebar() {
         </SidebarContent>
 
         <SidebarFooter className="flex flex-col gap-2 p-4 bg-[#0a1414] rounded-tl-[24px] rounded-tr-[24px] relative z-[50]">
-          <div className="group-data-[collapsible=icon]:hidden">
+          <div className="group-data-[collapsible=icon]:hidden" id="branch-switcher">
             <DropdownMenu 
               open={isBranchSwitcherOpen} 
               onOpenChange={(open) => {

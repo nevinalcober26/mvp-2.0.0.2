@@ -4,6 +4,7 @@ import { AppSidebar } from '@/components/dashboard/app-sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { OnboardingWizard } from '@/components/dashboard/onboarding-wizard';
+import { OnboardingTutorial } from '@/components/dashboard/onboarding-tutorial';
 import React from 'react';
 
 function OnboardingWrapper({ children }: { children: React.ReactNode }) {
@@ -14,6 +15,7 @@ function OnboardingWrapper({ children }: { children: React.ReactNode }) {
     <>
       <div className={showOnboarding ? 'blur-sm' : ''}>{children}</div>
       {showOnboarding && <OnboardingWizard />}
+      <OnboardingTutorial />
     </>
   );
 }

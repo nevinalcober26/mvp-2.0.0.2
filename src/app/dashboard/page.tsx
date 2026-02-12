@@ -115,8 +115,12 @@ export default function DashboardPage() {
     <>
       <DashboardHeader />
       <main className="p-4 sm:p-6 lg:p-8 space-y-6">
-        <WelcomeBanner statCards={statCardsData} chartData={chartData} />
-        <StatCards cards={statCardsData} />
+        <div id="welcome-banner">
+          <WelcomeBanner statCards={statCardsData} chartData={chartData} />
+        </div>
+        <div id="stat-cards">
+          <StatCards cards={statCardsData} />
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
