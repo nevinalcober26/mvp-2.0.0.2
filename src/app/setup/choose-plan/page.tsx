@@ -27,15 +27,15 @@ const steps = [
 ];
 
 const features = [
-  { name: 'Restaurant Locations', free: '1', pro: 'Up to 5', enterprise: 'Unlimited' },
-  { name: 'Staff Users', free: 'Up to 3', pro: 'Up to 20', enterprise: 'Unlimited' },
-  { name: 'Tables Per Restaurant', free: 'Up to 20', pro: 'Up to 100', enterprise: 'Unlimited' },
-  { name: 'Table Tags & Notes', free: false, pro: true, enterprise: true },
-  { name: 'Floor Plan Designer', free: 'Basic', pro: 'Advanced', enterprise: 'Custom' },
-  { name: 'API Access', free: false, pro: 'Basic', enterprise: 'Full + Webhooks' },
-  { name: 'Analytics & Reporting', free: 'Basic', pro: 'Advanced', enterprise: 'Custom' },
-  { name: 'Support', free: 'Email Only', pro: 'Email & Chat', enterprise: '24/7 Priority' },
-  { name: 'Custom Branding', free: false, pro: true, enterprise: true },
+  { name: 'Restaurant Outlets', free: '1', pro: 'Up to 5', enterprise: 'Unlimited' },
+  { name: 'Monthly QR Scans', free: '1,000', pro: '50,000', enterprise: 'Unlimited' },
+  { name: 'Menu Items', free: 'Up to 50', pro: 'Up to 500', enterprise: 'Unlimited' },
+  { name: 'AI Description Generator', free: false, pro: true, enterprise: true },
+  { name: 'Multi-Language Support', free: '1 Language', pro: 'Up to 5', enterprise: 'Unlimited' },
+  { name: 'POS Integration', free: false, pro: 'Basic Sync', enterprise: 'Full API Access' },
+  { name: 'Analytics & Insights', free: 'Basic', pro: 'Advanced', enterprise: 'Real-time' },
+  { name: 'Digital Support', free: 'Email Only', pro: 'Chat & Email', enterprise: '24/7 Priority' },
+  { name: 'Custom QR Branding', free: false, pro: true, enterprise: true },
 ];
 
 export default function ChoosePlanPage() {
@@ -92,7 +92,7 @@ export default function ChoosePlanPage() {
           </div>
           <div className="text-center space-y-2">
             <h2 className="text-2xl font-black text-[#142424]">Activating {selectedPlanName} Plan</h2>
-            <p className="text-sm font-medium text-gray-400">Preparing your eMenu Digital Hub license...</p>
+            <p className="text-sm font-medium text-gray-400">Preparing your Digital eMenu license...</p>
           </div>
         </div>
       </div>
@@ -161,7 +161,7 @@ export default function ChoosePlanPage() {
               Choose Your License Plan
             </h1>
             <p className="text-[15px] font-medium text-gray-400 max-w-[600px] mx-auto leading-relaxed">
-              Select the plan that best fits your business needs. All plans include our core reservation management features.
+              Select the plan that best fits your digital strategy. All plans include our core high-fidelity QR menu engine and menu setup tools.
             </p>
           </div>
 
@@ -198,7 +198,7 @@ export default function ChoosePlanPage() {
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <CardTitle className="text-[24px] font-black text-[#142424]">Free</CardTitle>
-                    <p className="text-[12px] font-bold text-gray-400">For small businesses</p>
+                    <p className="text-[12px] font-bold text-gray-400">For small outlets</p>
                   </div>
                   <div className="h-10 w-10 rounded-xl bg-green-50 flex items-center justify-center">
                     <Sprout className="h-5 w-5 text-green-500" />
@@ -212,12 +212,12 @@ export default function ChoosePlanPage() {
               <CardContent className="p-8 pt-0 text-left space-y-6">
                 <ul className="space-y-3">
                   {[
-                    { text: '1 restaurant location', check: true },
-                    { text: 'Up to 3 staff users', check: true },
-                    { text: 'Up to 20 tables', check: true },
-                    { text: 'Basic reservation management', check: true },
-                    { text: 'No table tags & notes', check: false },
-                    { text: 'No API access', check: false },
+                    { text: '1 restaurant outlet', check: true },
+                    { text: '1,000 QR scans/month', check: true },
+                    { text: 'Up to 50 menu items', check: true },
+                    { text: 'Standard QR branding', check: true },
+                    { text: 'No AI content assistant', check: false },
+                    { text: 'No POS integration', check: false },
                     { text: 'Email support only', check: false },
                   ].map((item, i) => (
                     <li key={i} className="flex items-center gap-3 text-[13px] font-medium">
@@ -249,7 +249,7 @@ export default function ChoosePlanPage() {
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <CardTitle className="text-[24px] font-black text-[#142424]">Pro</CardTitle>
-                    <p className="text-[12px] font-bold text-gray-400">For growing businesses</p>
+                    <p className="text-[12px] font-bold text-gray-400">For growing brands</p>
                   </div>
                   <div className="h-10 w-10 rounded-xl bg-[#18B4A6]/10 flex items-center justify-center">
                     <Crown className="h-5 w-5 text-[#18B4A6]" />
@@ -266,13 +266,13 @@ export default function ChoosePlanPage() {
               <CardContent className="p-8 pt-0 text-left space-y-6">
                 <ul className="space-y-3">
                   {[
-                    'Up to 5 restaurant locations',
-                    'Up to 20 staff users',
-                    'Up to 100 tables per restaurant',
-                    'Advanced reservation management',
-                    'Table tags & notes',
-                    'Basic API access',
-                    'Email & chat support',
+                    'Up to 5 restaurant outlets',
+                    '50,000 QR scans/month',
+                    'Up to 500 menu items',
+                    'Custom QR & Menu Branding',
+                    'AI Description Assistant',
+                    'Basic POS synchronization',
+                    'Email & Chat support',
                   ].map((text, i) => (
                     <li key={i} className="flex items-center gap-3 text-[13px] font-medium text-gray-700">
                       <Check className="h-4 w-4 text-[#18B4A6]" strokeWidth={3} />
@@ -295,7 +295,7 @@ export default function ChoosePlanPage() {
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <CardTitle className="text-[24px] font-black text-[#142424]">Enterprise</CardTitle>
-                    <p className="text-[12px] font-bold text-gray-400">For large organizations</p>
+                    <p className="text-[12px] font-bold text-gray-400">For global networks</p>
                   </div>
                   <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center">
                     <Building2 className="h-5 w-5 text-blue-500" />
@@ -303,19 +303,19 @@ export default function ChoosePlanPage() {
                 </div>
                 <div className="space-y-1">
                   <p className="text-[32px] font-black text-[#142424]">Custom</p>
-                  <p className="text-[12px] font-medium text-gray-400">Tailored to your needs</p>
+                  <p className="text-[12px] font-medium text-gray-400">Tailored to your scale</p>
                 </div>
               </CardHeader>
               <CardContent className="p-8 pt-0 text-left space-y-6">
                 <ul className="space-y-3">
                   {[
-                    'Unlimited restaurant locations',
-                    'Unlimited staff users',
-                    'Unlimited tables per restaurant',
-                    'Enterprise-grade features',
-                    'Advanced table management',
-                    'Full API access & webhooks',
-                    '24/7 priority support',
+                    'Unlimited restaurant outlets',
+                    'Unlimited monthly QR scans',
+                    'Unlimited menu items',
+                    'White-label menu engine',
+                    'Multi-language automation',
+                    'Full POS API access',
+                    '24/7 Priority support',
                   ].map((text, i) => (
                     <li key={i} className="flex items-center gap-3 text-[13px] font-medium text-gray-700">
                       <Check className="h-4 w-4 text-[#18B4A6]" strokeWidth={3} />
@@ -336,7 +336,7 @@ export default function ChoosePlanPage() {
 
           {/* Comparison Table */}
           <div className="space-y-8 pt-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <h2 className="text-[24px] font-black text-[#142424]">Compare All Features</h2>
+            <h2 className="text-[24px] font-black text-[#142424]">Full Capability Matrix</h2>
             
             <Card className="border-0 shadow-[0_15px_40px_rgba(0,0,0,0.04)] rounded-[24px] overflow-hidden bg-white/90">
               <Table>

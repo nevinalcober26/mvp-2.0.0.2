@@ -30,7 +30,7 @@ export default function ActivationConfirmationPage() {
     // Simulate activation delay
     await new Promise(resolve => setTimeout(resolve, 1200));
     toast({
-      title: "Welcome to eMenu!",
+      title: "Welcome to Digital eMenu!",
       description: "Redirecting to your workspace...",
     });
     // Redirect to dashboard with tutorial trigger
@@ -63,7 +63,7 @@ export default function ActivationConfirmationPage() {
             <div className="space-y-2">
               <h1 className="text-[22px] font-bold tracking-tight text-[#142424]">License Successfully Activated!</h1>
               <p className="text-[14px] font-medium text-gray-500 leading-relaxed">
-                Your Reservationz Pro license has been successfully provisioned and is now active.
+                Your Digital eMenu Pro license has been successfully provisioned and is now active.
               </p>
               <div className="pt-1">
                 <Badge className="bg-[#f0fdf4] text-[#166534] font-bold text-[11px] px-3 py-1 border border-[#bbf7d0] flex items-center gap-2 w-fit rounded-full shadow-none">
@@ -99,11 +99,11 @@ export default function ActivationConfirmationPage() {
                   
                   <ul className="space-y-3">
                     {[
-                      'Up to 5 restaurant locations',
-                      'Up to 20 staff users',
-                      'Up to 100 tables per restaurant',
-                      'Advanced features: Tags, Notes, Analytics',
-                      'Email & chat support'
+                      'Up to 5 restaurant outlets',
+                      '50,000 monthly QR scans',
+                      'Up to 500 menu items per outlet',
+                      'AI Copywriting & Branding Tools',
+                      'POS Sync & Basic Analytics'
                     ].map(feat => (
                       <li key={feat} className="flex items-center gap-3 text-[13px] font-medium text-gray-600">
                         <Check className="h-4 w-4 text-[#18B4A6]" strokeWidth={3} />
@@ -119,7 +119,7 @@ export default function ActivationConfirmationPage() {
                   <div className="space-y-4">
                     <div className="flex justify-between items-center text-[13px]">
                       <span className="text-gray-400 font-medium">License ID:</span>
-                      <span className="font-bold text-[#142424] font-mono">PRO-2023-06158942</span>
+                      <span className="font-bold text-[#142424] font-mono">EMENU-PRO-2023-06158942</span>
                     </div>
                     <div className="flex justify-between items-center text-[13px]">
                       <span className="text-gray-400 font-medium">Status:</span>
@@ -162,7 +162,7 @@ export default function ActivationConfirmationPage() {
               ) : (
                 <>
                   <LogOut className="mr-2 h-4 w-4 rotate-180" />
-                  Go to Reservationz Dashboard
+                  Go to Digital eMenu Dashboard
                 </>
               )}
             </Button>
@@ -171,7 +171,7 @@ export default function ActivationConfirmationPage() {
           {/* 4. Help Link Box */}
           <div className="p-4 bg-[#f0fdfa] border border-[#ccfbf1] rounded-xl text-center">
             <p className="text-[13px] font-medium text-gray-500">
-              Need help getting started? <span className="text-[#18B4A6] font-bold cursor-pointer hover:underline">Watch our tutorial videos</span> or <span className="text-[#18B4A6] font-bold cursor-pointer hover:underline">contact support</span>.
+              Need help with your digital menu? <span className="text-[#18B4A6] font-bold cursor-pointer hover:underline">Watch our setup videos</span> or <span className="text-[#18B4A6] font-bold cursor-pointer hover:underline">contact support</span>.
             </p>
           </div>
 
@@ -189,7 +189,7 @@ export default function ActivationConfirmationPage() {
                   <div className="space-y-3">
                     <h4 className="text-[16px] font-bold text-[#142424]">Knowledge Base</h4>
                     <p className="text-[13px] font-medium text-gray-400 leading-relaxed">
-                      Explore our comprehensive guides and documentation to learn how to use Reservationz effectively.
+                      Explore our comprehensive guides and documentation to learn how to use Digital eMenu effectively.
                     </p>
                     <div className="pt-2">
                       <span className="text-[13px] font-bold text-[#18B4A6] cursor-pointer hover:underline">
@@ -209,7 +209,7 @@ export default function ActivationConfirmationPage() {
                   <div className="space-y-3">
                     <h4 className="text-[16px] font-bold text-[#142424]">Video Tutorials</h4>
                     <p className="text-[13px] font-medium text-gray-400 leading-relaxed">
-                      Watch step-by-step tutorials to help you set up your restaurant management system quickly.
+                      Watch step-by-step tutorials to help you set up your restaurant menu and QR codes quickly.
                     </p>
                     <div className="pt-2">
                       <span className="text-[13px] font-bold text-[#18B4A6] cursor-pointer hover:underline">
