@@ -30,7 +30,9 @@ import {
   RefreshCw,
   Power,
   PowerOff,
-  Network
+  Network,
+  Sparkles,
+  Crown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -125,6 +127,7 @@ export default function PaymentGatewayPage() {
 
   const [isConnectDrawerOpen, setIsConnectDrawerOpen] = useState(false);
   const [isSettingsDrawerOpen, setIsSettingsDrawerOpen] = useState(false);
+  const [isUpgradeDialogOpen, setIsUpgradeDialogOpen] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
   
@@ -234,118 +237,14 @@ export default function PaymentGatewayPage() {
               <h1 className="text-3xl font-bold tracking-tight text-foreground text-left">Payment Gateways</h1>
               <p className="text-muted-foreground text-sm font-medium text-left">Securely process customer payments via web and QR codes.</p>
             </div>
-            <Sheet open={isConnectDrawerOpen} onOpenChange={setIsConnectDrawerOpen}>
-              <SheetTrigger asChild>
-                <Button className="gap-2 font-bold bg-primary hover:bg-primary/90 shadow-sm">
-                  <Plus className="h-4 w-4" />
-                  Connect New Gateway
-                </Button>
-              </SheetTrigger>
-              <SheetContent className="sm:max-w-xl p-0 overflow-hidden flex flex-col border-l shadow-2xl bg-white text-left">
-                <div className="bg-muted/30 p-8 border-b shrink-0">
-                  <SheetHeader className="text-left space-y-2">
-                    <SheetTitle className="text-2xl font-bold text-foreground">Connect Gateway</SheetTitle>
-                    <SheetDescription className="text-muted-foreground font-medium">
-                      {currentStep === 1 && "Step 1: Select your payment provider."}
-                      {currentStep === 2 && "Step 2: Enter your merchant credentials."}
-                    </SheetDescription>
-                  </SheetHeader>
-                  <div className="mt-6 flex items-center gap-2">
-                    <div className={cn("h-1 flex-1 rounded-full transition-colors", currentStep >= 1 ? "bg-primary" : "bg-muted")} />
-                    <div className={cn("h-1 flex-1 rounded-full transition-colors", currentStep >= 2 ? "bg-primary" : "bg-muted")} />
-                  </div>
-                </div>
-                
-                <ScrollArea className="flex-1">
-                  <div className="p-8 space-y-8">
-                    {currentStep === 1 && (
-                      <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-                        <div className="space-y-4">
-                          <Label className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground">Select Provider</Label>
-                          <div className="grid grid-cols-1 gap-4">
-                            {SUPPORTED_GATEWAYS.map((gateway) => (
-                              <div
-                                key={gateway.id}
-                                onClick={() => setSelectedProvider(gateway.id)}
-                                className={cn(
-                                  "cursor-pointer flex items-center gap-5 p-5 rounded-2xl border-2 transition-all duration-300 group",
-                                  selectedProvider === gateway.id
-                                    ? "border-primary bg-primary/5 ring-4 ring-primary/10"
-                                    : "border-muted hover:border-accent-foreground/20 bg-background"
-                                )}
-                              >
-                                <div className={cn("h-14 w-14 rounded-xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110", gateway.color)}>
-                                  <gateway.icon className="h-7 w-7" />
-                                </div>
-                                <div className="flex-1 space-y-1">
-                                  <p className="font-bold text-lg text-foreground">{gateway.name}</p>
-                                  <p className="text-xs text-muted-foreground font-medium leading-relaxed">{gateway.description}</p>
-                                </div>
-                                {selectedProvider === gateway.id && (
-                                  <CheckCircle2 className="h-6 w-6 text-primary animate-in zoom-in duration-300 mr-2" />
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {currentStep === 2 && (
-                      <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-300">
-                        <section className="space-y-6">
-                          <div className="flex items-center gap-2">
-                            <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">API Credentials</h3>
-                          </div>
-                          <div className="grid gap-6">
-                            <div className="space-y-2 text-left">
-                              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                <Globe className="h-3.5 w-3.5" /> Publishable Key
-                              </Label>
-                              <Input placeholder={selectedProvider === 'stripe' ? 'pk_live_...' : 'Enter key...'} className="h-11 font-mono text-sm bg-background border-muted-foreground/20" />
-                            </div>
-                            <div className="space-y-2 text-left">
-                              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                <Lock className="h-3.5 w-3.5" /> Secret Key
-                              </Label>
-                              <Input type="password" placeholder="••••••••••••••••" className="h-11 font-mono text-sm bg-background border-muted-foreground/20" />
-                            </div>
-                          </div>
-                        </section>
-                      </div>
-                    )}
-                  </div>
-                </ScrollArea>
-
-                <SheetFooter className="p-6 bg-muted/30 border-t shrink-0 flex flex-row items-center justify-between gap-4">
-                  {currentStep === 1 ? (
-                    <>
-                      <Button variant="ghost" className="font-bold px-8 h-11" onClick={() => setIsConnectDrawerOpen(false)}>Cancel</Button>
-                      <Button 
-                        className="font-bold bg-primary text-primary-foreground px-10 h-11 shadow-lg gap-2" 
-                        disabled={!selectedProvider}
-                        onClick={() => setCurrentStep(2)}
-                      >
-                        Next <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Button variant="outline" className="font-bold px-8 h-11 gap-2" onClick={() => setCurrentStep(1)}>
-                        <ArrowLeft className="h-4 w-4" /> Back
-                      </Button>
-                      <Button 
-                        className="font-bold bg-primary text-primary-foreground px-10 h-11 shadow-lg" 
-                        onClick={startSyncProcess}
-                      >
-                        Verify & Connect
-                      </Button>
-                    </>
-                  )}
-                </SheetFooter>
-              </SheetContent>
-            </Sheet>
+            
+            <Button 
+              className="gap-2 font-bold bg-primary hover:bg-primary/90 shadow-sm"
+              onClick={() => setIsUpgradeDialogOpen(true)}
+            >
+              <Plus className="h-4 w-4" />
+              Connect New Gateway
+            </Button>
           </div>
 
           {connections.length === 0 ? (
@@ -447,6 +346,64 @@ export default function PaymentGatewayPage() {
           )}
         </div>
       </main>
+
+      {/* Upgrade Required Dialog */}
+      <Dialog open={isUpgradeDialogOpen} onOpenChange={setIsUpgradeDialogOpen}>
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden border-0 shadow-2xl rounded-3xl bg-white text-center">
+          <div className="bg-primary/5 p-10 flex flex-col items-center space-y-6">
+            <div className="relative">
+              <div className="h-20 w-20 rounded-3xl bg-primary flex items-center justify-center shadow-lg transform rotate-3">
+                <Crown className="h-10 w-10 text-white" />
+              </div>
+              <div className="absolute -top-2 -right-2 h-8 w-8 rounded-full bg-orange-400 flex items-center justify-center border-4 border-white shadow-md">
+                <Sparkles className="h-4 w-4 text-white" />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <DialogTitle className="text-3xl font-black tracking-tight text-foreground leading-tight">
+                Unlock Multi-Gateway Processing
+              </DialogTitle>
+              <Badge variant="secondary" className="bg-primary/10 text-primary font-bold px-4 py-1 rounded-full border-none">
+                PREMIUM FEATURE
+              </Badge>
+            </div>
+          </div>
+
+          <div className="p-10 space-y-8">
+            <div className="space-y-4 text-center">
+              <p className="text-muted-foreground text-base font-medium leading-relaxed max-w-[320px] mx-auto">
+                Power your growth with unlimited payment options. Simultaneous regional and global gateways ensure <span className="text-foreground font-bold">100% uptime</span> and higher conversion rates.
+              </p>
+              
+              <div className="grid gap-3 text-left max-w-[280px] mx-auto">
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
+                  <span className="text-sm font-bold text-foreground/80">Connect 5+ Gateways</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
+                  <span className="text-sm font-bold text-foreground/80">Redundant Payment Routing</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
+                  <span className="text-sm font-bold text-foreground/80">Regional Multi-Currency support</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <Button className="w-full h-14 font-black uppercase tracking-widest bg-primary text-white hover:bg-primary/90 shadow-xl rounded-2xl text-base group">
+                Upgrade to Premium
+                <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+              <Button variant="ghost" className="w-full font-bold text-muted-foreground" onClick={() => setIsUpgradeDialogOpen(false)}>
+                Maybe Later
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Gateway Settings Drawer */}
       <Sheet open={isSettingsDrawerOpen} onOpenChange={setIsSettingsDrawerOpen}>
