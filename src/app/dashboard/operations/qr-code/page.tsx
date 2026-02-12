@@ -19,7 +19,6 @@ import {
   QrCode, 
   Download, 
   ExternalLink, 
-  Link as LinkIcon,
   CheckCircle2,
   Printer,
   ChevronRight,
@@ -37,7 +36,6 @@ const BRAND_COLORS = [
 
 export default function QrCodePage() {
   const [qrColor, setQrColor] = useState('#000000');
-  const [isCustomUrl, setIsCustomUrl] = useState(false);
   const [fileType, setFileType] = useState('PNG');
   const [qrType, setQrType] = useState('NORMAL QR');
   const [isHighErrorCorrection, setIsHighErrorCorrection] = useState(false);
@@ -84,12 +82,12 @@ export default function QrCodePage() {
                     </div>
                     <div>
                       <CardTitle className="text-lg">Destination</CardTitle>
-                      <CardDescription>Where should customers be directed?</CardDescription>
+                      <CardDescription>Select the target for your QR code.</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="max-w-sm">
                     <div className="space-y-2">
                       <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">QR Type</Label>
                       <Select value={qrType} onValueChange={setQrType}>
@@ -103,23 +101,6 @@ export default function QrCodePage() {
                           <SelectItem value="ALPHANUMERIC QR">Alphanumeric QR</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Custom URL</Label>
-                        <Switch 
-                          checked={isCustomUrl}
-                          onCheckedChange={setIsCustomUrl}
-                        />
-                      </div>
-                      <div className={cn("relative", !isCustomUrl && "opacity-40 pointer-events-none")}>
-                        <Input 
-                          placeholder="https://your-site.com" 
-                          className="h-11 pl-10"
-                        />
-                        <LinkIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -262,7 +243,7 @@ export default function QrCodePage() {
                       <div className="flex items-center bg-muted/50 rounded-lg border px-4 h-11">
                         <ExternalLink className="h-4 w-4 text-primary shrink-0 mr-3" />
                         <p className="text-xs font-semibold truncate text-muted-foreground">
-                          {isCustomUrl ? 'your-domain.com/menu' : `bloomsburys.menu/table/rak-05`}
+                          bloomsburys.menu/table/rak-05
                         </p>
                       </div>
                     </div>
