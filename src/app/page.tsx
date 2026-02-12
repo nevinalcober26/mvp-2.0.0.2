@@ -14,7 +14,7 @@ import { AuthCardSkeleton } from '@/components/dashboard/skeletons';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/firebase';
 import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function LoginPage() {
@@ -22,6 +22,7 @@ export default function LoginPage() {
   const auth = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSigningIn, setIsSigningIn] = useState(false);
@@ -151,15 +152,28 @@ export default function LoginPage() {
                   <Label htmlFor="password" className="text-[13px] font-bold text-[#142424]">
                     Password <span className="text-red-500">*</span>
                   </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="h-12 bg-white border-gray-200 rounded-xl px-4 text-[14px] focus:ring-[#18B4A6] focus:border-[#18B4A6] transition-all placeholder:text-gray-300"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="h-12 bg-white border-gray-200 rounded-xl px-4 pr-12 text-[14px] focus:ring-[#18B4A6] focus:border-[#18B4A6] transition-all placeholder:text-gray-300"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#18B4A6] transition-colors"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between pt-1">
