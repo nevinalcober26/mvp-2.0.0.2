@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { DashboardHeader } from '@/components/dashboard/header';
@@ -30,6 +30,7 @@ import { cn } from '@/lib/utils';
 import { CategoriesPageSkeleton } from '@/components/dashboard/skeletons';
 import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
 import { QuickSettingsSheet } from './quick-settings-sheet';
+import gsap from 'gsap';
 
 type RestaurantStatus = 'Open' | 'Closed';
 
@@ -126,14 +127,24 @@ const mockRestaurants: Restaurant[] = [
 const RestaurantCard = ({ 
   restaurant, 
   onQuickSettings,
-  onEdit
+  onEdit,
+  isActive,
+  onSelect
 }: { 
   restaurant: Restaurant;
   onQuickSettings: (r: Restaurant) => void;
   onEdit: (r: Restaurant) => void;
+  isActive: boolean;
+  onSelect: (id: string) => void;
 }) => (
-  <Card className="overflow-hidden group hover:shadow-md transition-shadow">
-    <div className="relative aspect-[16/9] w-full bg-muted">
+  <Card 
+    className={cn(
+      "overflow-hidden group hover:shadow-xl transition-all duration-300 relative cursor-pointer",
+      isActive ? "ring-2 ring-[#18B4A6] shadow-xl scale-[1.02]" : "hover:shadow-md"
+    )}
+    onClick={() => onSelect(restaurant.id)}
+  >
+    <div className="relative aspect-[16/9] w-full bg-muted overflow-hidden">
       {restaurant.image && restaurant.image !== "" ? (
         <Image
           src={restaurant.image}
@@ -147,14 +158,30 @@ const RestaurantCard = ({
           <Store className="h-12 w-12 opacity-20" />
         </div>
       )}
-      <div className="absolute top-3 left-3 flex gap-2">
-        <button className="h-8 w-8 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60 backdrop-blur-sm">
-          <MoreHorizontal className="h-4 w-4" />
-        </button>
+      
+      {/* Shine Sweep Overlay */}
+      {isActive && (
+        <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden">
+          <div 
+            className="shine-sweep absolute top-0 -left-[100%] w-[40%] h-[200%] bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-30deg] -translate-y-1/4"
+          />
+        </div>
+      )}
+
+      <div className="absolute top-3 left-3 flex gap-2 z-20">
+        {isActive ? (
+          <Badge className="bg-[#18B4A6] text-white border-0 font-bold px-3 py-1 shadow-lg animate-in fade-in zoom-in duration-300">
+            Actively Selected
+          </Badge>
+        ) : (
+          <button className="h-8 w-8 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60 backdrop-blur-sm transition-colors">
+            <MoreHorizontal className="h-4 w-4" />
+          </button>
+        )}
       </div>
       <Badge
         className={cn(
-          "absolute top-3 right-3 border-0",
+          "absolute top-3 right-3 border-0 z-20",
           restaurant.status === 'Open' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
         )}
       >
@@ -194,7 +221,10 @@ const RestaurantCard = ({
         variant="outline" 
         size="sm" 
         className="flex-1 font-semibold gap-2"
-        onClick={() => onQuickSettings(restaurant)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onQuickSettings(restaurant);
+        }}
       >
         <Settings className="h-4 w-4" />
         Settings
@@ -202,7 +232,10 @@ const RestaurantCard = ({
       <Button 
         size="sm" 
         className="flex-1 font-semibold gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
-        onClick={() => onEdit(restaurant)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onEdit(restaurant);
+        }}
       >
         <Edit className="h-4 w-4" />
         Edit Branch
@@ -217,6 +250,7 @@ export default function ManageRestaurantPage() {
   const [search, setSearch] = useState('');
   const [selectedBranch, setSelectedBranch] = useState<Restaurant | null>(null);
   const [isQuickSettingsOpen, setIsQuickSettingsOpen] = useState(false);
+  const [activeBranchId, setActiveBranchId] = useState<string>('1');
 
   const kpiCards: StatCardData[] = useMemo(() => [
     {
@@ -264,6 +298,28 @@ export default function ManageRestaurantPage() {
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    if (!isLoading && activeBranchId) {
+      const sweepAnimation = () => {
+        gsap.to('.shine-sweep', {
+          left: '150%',
+          duration: 1.2,
+          ease: 'power2.inOut',
+          delay: 2.5,
+          repeat: -1,
+          repeatDelay: 3,
+          onStart: () => {
+            gsap.set('.shine-sweep', { left: '-100%' });
+          }
+        });
+      };
+      sweepAnimation();
+    }
+    return () => {
+      gsap.killTweensOf('.shine-sweep');
+    };
+  }, [isLoading, activeBranchId]);
+
   const handleOpenQuickSettings = (restaurant: Restaurant) => {
     setSelectedBranch(restaurant);
     setIsQuickSettingsOpen(true);
@@ -275,6 +331,10 @@ export default function ManageRestaurantPage() {
 
   const handleAddNewBranch = () => {
     router.push('/dashboard/categories/new');
+  };
+
+  const handleSelectBranch = (id: string) => {
+    setActiveBranchId(id);
   };
 
   if (isLoading) {
@@ -289,8 +349,8 @@ export default function ManageRestaurantPage() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Manage Branches</h1>
-              <p className="text-muted-foreground mt-1">
+              <h1 className="text-3xl font-extrabold tracking-tight text-foreground text-left">Manage Branches</h1>
+              <p className="text-muted-foreground mt-1 text-left">
                 Overview and configuration for all Bloomsbury&apos;s outlets
               </p>
             </div>
@@ -335,6 +395,8 @@ export default function ManageRestaurantPage() {
               <RestaurantCard 
                 key={restaurant.id} 
                 restaurant={restaurant} 
+                isActive={activeBranchId === restaurant.id}
+                onSelect={handleSelectBranch}
                 onQuickSettings={handleOpenQuickSettings}
                 onEdit={handleEditBranch}
               />
