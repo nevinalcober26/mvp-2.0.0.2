@@ -110,7 +110,7 @@ export default function LoginPage() {
       </header>
 
       <main className="relative flex-1 flex flex-col items-center justify-center p-4 overflow-auto">
-        {/* Background Gradients - Mirrored 120000% */}
+        {/* Background Gradients */}
         <div className="absolute inset-0 z-0 pointer-events-none fixed">
           <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-[#e6f7f6] blur-[120px] opacity-60" />
           <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-[#fffcf0] blur-[120px] opacity-60" />
@@ -131,7 +131,7 @@ export default function LoginPage() {
               >
                 Log In
                 {activeTab === 'login' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#18B4A6]" />
+                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#18B4A6] animate-in fade-in duration-300" />
                 )}
               </button>
               <button
@@ -143,182 +143,187 @@ export default function LoginPage() {
               >
                 Sign Up
                 {activeTab === 'signup' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#18B4A6]" />
+                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#18B4A6] animate-in fade-in duration-300" />
                 )}
               </button>
             </div>
 
-            <CardContent className="p-6 sm:p-8 space-y-6">
-              <div className="text-center space-y-1">
-                <h1 className="text-[24px] font-black tracking-tight text-[#142424]">
-                  {activeTab === 'login' ? 'Login to your Account' : 'Welcome to eMenu Table'}
-                </h1>
-                <p className="text-[12px] font-medium text-gray-400">
-                  One Platform. Every Tool Your Restaurant Needs
-                </p>
-              </div>
-
-              <form onSubmit={handleAuthAction} className="space-y-4">
-                {activeTab === 'signup' && (
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="firstName" className="text-[12px] font-bold text-[#142424]">
-                        First Name <span className="text-red-500">*</span>
-                      </Label>
-                      <Input
-                        id="firstName"
-                        placeholder="John"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        required
-                        className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px]"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="lastName" className="text-[12px] font-bold text-[#142424]">
-                        Last Name <span className="text-red-500">*</span>
-                      </Label>
-                      <Input
-                        id="lastName"
-                        placeholder="Smith"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        required
-                        className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px]"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="email" className="text-[12px] font-bold text-[#142424]">
-                    Email Address <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px] focus:ring-[#18B4A6] focus:border-[#18B4A6] transition-all placeholder:text-gray-300"
-                  />
+            <CardContent className="p-6 sm:p-8">
+              <div 
+                key={activeTab} 
+                className="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-6"
+              >
+                <div className="text-center space-y-1">
+                  <h1 className="text-[24px] font-black tracking-tight text-[#142424]">
+                    {activeTab === 'login' ? 'Login to your Account' : 'Welcome to eMenu Table'}
+                  </h1>
+                  <p className="text-[12px] font-medium text-gray-400">
+                    One Platform. Every Tool Your Restaurant Needs
+                  </p>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="password" className="text-[12px] font-bold text-[#142424]">
-                    Password <span className="text-red-500">*</span>
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      className="h-11 bg-white border-gray-200 rounded-xl px-4 pr-12 text-[13px] focus:ring-[#18B4A6] focus:border-[#18B4A6] transition-all placeholder:text-gray-300"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#18B4A6] transition-colors"
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
+                <form onSubmit={handleAuthAction} className="space-y-4">
                   {activeTab === 'signup' && (
-                    <p className="text-[10px] text-gray-400">
-                      Must be at least 8 characters with numbers and letters
-                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="firstName" className="text-[12px] font-bold text-[#142424]">
+                          First Name <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          id="firstName"
+                          placeholder="John"
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          required
+                          className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px]"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="lastName" className="text-[12px] font-bold text-[#142424]">
+                          Last Name <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          id="lastName"
+                          placeholder="Smith"
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          required
+                          className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px]"
+                        />
+                      </div>
+                    </div>
                   )}
-                </div>
 
-                {activeTab === 'signup' && (
                   <div className="space-y-1.5">
-                    <Label htmlFor="confirmPassword" className="text-[12px] font-bold text-[#142424]">
-                      Confirm Password <span className="text-red-500">*</span>
+                    <Label htmlFor="email" className="text-[12px] font-bold text-[#142424]">
+                      Email Address <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="your@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="h-11 bg-white border-gray-200 rounded-xl px-4 text-[13px] focus:ring-[#18B4A6] focus:border-[#18B4A6] transition-all placeholder:text-gray-300"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="password" className="text-[12px] font-bold text-[#142424]">
+                      Password <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
                       <Input
-                        id="confirmPassword"
-                        type={showConfirmPassword ? 'text' : 'password'}
+                        id="password"
+                        type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                         required
-                        className="h-11 bg-white border-gray-200 rounded-xl px-4 pr-12 text-[13px]"
+                        className="h-11 bg-white border-gray-200 rounded-xl px-4 pr-12 text-[13px] focus:ring-[#18B4A6] focus:border-[#18B4A6] transition-all placeholder:text-gray-300"
                       />
                       <button
                         type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#18B4A6] transition-colors"
                       >
-                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
+                    {activeTab === 'signup' && (
+                      <p className="text-[10px] text-gray-400">
+                        Must be at least 8 characters with numbers and letters
+                      </p>
+                    )}
                   </div>
-                )}
 
-                {activeTab === 'login' ? (
-                  <div className="flex items-center justify-between pt-0.5">
-                    <div className="flex items-center space-x-2.5">
-                      <Checkbox 
-                        id="remember" 
-                        className="border-gray-300 rounded-md data-[state=checked]:bg-[#18B4A6] data-[state=checked]:border-[#18B4A6]" 
-                      />
-                      <label htmlFor="remember" className="text-[12px] font-medium text-gray-500 cursor-pointer">
-                        Remember me
-                      </label>
+                  {activeTab === 'signup' && (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="confirmPassword" className="text-[12px] font-bold text-[#142424]">
+                        Confirm Password <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="confirmPassword"
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          placeholder="••••••••"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          required
+                          className="h-11 bg-white border-gray-200 rounded-xl px-4 pr-12 text-[13px]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#18B4A6] transition-colors"
+                        >
+                          {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
                     </div>
-                    <button 
-                      type="button" 
-                      className="text-[12px] font-bold text-[#18B4A6] hover:underline transition-all"
-                    >
-                      Forgot password?
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-2 pt-1">
-                    <div className="flex items-start space-x-3">
-                      <Checkbox 
-                        id="tos" 
-                        required
-                        className="mt-0.5 border-gray-300 rounded-md data-[state=checked]:bg-[#18B4A6] data-[state=checked]:border-[#18B4A6]" 
-                      />
-                      <label htmlFor="tos" className="text-[11px] font-medium text-gray-500 leading-tight">
-                        I agree to the <span className="text-[#18B4A6] font-bold cursor-pointer">Terms of Service</span> and <span className="text-[#18B4A6] font-bold cursor-pointer">Privacy Policy</span>
-                      </label>
-                    </div>
-                    <div className="flex items-start space-x-3">
-                      <Checkbox 
-                        id="marketing" 
-                        className="mt-0.5 border-gray-300 rounded-md data-[state=checked]:bg-[#18B4A6] data-[state=checked]:border-[#18B4A6]" 
-                      />
-                      <label htmlFor="marketing" className="text-[11px] font-medium text-gray-500 leading-tight">
-                        Send me product updates and marketing emails
-                      </label>
-                    </div>
-                  </div>
-                )}
-
-                {error && <p className="text-destructive text-xs font-bold text-center animate-in fade-in slide-in-from-top-1">{error}</p>}
-
-                <Button 
-                  className="w-full h-12 bg-[#18B4A6] hover:bg-[#149d94] text-white font-bold text-[14px] rounded-xl shadow-lg shadow-[#18B4A6]/20 transition-all active:scale-[0.98] mt-2" 
-                  type="submit" 
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Please wait...
-                    </>
-                  ) : (
-                    activeTab === 'login' ? 'Log In' : 'Create Account'
                   )}
-                </Button>
-              </form>
+
+                  {activeTab === 'login' ? (
+                    <div className="flex items-center justify-between pt-0.5">
+                      <div className="flex items-center space-x-2.5">
+                        <Checkbox 
+                          id="remember" 
+                          className="border-gray-300 rounded-md data-[state=checked]:bg-[#18B4A6] data-[state=checked]:border-[#18B4A6]" 
+                        />
+                        <label htmlFor="remember" className="text-[12px] font-medium text-gray-500 cursor-pointer">
+                          Remember me
+                        </label>
+                      </div>
+                      <button 
+                        type="button" 
+                        className="text-[12px] font-bold text-[#18B4A6] hover:underline transition-all"
+                      >
+                        Forgot password?
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 pt-1">
+                      <div className="flex items-start space-x-3">
+                        <Checkbox 
+                          id="tos" 
+                          required
+                          className="mt-0.5 border-gray-300 rounded-md data-[state=checked]:bg-[#18B4A6] data-[state=checked]:border-[#18B4A6]" 
+                        />
+                        <label htmlFor="tos" className="text-[11px] font-medium text-gray-500 leading-tight">
+                          I agree to the <span className="text-[#18B4A6] font-bold cursor-pointer">Terms of Service</span> and <span className="text-[#18B4A6] font-bold cursor-pointer">Privacy Policy</span>
+                        </label>
+                      </div>
+                      <div className="flex items-start space-x-3">
+                        <Checkbox 
+                          id="marketing" 
+                          className="mt-0.5 border-gray-300 rounded-md data-[state=checked]:bg-[#18B4A6] data-[state=checked]:border-[#18B4A6]" 
+                        />
+                        <label htmlFor="marketing" className="text-[11px] font-medium text-gray-500 leading-tight">
+                          Send me product updates and marketing emails
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  {error && <p className="text-destructive text-xs font-bold text-center animate-in fade-in slide-in-from-top-1">{error}</p>}
+
+                  <Button 
+                    className="w-full h-12 bg-[#18B4A6] hover:bg-[#149d94] text-white font-bold text-[14px] rounded-xl shadow-lg shadow-[#18B4A6]/20 transition-all active:scale-[0.98] mt-2" 
+                    type="submit" 
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Please wait...
+                      </>
+                    ) : (
+                      activeTab === 'login' ? 'Log In' : 'Create Account'
+                    )}
+                  </Button>
+                </form>
+              </div>
             </CardContent>
           </Card>
         </div>
