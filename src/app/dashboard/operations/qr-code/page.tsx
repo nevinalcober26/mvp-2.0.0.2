@@ -30,13 +30,11 @@ import {
   ExternalLink, 
   CheckCircle2,
   Printer,
-  ChevronRight,
   FileText,
   Upload,
   X,
   FileImage,
   Layers,
-  FileCode
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -381,66 +379,57 @@ export default function QrCodePage() {
 
       {/* Download Format Modal */}
       <Dialog open={isDownloadModalOpen} onOpenChange={setIsDownloadModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">Download QR Code</DialogTitle>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-2xl font-bold">Download QR Code</DialogTitle>
             <DialogDescription>
-              Choose your preferred high-resolution format for menu integration or physical printing.
+              Select your preferred high-resolution format for menu integration or physical printing.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="grid grid-cols-1 gap-3 py-4">
+          <div className="grid grid-cols-3 gap-4 py-6">
             <button 
               onClick={() => handleDownload('PNG')}
-              className="flex items-center justify-between p-4 rounded-xl border-2 border-transparent bg-muted/30 hover:bg-primary/5 hover:border-primary/20 transition-all group"
+              className="flex flex-col items-center gap-4 p-6 rounded-2xl border bg-card hover:border-primary/50 hover:bg-primary/5 transition-all group shadow-sm hover:shadow-md outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-lg bg-background flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
-                  <FileImage className="h-5 w-5" />
-                </div>
-                <div className="text-left">
-                  <p className="text-sm font-bold">Standard Image (PNG)</p>
-                  <p className="text-xs text-muted-foreground">Best for website and social media usage.</p>
-                </div>
+              <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
+                <FileImage className="h-7 w-7" />
               </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              <div className="text-center">
+                <p className="text-sm font-bold text-foreground">PNG</p>
+                <p className="text-[10px] uppercase font-black tracking-[0.1em] text-muted-foreground/60 mt-1">Image</p>
+              </div>
             </button>
 
             <button 
               onClick={() => handleDownload('SVG')}
-              className="flex items-center justify-between p-4 rounded-xl border-2 border-transparent bg-muted/30 hover:bg-primary/5 hover:border-primary/20 transition-all group"
+              className="flex flex-col items-center gap-4 p-6 rounded-2xl border bg-card hover:border-primary/50 hover:bg-primary/5 transition-all group shadow-sm hover:shadow-md outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-lg bg-background flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
-                  <Layers className="h-5 w-5" />
-                </div>
-                <div className="text-left">
-                  <p className="text-sm font-bold">Vector Graphic (SVG)</p>
-                  <p className="text-xs text-muted-foreground">Scalable to any size without losing quality.</p>
-                </div>
+              <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
+                <Layers className="h-7 w-7" />
               </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              <div className="text-center">
+                <p className="text-sm font-bold text-foreground">SVG</p>
+                <p className="text-[10px] uppercase font-black tracking-[0.1em] text-muted-foreground/60 mt-1">Vector</p>
+              </div>
             </button>
 
             <button 
               onClick={() => handleDownload('PDF')}
-              className="flex items-center justify-between p-4 rounded-xl border-2 border-transparent bg-muted/30 hover:bg-primary/5 hover:border-primary/20 transition-all group"
+              className="flex flex-col items-center gap-4 p-6 rounded-2xl border bg-card hover:border-primary/50 hover:bg-primary/5 transition-all group shadow-sm hover:shadow-md outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-lg bg-background flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
-                  <FileText className="h-5 w-5" />
-                </div>
-                <div className="text-left">
-                  <p className="text-sm font-bold">Print Document (PDF)</p>
-                  <p className="text-xs text-muted-foreground">Ready for professional printing and signage.</p>
-                </div>
+              <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
+                <FileText className="h-7 w-7" />
               </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              <div className="text-center">
+                <p className="text-sm font-bold text-foreground">PDF</p>
+                <p className="text-[10px] uppercase font-black tracking-[0.1em] text-muted-foreground/60 mt-1">Document</p>
+              </div>
             </button>
           </div>
 
-          <DialogFooter>
-            <Button variant="ghost" className="w-full" onClick={() => setIsDownloadModalOpen(false)}>
+          <DialogFooter className="pt-2">
+            <Button variant="ghost" className="w-full font-bold uppercase tracking-widest text-[10px] h-11" onClick={() => setIsDownloadModalOpen(false)}>
               Cancel
             </Button>
           </DialogFooter>
