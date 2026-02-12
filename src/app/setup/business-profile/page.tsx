@@ -70,8 +70,8 @@ export default function BusinessProfilePage() {
       description: 'Your business profile has been saved successfully.',
     });
 
-    // In a real flow, you'd go to plan selection. For this prototype, we go to dashboard.
-    router.push('/dashboard');
+    // Proceed to plan selection
+    router.push('/setup/choose-plan');
   };
 
   return (
@@ -141,10 +141,10 @@ export default function BusinessProfilePage() {
 
           <Card className="border-0 shadow-[0_20px_50px_rgba(0,0,0,0.06)] rounded-[24px] overflow-hidden bg-white/90 backdrop-blur-xl">
             <CardContent className="p-8 sm:p-10">
-              <form onSubmit={handleContinue} className="space-y-10">
+              <form onSubmit={handleContinue} className="space-y-6">
                 {/* Business Information */}
-                <section className="space-y-6">
-                  <div className="space-y-1 border-b border-gray-100 pb-4">
+                <section className="space-y-4">
+                  <div className="space-y-1 border-b border-gray-100 pb-3">
                     <h3 className="text-[18px] font-bold text-[#142424]">Business Information</h3>
                     <p className="text-[12px] text-gray-400 font-medium">This information will be used to set up your tenant profile</p>
                   </div>
@@ -207,8 +207,8 @@ export default function BusinessProfilePage() {
                 </section>
 
                 {/* Contact Information */}
-                <section className="space-y-6">
-                  <div className="space-y-1 border-b border-gray-100 pb-4">
+                <section className="space-y-4">
+                  <div className="space-y-1 border-b border-gray-100 pb-3">
                     <h3 className="text-[18px] font-bold text-[#142424]">Contact Information</h3>
                   </div>
 
@@ -244,8 +244,8 @@ export default function BusinessProfilePage() {
                 </section>
 
                 {/* Business Address */}
-                <section className="space-y-6">
-                  <div className="space-y-1 border-b border-gray-100 pb-4">
+                <section className="space-y-4">
+                  <div className="space-y-1 border-b border-gray-100 pb-3">
                     <h3 className="text-[18px] font-bold text-[#142424]">Business Address</h3>
                   </div>
 
@@ -316,7 +316,7 @@ export default function BusinessProfilePage() {
                 </section>
 
                 {/* Action Buttons */}
-                <div className="flex items-center justify-between pt-4 pb-12">
+                <div className="flex items-center justify-between pt-4">
                   <Button 
                     type="button"
                     variant="outline" 
