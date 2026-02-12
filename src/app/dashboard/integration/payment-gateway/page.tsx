@@ -30,7 +30,8 @@ import {
   Building2,
   RefreshCw,
   Power,
-  PowerOff
+  PowerOff,
+  Network
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -81,11 +82,11 @@ const SUPPORTED_GATEWAYS = [
     icon: Zap
   },
   { 
-    id: 'paypal', 
-    name: 'PayPal Hub', 
-    description: 'Enable global payments with PayPal, Venmo, and local methods.', 
+    id: 'network-international', 
+    name: 'Network International', 
+    description: 'Leading enabler of digital commerce in the Middle East and Africa.', 
     color: 'bg-orange-50 text-orange-600',
-    icon: WalletCards
+    icon: Network
   },
   { 
     id: 'adyen', 
@@ -113,13 +114,13 @@ export default function PaymentGatewayPage() {
     },
     {
       id: '2',
-      brand: 'PayPal Hub',
+      brand: 'Network International',
       status: 'sandbox',
       lastSync: '1 hour ago',
-      merchantId: 'mch_PYP_441029',
+      merchantId: 'mch_NI_441029',
       environment: 'sandbox',
       isEnabled: true,
-      providerId: 'paypal'
+      providerId: 'network-international'
     }
   ]);
 
@@ -249,7 +250,6 @@ export default function PaymentGatewayPage() {
                   Connect New Gateway
                 </Button>
               </SheetTrigger>
-              {/* Add Gateway Drawer Content */}
               <SheetContent className="sm:max-w-xl p-0 overflow-hidden flex flex-col border-l shadow-2xl bg-white text-left">
                 <div className="bg-muted/30 p-8 border-b shrink-0">
                   <SheetHeader className="text-left space-y-2">
