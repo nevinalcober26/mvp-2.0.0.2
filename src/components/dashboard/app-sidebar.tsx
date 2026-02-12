@@ -1,3 +1,4 @@
+
 'use client';
 import {
   PieChart,
@@ -10,6 +11,7 @@ import {
   LayoutDashboard,
   Search,
   Rocket,
+  CircleHelp,
   HelpCircle,
   ChevronDown,
   MapPin,
@@ -537,17 +539,17 @@ export function AppSidebar() {
             </NextLink>
           </div>
 
-          <div className="group-data-[collapsible=icon]:hidden mt-2">
+          <div className="group-data-[collapsible=icon]:hidden mt-2 border-t border-white/5 pt-2">
             <SidebarMenu className="px-0">
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
                   tooltip="Quickstart"
                   size="sm"
-                  className="h-9 justify-start text-white hover:bg-gray-800 font-medium"
+                  className="h-9 justify-start text-white/70 hover:text-white hover:bg-white/5 font-medium transition-colors"
                 >
                   <NextLink href="#">
-                    <Rocket className="h-4 w-4 text-gray-400" />
+                    <Rocket className="h-4 w-4 mr-3 text-primary" />
                     <span className="group-data-[collapsible=icon]:hidden">
                       Quickstart
                     </span>
@@ -559,12 +561,12 @@ export function AppSidebar() {
                   asChild
                   tooltip="Help"
                   size="sm"
-                  className="h-9 justify-start text-white hover:bg-gray-800 font-medium"
+                  className="h-9 justify-start text-white/70 hover:text-white hover:bg-white/5 font-medium transition-colors"
                 >
                   <NextLink href="#">
-                    <HelpCircle className="h-4 w-4 text-gray-400" />
+                    <CircleHelp className="h-4 w-4 mr-3 text-primary" />
                     <span className="group-data-[collapsible=icon]:hidden">
-                      Help
+                      Help Center
                     </span>
                   </NextLink>
                 </SidebarMenuButton>
