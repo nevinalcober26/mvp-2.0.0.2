@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { CreditCard, Lock, ShieldCheck, Check, ArrowRight, Loader2, RefreshCw, Crown } from 'lucide-react';
+import { CreditCard, Lock, ShieldCheck, Check, ArrowRight, Loader2, RefreshCw, Crown, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
@@ -138,6 +138,17 @@ export default function PaymentGatewayPage() {
 
             <Card className="border-0 shadow-[0_20px_50px_rgba(0,0,0,0.06)] rounded-[24px] overflow-hidden bg-white/90 backdrop-blur-xl">
               <CardContent className="p-8 space-y-8">
+                {/* Prototype Disclaimer Badge */}
+                <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-start gap-3">
+                  <ShieldCheck className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+                  <div className="space-y-1">
+                    <p className="text-[11px] font-black uppercase tracking-[0.1em] text-amber-900">Prototype Demo Environment</p>
+                    <p className="text-[13px] font-medium text-amber-800 leading-relaxed">
+                      This payment gateway is for prototype demonstration purposes only. No actual credit card will be charged.
+                    </p>
+                  </div>
+                </div>
+
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-full bg-[#18B4A6]/10 flex items-center justify-center">
@@ -199,12 +210,12 @@ export default function PaymentGatewayPage() {
           </div>
 
           <div className="lg:col-span-5 space-y-6 animate-in fade-in slide-in-from-right-4 duration-700">
-            <h3 className="text-[18px] font-black text-[#142424] pt-4">Order Summary</h3>
-            <Card className="border-0 shadow-lg rounded-[24px] bg-[#142424] text-white overflow-hidden">
+            <h3 className="text-[18px] font-black text-[#142424] pt-4 text-left">Order Summary</h3>
+            <Card className="border-0 shadow-lg rounded-[24px] bg-white text-[#142424] overflow-hidden">
               <CardContent className="p-8 space-y-6">
-                <div className="flex items-center justify-between border-b border-white/10 pb-6">
-                  <div className="space-y-1">
-                    <Badge className="bg-[#18B4A6] text-white font-black text-[9px] uppercase px-2 py-0.5 border-0">PRO PLAN</Badge>
+                <div className="flex items-center justify-between border-b border-gray-100 pb-6">
+                  <div className="space-y-1 text-left">
+                    <Badge className="bg-[#18B4A6]/10 text-[#18B4A6] font-black text-[9px] uppercase px-2 py-0.5 border-0 shadow-none">PRO PLAN</Badge>
                     <h4 className="text-xl font-black">eMenu Digital Hub</h4>
                   </div>
                   <Crown className="h-8 w-8 text-[#18B4A6]" />
@@ -212,27 +223,27 @@ export default function PaymentGatewayPage() {
 
                 <div className="space-y-4">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-400 font-bold">Billing Cycle</span>
-                    <span className="font-bold capitalize">{planData?.cycle}</span>
+                    <span className="text-gray-500 font-bold">Billing Cycle</span>
+                    <span className="font-black capitalize">{planData?.cycle}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-400 font-bold">Platform Fee</span>
-                    <span className="font-bold">${planData?.price || 0}.00</span>
+                    <span className="text-gray-500 font-bold">Platform Fee</span>
+                    <span className="font-black">${planData?.price || 0}.00</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-400 font-bold">Setup Fee</span>
-                    <span className="text-[#4ade80] font-black">WAIVED</span>
+                    <span className="text-gray-500 font-bold">Setup Fee</span>
+                    <span className="text-[#18B4A6] font-black uppercase tracking-wider">WAIVED</span>
                   </div>
                 </div>
 
-                <div className="border-t border-white/10 pt-6 flex justify-between items-center">
+                <div className="border-t border-gray-100 pt-6 flex justify-between items-center">
                   <span className="text-lg font-black tracking-tight">Total Amount</span>
-                  <span className="text-3xl font-black text-[#18B4A6]">${planData?.price || 0}.00</span>
+                  <span className="text-3xl font-black text-[#18B4A6] tabular-nums">${planData?.price || 0}.00</span>
                 </div>
               </CardContent>
             </Card>
 
-            <div className="p-6 bg-white rounded-[24px] border border-gray-100 shadow-sm space-y-4">
+            <div className="p-6 bg-white rounded-[24px] border border-gray-100 shadow-sm space-y-4 text-left">
               <h4 className="text-[13px] font-black text-[#142424] uppercase tracking-wider">Plan Highlights</h4>
               <ul className="space-y-3">
                 {['Up to 5 locations', 'Priority 24/7 Support', 'Advanced Analytics'].map(item => (
