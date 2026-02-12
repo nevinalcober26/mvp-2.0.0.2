@@ -107,11 +107,11 @@ interface PosConnection {
 }
 
 const SUPPORTED_POS = [
-  { id: 'oracle-simphony', name: 'Oracle Micros Simphony', description: 'Enterprise hospitality platform' },
-  { id: 'toast', name: 'Toast', description: 'Cloud-based restaurant platform' },
-  { id: 'square', name: 'Square', description: 'Universal payment & POS solution' },
-  { id: 'revel', name: 'Revel Systems', description: 'iPad-based POS for high volume' },
-  { id: 'clover', name: 'Clover', description: 'Integrated merchant services' },
+  { id: 'oracle-simphony', name: 'Oracle Micros Simphony', description: 'Enterprise hospitality platform', color: 'bg-red-50 text-red-600' },
+  { id: 'toast', name: 'Toast', description: 'Cloud-based restaurant platform', color: 'bg-orange-50 text-orange-600' },
+  { id: 'square', name: 'Square', description: 'Universal payment & POS solution', color: 'bg-blue-50 text-blue-600' },
+  { id: 'revel', name: 'Revel Systems', description: 'iPad-based POS for high volume', color: 'bg-indigo-50 text-indigo-600' },
+  { id: 'clover', name: 'Clover', description: 'Integrated merchant services', color: 'bg-green-50 text-green-600' },
 ];
 
 // Reflecting the provided Simphony JSON Schema
@@ -369,7 +369,7 @@ export default function PosIntegrationPage() {
     <>
       <DashboardHeader />
       <main className="p-4 sm:p-6 lg:p-10 bg-muted/20 min-h-[calc(100vh-4rem)]">
-        <div className="max-w-6xl mx-auto space-y-8">
+        <div className="max-w-6xl mx-auto space-y-8 text-left">
           
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
@@ -402,11 +402,11 @@ export default function PosIntegrationPage() {
                       <SheetTitle className="text-2xl font-bold text-foreground">Add POS Connection</SheetTitle>
                       <SheetDescription className="text-muted-foreground font-medium">
                         {currentStep === 1 
-                          ? "Select a provider and enter your terminal credentials." 
+                          ? "Select your provider to begin the connection process." 
                           : "Map your connection to your venue locations and centers."}
                       </SheetDescription>
                     </SheetHeader>
-                    {selectedProvider === 'oracle-simphony' && (
+                    {selectedProvider && (
                       <div className="mt-6 flex items-center gap-2">
                         <div className={cn("h-1 flex-1 rounded-full transition-colors", currentStep >= 1 ? "bg-primary" : "bg-muted")} />
                         <div className={cn("h-1 flex-1 rounded-full transition-colors", currentStep >= 2 ? "bg-primary" : "bg-muted")} />
@@ -418,27 +418,42 @@ export default function PosIntegrationPage() {
                     <div className="p-8 space-y-8">
                       {currentStep === 1 ? (
                         <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-                          <div className="space-y-2">
+                          <div className="space-y-4">
                             <Label className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground">Select Provider</Label>
-                            <Select value={selectedProvider || ""} onValueChange={setSelectedProvider}>
-                              <SelectTrigger className="h-12 text-base font-bold bg-background">
-                                <SelectValue placeholder="Choose POS brand" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {SUPPORTED_POS.map(pos => (
-                                  <SelectItem key={pos.id} value={pos.id}>
-                                    <div className="flex flex-col py-1">
-                                      <span className="font-bold">{pos.name}</span>
-                                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{pos.description}</span>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              {SUPPORTED_POS.map((pos) => (
+                                <div
+                                  key={pos.id}
+                                  onClick={() => setSelectedProvider(pos.id)}
+                                  className={cn(
+                                    "cursor-pointer flex flex-col p-5 rounded-2xl border-2 transition-all duration-300 group",
+                                    selectedProvider === pos.id
+                                      ? "border-primary bg-primary/5 ring-4 ring-primary/10"
+                                      : "border-muted hover:border-accent-foreground/20 bg-background"
+                                  )}
+                                >
+                                  <div className="flex items-center justify-between mb-4">
+                                    <div className={cn("h-12 w-12 rounded-xl flex items-center justify-center font-black text-sm shadow-sm transition-transform group-hover:scale-110", pos.color)}>
+                                      {pos.name.split(' ').map(n => n[0]).join('')}
                                     </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                                    {selectedProvider === pos.id && (
+                                      <CheckCircle2 className="h-6 w-6 text-primary animate-in zoom-in duration-300" />
+                                    )}
+                                  </div>
+                                  <div className="space-y-1.5">
+                                    <p className="font-bold text-base text-foreground">{pos.name}</p>
+                                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider leading-tight">
+                                      {pos.description}
+                                    </p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
 
                           {selectedProvider === 'oracle-simphony' && (
-                            <div className="space-y-6">
+                            <div className="space-y-6 pt-4 border-t border-dashed animate-in fade-in slide-in-from-top-4 duration-500">
                               <div className="grid gap-6">
                                 <div className="space-y-2">
                                   <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
@@ -604,7 +619,7 @@ export default function PosIntegrationPage() {
                   "overflow-hidden border-2 transition-all hover:shadow-xl rounded-3xl w-full max-w-xl",
                   conn.status === 'error' ? "border-destructive/20" : "border-border"
                 )}>
-                  <CardHeader className="pb-4 bg-muted/10 border-b">
+                  <CardHeader className="pb-4 bg-muted/10 border-b text-left">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-4">
                         <div className="h-12 w-12 rounded-2xl bg-white shadow-md border flex items-center justify-center">
@@ -686,7 +701,7 @@ export default function PosIntegrationPage() {
 
       {/* Connection Settings Drawer */}
       <Sheet open={isSettingsDrawerOpen} onOpenChange={setIsSettingsDrawerOpen}>
-        <SheetContent className="sm:max-w-xl p-0 overflow-hidden flex flex-col border-l shadow-2xl bg-white">
+        <SheetContent className="sm:max-w-xl p-0 overflow-hidden flex flex-col border-l shadow-2xl bg-white text-left">
           <div className="bg-muted/30 p-8 border-b shrink-0">
             <div className="flex items-center gap-4 mb-4">
               <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
@@ -720,13 +735,13 @@ export default function PosIntegrationPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-6 pt-2">
-                  <div className="space-y-2">
+                  <div className="space-y-2 text-left">
                     <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">POS Provider</Label>
                     <div className="h-11 flex items-center px-4 rounded-xl bg-muted/30 border border-dashed font-bold text-xs">
                       {tempSettings.brand}
                     </div>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2 text-left">
                     <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Machine ID</Label>
                     <div className="h-11 flex items-center px-4 rounded-xl bg-muted/30 border border-dashed font-mono text-xs font-bold">
                       {tempSettings.terminalId}
@@ -742,7 +757,7 @@ export default function PosIntegrationPage() {
                 </div>
 
                 <div className="grid gap-6">
-                  <div className="space-y-2">
+                  <div className="space-y-2 text-left">
                     <Label className="text-sm font-bold">Location</Label>
                     <Select 
                       value={tempSettings.location || ""} 
@@ -758,7 +773,7 @@ export default function PosIntegrationPage() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2 text-left">
                     <Label className="text-sm font-bold">Revenue Center</Label>
                     <Select 
                       value={tempSettings.revenueCenter || ""} 
@@ -775,7 +790,7 @@ export default function PosIntegrationPage() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-2">
+                    <div className="space-y-2 text-left">
                       <Label className="text-sm font-bold">Tender Type</Label>
                       <Select defaultValue="visa">
                         <SelectTrigger className="h-11 bg-background font-medium">
@@ -787,7 +802,7 @@ export default function PosIntegrationPage() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 text-left">
                       <Label className="text-sm font-bold">Employee ID</Label>
                       <Input defaultValue="1001" className="h-11 bg-background font-medium" />
                     </div>
@@ -797,7 +812,7 @@ export default function PosIntegrationPage() {
 
               <div className="p-4 rounded-2xl bg-orange-50 border border-orange-100 flex items-start gap-3">
                 <AlertCircle className="h-4 w-4 text-orange-600 shrink-0 mt-0.5" />
-                <p className="text-[10px] text-orange-800 font-medium leading-tight">
+                <p className="text-[10px] text-orange-800 font-medium leading-tight text-left">
                   Note: Changes to Venue Mapping may affect how transactions are recorded in your POS. Consult your terminal administrator before making changes.
                 </p>
               </div>
@@ -815,7 +830,7 @@ export default function PosIntegrationPage() {
 
       {/* Syncing Progress Dialog */}
       <Dialog open={isSyncing} onOpenChange={(open) => !open && setIsSyncing(false)}>
-        <DialogContent className="sm:max-w-md p-8 border-0 shadow-2xl bg-white">
+        <DialogContent className="sm:max-w-md p-8 border-0 shadow-2xl bg-white text-left">
           <div className="flex flex-col items-center text-center space-y-8">
             <div className="relative">
               <div className={cn(
@@ -833,7 +848,7 @@ export default function PosIntegrationPage() {
               )}
             </div>
 
-            <div className="space-y-2 w-full">
+            <div className="space-y-2 w-full text-center">
               <DialogTitle className="text-2xl font-bold text-foreground">
                 {isSyncComplete ? "Successfully Connected" : "Connecting to Machine"}
               </DialogTitle>
@@ -871,7 +886,7 @@ export default function PosIntegrationPage() {
       <Dialog open={isVerificationModalOpen} onOpenChange={setIsVerificationModalOpen}>
         <DialogContent 
           className={cn(
-            "p-0 overflow-hidden flex flex-col border shadow-2xl transition-all duration-500 ease-in-out bg-white rounded-2xl",
+            "p-0 overflow-hidden flex flex-col border shadow-2xl transition-all duration-500 ease-in-out bg-white rounded-2xl text-left",
             isExpanded ? "max-w-full w-[100vw] h-[100vh] rounded-none m-0" : "max-w-7xl w-[95vw] h-[90vh]"
           )}
         >
@@ -1039,14 +1054,14 @@ export default function PosIntegrationPage() {
                       )}>
                         <TableCell className="px-6">
                           <Checkbox 
-                            checked={selectedItemIds.has(item.id)}
+                            checked={item.id && selectedItemIds.has(item.id)}
                             onCheckedChange={() => toggleItemSelection(item.id)}
                           />
                         </TableCell>
                         <TableCell className="pl-6">
                           <div className="flex flex-col py-2">
-                            <span className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
-                            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight flex items-center gap-1.5 mt-0.5">
+                            <span className="font-bold text-sm text-foreground group-hover:text-primary transition-colors text-left">{item.name}</span>
+                            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight flex items-center gap-1.5 mt-0.5 text-left">
                               <CheckCircle2 className="h-3 w-3 text-green-500/60" /> {item.subtitle}
                             </span>
                           </div>
@@ -1095,7 +1110,7 @@ export default function PosIntegrationPage() {
                 ))}
               </Table>
               {filteredItems.length === 0 && (
-                <div className="py-32 text-center">
+                <div className="py-32 text-center text-left">
                   <div className="h-20 w-20 rounded-2xl bg-muted/30 flex items-center justify-center mx-auto mb-5">
                     <Search className="h-10 w-10 text-muted-foreground opacity-30" />
                   </div>
@@ -1108,12 +1123,12 @@ export default function PosIntegrationPage() {
 
           <div className="p-6 bg-muted/10 border-t shrink-0 flex items-center justify-between">
             <div className="flex items-center gap-8">
-              <div className="flex flex-col">
+              <div className="flex flex-col text-left">
                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] mb-1">Total Imported</span>
                 <span className="text-2xl font-bold text-foreground tabular-nums">{items.length}</span>
               </div>
               <div className="h-10 w-px bg-border" />
-              <div className="flex flex-col">
+              <div className="flex flex-col text-left">
                 <span className="text-[10px] font-bold text-primary/70 uppercase tracking-[0.15em] mb-1">Ready to Publish</span>
                 <span className="text-2xl font-bold text-primary tabular-nums">{items.filter(i => i.isVisible).length}</span>
               </div>
@@ -1132,14 +1147,14 @@ export default function PosIntegrationPage() {
 
       {/* Item Quick Edit Dialog */}
       <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
-        <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-white rounded-2xl border shadow-2xl">
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-white rounded-2xl border shadow-2xl text-left">
           <form onSubmit={handleSaveItemEdit}>
             <div className="p-6 border-b bg-muted/10">
               <DialogTitle className="text-xl font-bold">Edit Synced Item</DialogTitle>
               <DialogDescription className="text-muted-foreground text-sm font-medium">Update the local display name or price for this product.</DialogDescription>
             </div>
             <div className="p-8 space-y-6">
-              <div className="space-y-2">
+              <div className="space-y-2 text-left">
                 <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Product Name</Label>
                 <Input 
                   value={editingItem?.name || ""} 
@@ -1148,7 +1163,7 @@ export default function PosIntegrationPage() {
                 />
               </div>
               <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-2">
+                <div className="space-y-2 text-left">
                   <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Base Price ($)</Label>
                   <Input 
                     type="number"
@@ -1158,7 +1173,7 @@ export default function PosIntegrationPage() {
                     className="h-11 font-mono font-bold bg-background"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 text-left">
                   <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">POS Identifier</Label>
                   <div className="h-11 flex items-center px-4 rounded-md bg-muted/50 border border-dashed font-mono text-[10px] font-bold text-muted-foreground">
                     {editingItem?.machineIdentifier}
@@ -1167,7 +1182,7 @@ export default function PosIntegrationPage() {
               </div>
               <div className="p-4 rounded-xl bg-orange-50 border border-orange-100 flex items-start gap-3">
                 <AlertCircle className="h-4 w-4 text-orange-600 shrink-0 mt-0.5" />
-                <p className="text-[10px] text-orange-800 font-medium leading-tight">
+                <p className="text-[10px] text-orange-800 font-medium leading-tight text-left">
                   Note: Changes made here only affect the digital menu. Your POS machine data will remain unchanged.
                 </p>
               </div>
@@ -1183,7 +1198,7 @@ export default function PosIntegrationPage() {
       </Dialog>
 
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <DialogContent className="sm:max-w-md p-10 border-0 shadow-2xl overflow-hidden bg-white text-center">
+        <DialogContent className="sm:max-w-md p-10 border-0 shadow-2xl overflow-hidden bg-white text-center text-left">
           <div className="absolute -top-10 -right-10 p-8 opacity-10 pointer-events-none rotate-12">
             <Database className="h-48 w-48 text-primary" />
           </div>
