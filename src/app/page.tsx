@@ -76,6 +76,11 @@ export default function LoginPage() {
 
   return (
     <div className={cn("relative flex flex-col min-h-screen bg-[#fafbfc]", inter.className)}>
+      {/* Corporate Header */}
+      <header className="relative z-20 w-full bg-white border-b border-gray-100 py-4 flex justify-center shrink-0 shadow-sm">
+        <EMenuIcon />
+      </header>
+
       {/* Background Mesh */}
       <div className="absolute inset-0 z-0 pointer-events-none fixed">
         <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-[#e6f7f6] blur-[120px] opacity-60" />
@@ -84,12 +89,8 @@ export default function LoginPage() {
         <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-[#fff5f8] blur-[120px] opacity-60" />
       </div>
 
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-[440px] space-y-8 py-6">
-          <div className="flex justify-center mb-2">
-             <EMenuIcon />
-          </div>
-
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 py-8">
+        <div className="w-full max-w-[440px] space-y-8">
           <Card className="border-0 shadow-[0_20px_50px_rgba(0,0,0,0.06)] rounded-[24px] overflow-hidden bg-white/90 backdrop-blur-xl">
             <CardContent className="p-8 pt-10 pb-10">
               <div className="text-center space-y-2 mb-10">
