@@ -13,10 +13,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { Inter } from 'next/font/google';
-import { cn } from '@/lib/utils';
-
-const inter = Inter({ subsets: ['latin'] });
 
 export default function SignupPage() {
   const handleSignUp = () => {
@@ -24,7 +20,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className={cn("flex items-center justify-center min-h-screen bg-background", inter.className)}>
+    <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-full max-w-sm">
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-4">
