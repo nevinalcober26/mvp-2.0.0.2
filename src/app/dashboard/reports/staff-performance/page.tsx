@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -48,7 +49,16 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
+import {
+  subDays,
+  startOfDay,
+  endOfDay,
+  isWithinInterval,
+  format,
+  addDays,
+  startOfWeek,
+  addWeeks,
+} from 'date-fns';
 
 import type { Order } from '@/app/dashboard/orders/types';
 import { mockDataStore } from '@/lib/mock-data-store';
@@ -230,20 +240,22 @@ export default function AnalyticsPage() {
     ];
   }, [filteredTransactions, timeRange]);
   
-  const { paymentPulseData, totalPayments, successRate, volumeData, revenueData, totalVolume, totalGrossRevenue } = useMemo(() => {
+  const { paymentPulseData, successRate, volumeData, revenueData, totalVolume, totalGrossRevenue } = useMemo(() => {
     const pulseData: Record<string, number> = { 'Paid': 0, 'Partial': 0, 'Pending': 0, 'Failed': 0 };
     filteredTransactions.forEach(t => {
-      let status = t.paymentStatus;
+      let status: string = t.paymentStatus;
       if (status === 'Unpaid') status = 'Pending';
-      if(status === 'Paid' || status === 'Partial' || status === 'Pending' || status === 'Failed') {
-        pulseData[status] = (pulseData[status] || 0) + 1;
+      if (status === 'Refunded') status = 'Failed'; // Map Refunded to Failed
+      
+      if(status in pulseData) {
+        pulseData[status]++;
       }
     });
     
     const paymentPulseData = [
       { name: 'Paid', value: pulseData['Paid'], color: '#14b8a6' },
       { name: 'Partial', value: pulseData['Partial'], color: '#f59e0b' },
-      { name: 'Pending', value: pulseData['Pending'], color: '#f59e0b' },
+      { name: 'Pending', value: pulseData['Pending'], color: '#f97316' },
       { name: 'Failed', value: pulseData['Failed'], color: '#ef4444' },
     ];
     
@@ -251,25 +263,79 @@ export default function AnalyticsPage() {
     const successRateNum = totalPayments > 0 ? ((pulseData['Paid'] / totalPayments) * 100) : 0;
     const successRate = successRateNum.toFixed(0);
 
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const volData: { [key: string]: number } = { Mon:0, Tue:0, Wed:0, Thu:0, Fri:0, Sat:0, Sun:0 };
-    const revData: { [key: string]: number } = { Mon:0, Tue:0, Wed:0, Thu:0, Fri:0, Sat:0, Sun:0 };
-    
-    filteredTransactions.forEach(t => {
-        const dayIndex = new Date(t.timestamp).getDay();
-        const dayName = days[(dayIndex + 6) % 7];
-        volData[dayName] = (volData[dayName] || 0) + 1;
-        revData[dayName] = (revData[dayName] || 0) + t.totalAmount;
-    });
+    // Growth Trends Logic
+    let dataMap: { [key: string]: { vol: number; rev: number } } = {};
+    const now = new Date();
 
-    const volumeData = days.map(day => ({ name: day, value: volData[day] }));
-    const revenueData = days.map(day => ({ name: day, value: revData[day] }));
+    let volumeData, revenueData;
+
+    if (timeRange === '90d') {
+        const startDate = startOfDay(subDays(now, 89));
+        const startWeek = startOfWeek(startDate, { weekStartsOn: 1 });
+
+        for (let i = 0; i < 13; i++) { // Approx 13 weeks in 90 days
+            const weekStart = addWeeks(startWeek, i);
+            const weekKey = format(weekStart, 'yyyy-ww');
+            dataMap[weekKey] = { vol: 0, rev: 0 };
+        }
+
+        filteredTransactions.forEach(t => {
+            const transactionDate = new Date(t.timestamp);
+            if (isWithinInterval(transactionDate, { start: startDate, end: now })) {
+                const weekStart = startOfWeek(transactionDate, { weekStartsOn: 1 });
+                const weekKey = format(weekStart, 'yyyy-ww');
+                if (dataMap[weekKey]) {
+                    dataMap[weekKey].vol += 1;
+                    dataMap[weekKey].rev += t.totalAmount;
+                }
+            }
+        });
+
+        const sortedData = Object.keys(dataMap).sort().map(weekKey => {
+            const [year, week] = weekKey.split('-').map(Number);
+            return {
+                name: `W${week}`,
+                ...dataMap[weekKey]
+            };
+        });
+        
+        volumeData = sortedData.map(d => ({ name: d.name, value: d.vol }));
+        revenueData = sortedData.map(d => ({ name: d.name, value: d.rev }));
+
+    } else { // 7d and 30d are daily
+        const days = timeRange === '7d' ? 7 : 30;
+        const startDate = startOfDay(subDays(now, days - 1));
+        const formatLabel = (date: Date) => days === 7 ? format(date, 'eee') : format(date, 'd');
+
+        for (let i = 0; i < days; i++) {
+            const date = addDays(startDate, i);
+            dataMap[format(date, 'yyyy-MM-dd')] = { vol: 0, rev: 0 };
+        }
+
+        filteredTransactions.forEach(t => {
+            const transactionDate = new Date(t.timestamp);
+            if (isWithinInterval(transactionDate, { start: startDate, end: now })) {
+                const dateStr = format(transactionDate, 'yyyy-MM-dd');
+                if (dataMap[dateStr]) {
+                    dataMap[dateStr].vol += 1;
+                    dataMap[dateStr].rev += t.totalAmount;
+                }
+            }
+        });
+        
+        const sortedData = Object.entries(dataMap)
+            .map(([dateStr, data]) => ({ date: new Date(dateStr), ...data }))
+            .sort((a, b) => a.date.getTime() - b.date.getTime());
+        
+        volumeData = sortedData.map(d => ({ name: formatLabel(d.date), value: d.vol }));
+        revenueData = sortedData.map(d => ({ name: formatLabel(d.date), value: d.rev }));
+    }
 
     const totalVolume = volumeData.reduce((sum, item) => sum + item.value, 0);
     const totalGrossRevenue = revenueData.reduce((sum, item) => sum + item.value, 0);
-    
-    return { paymentPulseData, totalPayments, successRate, volumeData, revenueData, totalVolume, totalGrossRevenue };
-}, [filteredTransactions]);
+
+    return { paymentPulseData, successRate, volumeData, revenueData, totalVolume, totalGrossRevenue };
+}, [filteredTransactions, timeRange]);
 
   if (isLoading) {
       return <OrdersPageSkeleton view="list"/>
@@ -405,7 +471,7 @@ export default function AnalyticsPage() {
                                             cursor={{ fill: "hsl(var(--muted))" }}
                                             content={<ChartTooltipContent />}
                                         />
-                                        <XAxis dataKey="name" axisLine={false} tickLine={false} fontSize={10} />
+                                        <XAxis dataKey="name" axisLine={false} tickLine={false} fontSize={10} interval="auto" />
                                         <Bar dataKey="value" radius={[4, 4, 0, 0]} fill="hsl(var(--chart-1))" />
                                     </RechartsBarChart>
                                 </ChartContainer>
@@ -427,7 +493,7 @@ export default function AnalyticsPage() {
                                             cursor={{ fill: "hsl(var(--muted))" }}
                                             content={<ChartTooltipContent />}
                                         />
-                                        <XAxis dataKey="name" axisLine={false} tickLine={false} fontSize={10} />
+                                        <XAxis dataKey="name" axisLine={false} tickLine={false} fontSize={10} interval="auto" />
                                         <Area type="monotone" dataKey="value" stroke="hsl(var(--chart-1))" strokeWidth={2} fill="url(#revenueGradient)" />
                                     </AreaChart>
                                 </ChartContainer>
