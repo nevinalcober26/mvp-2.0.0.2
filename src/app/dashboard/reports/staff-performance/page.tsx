@@ -20,7 +20,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import {
-  BarChart,
+  BarChart as RechartsBarChart,
   Bar,
   AreaChart,
   Area,
@@ -33,39 +33,62 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { ChevronDown, Info, Apple, Smartphone, Monitor } from 'lucide-react';
+import { 
+  ChevronDown, 
+  Info, 
+  Apple, 
+  Smartphone, 
+  Monitor,
+  ShoppingCart,
+  DollarSign,
+  AlertTriangle,
+  WalletCards,
+  HandCoins,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
 
 // --- Data Mocks ---
 
-const performanceMetrics = [
+const kpiData: StatCardData[] = [
   {
-    title: 'TOTAL ORDERS',
+    title: 'Total Orders',
     value: '159',
-    borderColor: 'border-teal-500',
+    icon: ShoppingCart,
+    color: 'teal',
+    changeDescription: 'Last 7 days',
   },
   {
-    title: 'AVERAGE AMOUNT (AOV)',
+    title: 'Average Order Value',
     value: 'AED 114.00',
-    borderColor: 'border-teal-500',
+    icon: DollarSign,
+    color: 'orange',
+    changeDescription: 'Last 7 days',
   },
   {
-    title: 'PENDING AMOUNT',
+    title: 'Pending Amount',
     value: 'AED 18.00',
-    borderColor: 'border-pink-500',
+    icon: AlertTriangle,
+    color: 'pink',
+    changeDescription: 'from open orders',
   },
   {
-    title: 'BILL PAID',
+    title: 'Bill Paid',
     value: 'AED 12,509',
-    borderColor: 'border-teal-500',
+    icon: WalletCards,
+    color: 'green',
+    changeDescription: 'Last 7 days',
   },
   {
-    title: 'TIPS',
+    title: 'Tips Collected',
     value: 'AED 859',
-    borderColor: 'border-teal-500',
+    icon: HandCoins,
+    color: 'purple',
+    changeDescription: 'Last 7 days',
   },
 ];
+
 
 const paymentPulseData = [
   { name: 'Paid', value: 1248, color: '#14b8a6' },
@@ -102,81 +125,6 @@ const webEntryData = [
   { name: 'Firefox', value: 6, color: '#f59e0b' },
   { name: 'Edge', value: 4, color: '#ef4444' },
 ];
-
-// --- Sub-components ---
-
-const PerformanceMetricCard = ({
-  title,
-  value,
-  borderColor,
-}: {
-  title: string;
-  value: string;
-  borderColor: string;
-}) => (
-  <Card className={cn('relative shadow-sm border', borderColor, 'border-l-4')}>
-    <CardContent className="p-4">
-      <div className="flex items-center justify-between mb-1">
-        <p className="text-[10px] font-bold text-muted-foreground tracking-wider">{title}</p>
-        <Info className="h-3 w-3 text-muted-foreground" />
-      </div>
-      <p className="text-2xl font-bold text-foreground">{value}</p>
-      <div className="flex items-center justify-between mt-2">
-        <p className="text-[10px] text-muted-foreground">Reference Period</p>
-        <Badge variant="outline" className="text-teal-600 border-teal-500/50 bg-teal-50 text-[9px] font-bold px-1.5 py-0">
-          CURRENT
-        </Badge>
-      </div>
-    </CardContent>
-  </Card>
-);
-
-const OsDistributionCard = ({ title, subtitle, data, centerLabel, topLabel }: { title: string, subtitle: string, data: any[], centerLabel: string, topLabel: string }) => {
-    const totalValue = data.reduce((acc, item) => acc + item.value, 0);
-    const topItem = data.reduce((max, item) => item.value > max.value ? item : max, data[0]);
-
-    return (
-        <Card className="shadow-sm">
-            <CardHeader className="flex flex-row items-start justify-between">
-                <div>
-                    <CardTitle className="text-base font-bold">{title}</CardTitle>
-                    <CardDescription className="text-xs">{subtitle}</CardDescription>
-                </div>
-                <Badge variant="outline" className="text-xs">{topLabel}</Badge>
-            </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4 items-center">
-                <div className="h-48 relative">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                            <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius="70%" outerRadius="90%" startAngle={90} endAngle={450} paddingAngle={2}>
-                                {data.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.color} stroke={entry.color} />
-                                ))}
-                            </Pie>
-                        </PieChart>
-                    </ResponsiveContainer>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase">{centerLabel}</p>
-                        <p className="text-xl font-bold">{topItem.name}</p>
-                    </div>
-                </div>
-                <div>
-                    <ul className="space-y-2 text-sm">
-                        {data.map(item => (
-                            <li key={item.name} className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                    <span className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: item.color }}></span>
-                                    <span>{item.name}</span>
-                                </div>
-                                <span className="font-semibold">{item.value}%</span>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            </CardContent>
-        </Card>
-    );
-};
 
 // --- Main Page Component ---
 export default function AnalyticsPage() {
@@ -229,11 +177,7 @@ export default function AnalyticsPage() {
                 <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Performance Metrics</h2>
                 <span className="text-xs font-medium text-muted-foreground">LAST 7 DAYS</span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                {performanceMetrics.map(metric => (
-                    <PerformanceMetricCard key={metric.title} {...metric} />
-                ))}
-            </div>
+            <StatCards cards={kpiData} />
           </div>
           
           {/* Main Content Grid */}
@@ -306,14 +250,14 @@ export default function AnalyticsPage() {
                                     <p className="text-xl font-bold">155 <span className="text-xs font-semibold text-muted-foreground">UNITS</span></p>
                                 </div>
                                 <ResponsiveContainer width="100%" height={200}>
-                                    <BarChart data={volumeData} margin={{ top: 5, right: 0, left: -20, bottom: -10 }}>
+                                    <RechartsBarChart data={volumeData} margin={{ top: 5, right: 0, left: -20, bottom: -10 }}>
                                         <XAxis dataKey="name" axisLine={false} tickLine={false} fontSize={10} />
                                         <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                                             {volumeData.map((_entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={'#14b8a6'} />
                                             ))}
                                         </Bar>
-                                    </BarChart>
+                                    </RechartsBarChart>
                                 </ResponsiveContainer>
                             </div>
                             <div>
@@ -346,20 +290,84 @@ export default function AnalyticsPage() {
           
           {/* Bottom Grid */}
            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <OsDistributionCard 
-                    title="OS Distribution" 
-                    subtitle="Breakdown of guest operating systems" 
-                    data={osDistributionData} 
-                    centerLabel="MOBILE"
-                    topLabel="DEVICE USAGE"
-                />
-                <OsDistributionCard 
-                    title="OS Distribution" 
-                    subtitle="Breakdown of guest operating systems" 
-                    data={webEntryData} 
-                    centerLabel="TOP"
-                    topLabel="WEB ENTRY"
-                />
+              <Card className="shadow-sm">
+                  <CardHeader className="flex flex-row items-start justify-between">
+                      <div>
+                          <CardTitle className="text-base font-bold">OS Distribution</CardTitle>
+                          <CardDescription className="text-xs">Breakdown of guest operating systems</CardDescription>
+                      </div>
+                      <Badge variant="outline" className="text-xs">DEVICE USAGE</Badge>
+                  </CardHeader>
+                  <CardContent className="grid grid-cols-2 gap-4 items-center">
+                      <div className="h-48 relative">
+                          <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                  <Pie data={osDistributionData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius="70%" outerRadius="90%" startAngle={90} endAngle={450} paddingAngle={2}>
+                                      {osDistributionData.map((entry, index) => (
+                                          <Cell key={`cell-${index}`} fill={entry.color} stroke={entry.color} />
+                                      ))}
+                                  </Pie>
+                              </PieChart>
+                          </ResponsiveContainer>
+                          <div className="absolute inset-0 flex flex-col items-center justify-center">
+                              <p className="text-[10px] font-bold text-muted-foreground uppercase">MOBILE</p>
+                              <p className="text-xl font-bold">{osDistributionData.reduce((max, item) => item.value > max.value ? item : max, osDistributionData[0]).name}</p>
+                          </div>
+                      </div>
+                      <div>
+                          <ul className="space-y-2 text-sm">
+                              {osDistributionData.map(item => (
+                                  <li key={item.name} className="flex items-center justify-between">
+                                      <div className="flex items-center">
+                                          <span className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: item.color }}></span>
+                                          <span>{item.name}</span>
+                                      </div>
+                                      <span className="font-semibold">{item.value}%</span>
+                                  </li>
+                              ))}
+                          </ul>
+                      </div>
+                  </CardContent>
+              </Card>
+              <Card className="shadow-sm">
+                  <CardHeader className="flex flex-row items-start justify-between">
+                      <div>
+                          <CardTitle className="text-base font-bold">Web Entry</CardTitle>
+                          <CardDescription className="text-xs">Breakdown of guest web browsers</CardDescription>
+                      </div>
+                      <Badge variant="outline" className="text-xs">TOP BROWSER</Badge>
+                  </CardHeader>
+                  <CardContent className="grid grid-cols-2 gap-4 items-center">
+                      <div className="h-48 relative">
+                          <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                  <Pie data={webEntryData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius="70%" outerRadius="90%" startAngle={90} endAngle={450} paddingAngle={2}>
+                                      {webEntryData.map((entry, index) => (
+                                          <Cell key={`cell-${index}`} fill={entry.color} stroke={entry.color} />
+                                      ))}
+                                  </Pie>
+                              </PieChart>
+                          </ResponsiveContainer>
+                          <div className="absolute inset-0 flex flex-col items-center justify-center">
+                              <p className="text-[10px] font-bold text-muted-foreground uppercase">TOP</p>
+                              <p className="text-xl font-bold">{webEntryData.reduce((max, item) => item.value > max.value ? item : max, webEntryData[0]).name}</p>
+                          </div>
+                      </div>
+                      <div>
+                          <ul className="space-y-2 text-sm">
+                              {webEntryData.map(item => (
+                                  <li key={item.name} className="flex items-center justify-between">
+                                      <div className="flex items-center">
+                                          <span className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: item.color }}></span>
+                                          <span>{item.name}</span>
+                                      </div>
+                                      <span className="font-semibold">{item.value}%</span>
+                                  </li>
+                              ))}
+                          </ul>
+                      </div>
+                  </CardContent>
+              </Card>
             </div>
         </div>
       </main>
