@@ -416,8 +416,8 @@ export default function TipsAndGratuityReportPage() {
 
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg border bg-card p-3 shadow-sm">
           <div className="flex flex-wrap items-center gap-4">
-            <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground px-1">OUTLET</Label>
+            <div className="flex items-center gap-2">
+                <p className="text-xs font-semibold text-muted-foreground">OUTLET</p>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" className="w-full sm:w-[220px] justify-between">
@@ -453,8 +453,8 @@ export default function TipsAndGratuityReportPage() {
                   </DropdownMenuContent>
                 </DropdownMenu>
             </div>
-            <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground px-1">STAFF MEMBERS</Label>
+            <div className="flex items-center gap-2">
+                <p className="text-xs font-semibold text-muted-foreground">STAFF MEMBERS</p>
                 <Select
                     value={filters.staffName}
                     onValueChange={(value) => handleFilterChange('staffName', value)}
@@ -470,8 +470,8 @@ export default function TipsAndGratuityReportPage() {
                     </SelectContent>
                 </Select>
             </div>
-            <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground px-1">SORT BY</Label>
+            <div className="flex items-center gap-2">
+                <p className="text-xs font-semibold text-muted-foreground">SORT BY</p>
                 <Select
                     value={filters.sortBy}
                     onValueChange={(value) => handleFilterChange('sortBy', value)}
@@ -486,8 +486,8 @@ export default function TipsAndGratuityReportPage() {
                     </SelectContent>
                 </Select>
             </div>
-            <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground px-1">REPORT PERIOD</Label>
+            <div className="flex items-center gap-2">
+                <p className="text-xs font-semibold text-muted-foreground">REPORT PERIOD</p>
                 <DateRangePicker
                   dateRange={filters.dateRange}
                   onDateRangeChange={(range) => handleFilterChange('dateRange', range)}
