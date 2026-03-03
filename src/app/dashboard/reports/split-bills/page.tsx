@@ -65,6 +65,7 @@ import {
   TooltipTrigger as UiTooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Label } from '@/components/ui/label';
+import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
 
 type SplitSettlementLog = {
   orderId: string;
@@ -105,55 +106,6 @@ const initialFilterState = {
   branch: 'all',
   splitMethod: 'all',
 };
-
-const StatCard = ({
-  title,
-  value,
-  icon: Icon,
-  color,
-  tooltipText,
-}: {
-  title: string;
-  value: string | number;
-  icon: React.ElementType;
-  color: string;
-  tooltipText: string;
-}) => (
-  <Card className="shadow-sm border-border/50">
-    <CardContent className="p-5">
-      <div className="flex justify-between items-start">
-        <div
-          className={cn(
-            'h-9 w-9 flex items-center justify-center rounded-full',
-            `bg-${color}-100`
-          )}
-        >
-          <Icon className={cn('h-5 w-5', `text-${color}-600`)} />
-        </div>
-        <UiTooltip>
-          <UiTooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 text-muted-foreground"
-            >
-              <Info className="h-4 w-4" />
-            </Button>
-          </UiTooltipTrigger>
-          <UiTooltipContent>
-            <p>{tooltipText}</p>
-          </UiTooltipContent>
-        </UiTooltip>
-      </div>
-      <div className="mt-4">
-        <p className="text-3xl font-bold">{value}</p>
-        <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mt-1">
-          {title}
-        </p>
-      </div>
-    </CardContent>
-  </Card>
-);
 
 export default function SplitBillsReportPage() {
   const [settlementLogs, setSettlementLogs] = useState<SplitSettlementLog[]>(
@@ -233,7 +185,7 @@ export default function SplitBillsReportPage() {
     return filteredLogs.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredLogs, currentPage]);
 
-  const kpiData = useMemo(() => {
+  const kpiCards: StatCardData[] = useMemo(() => {
     const totalSplits = filteredLogs.length;
     const totalPayers = filteredLogs.reduce((acc, log) => acc + log.splits, 0);
     const avgPayers = totalSplits > 0 ? (totalPayers / totalSplits).toFixed(1) : '0.0';
@@ -241,12 +193,36 @@ export default function SplitBillsReportPage() {
     const completionRate = '100.0%';
     const avgSettlement = '12m 14s';
 
-    return {
-      splitOrders: totalSplits,
-      avgPayers,
-      completionRate,
-      avgSettlement
-    }
+    return [
+      {
+        title: 'Split Orders',
+        value: totalSplits.toString(),
+        icon: CheckCircle2,
+        color: 'green',
+        tooltipText: 'Total number of orders where the bill was split.'
+      },
+      {
+        title: 'Avg. Payers',
+        value: avgPayers,
+        icon: GitFork,
+        color: 'blue',
+        tooltipText: 'The average number of people per split transaction.'
+      },
+      {
+        title: 'Completion Rate',
+        value: completionRate,
+        icon: TrendingUp,
+        color: 'teal',
+        tooltipText: 'Percentage of split bills that were successfully paid in full.'
+      },
+      {
+        title: 'Avg. Settlement',
+        value: avgSettlement,
+        icon: Clock,
+        color: 'orange',
+        tooltipText: 'The average time taken from initiating a split to full payment.'
+      }
+    ];
   }, [filteredLogs]);
 
 
@@ -324,36 +300,7 @@ export default function SplitBillsReportPage() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard
-            title="Split Orders"
-            value={kpiData.splitOrders}
-            icon={CheckCircle2}
-            color="green"
-            tooltipText="Total number of orders where the bill was split."
-          />
-          <StatCard
-            title="Avg. Payers"
-            value={kpiData.avgPayers}
-            icon={GitFork}
-            color="blue"
-            tooltipText="The average number of people per split transaction."
-          />
-           <StatCard
-            title="Completion Rate"
-            value={kpiData.completionRate}
-            icon={TrendingUp}
-            color="teal"
-            tooltipText="Percentage of split bills that were successfully paid in full."
-          />
-          <StatCard
-            title="Avg. Settlement"
-            value={kpiData.avgSettlement}
-            icon={Clock}
-            color="orange"
-            tooltipText="The average time taken from initiating a split to full payment."
-          />
-        </div>
+        <StatCards cards={kpiCards} />
 
         <Card>
           <CardHeader>
