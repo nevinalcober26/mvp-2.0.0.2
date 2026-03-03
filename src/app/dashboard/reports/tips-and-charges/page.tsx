@@ -416,8 +416,8 @@ export default function TipsAndGratuityReportPage() {
 
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg border bg-card p-3 shadow-sm">
           <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
-                <p className="text-xs font-semibold text-muted-foreground">OUTLET</p>
+            <div className="space-y-1">
+                <Label className="text-xs font-semibold text-muted-foreground px-1">OUTLET</Label>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" className="w-full sm:w-[220px] justify-between">
@@ -453,8 +453,8 @@ export default function TipsAndGratuityReportPage() {
                   </DropdownMenuContent>
                 </DropdownMenu>
             </div>
-            <div className="flex items-center gap-2">
-                <p className="text-xs font-semibold text-muted-foreground">STAFF MEMBERS</p>
+            <div className="space-y-1">
+                <Label className="text-xs font-semibold text-muted-foreground px-1">STAFF MEMBERS</Label>
                 <Select
                     value={filters.staffName}
                     onValueChange={(value) => handleFilterChange('staffName', value)}
@@ -470,8 +470,8 @@ export default function TipsAndGratuityReportPage() {
                     </SelectContent>
                 </Select>
             </div>
-            <div className="flex items-center gap-2">
-                <p className="text-xs font-semibold text-muted-foreground">SORT BY</p>
+            <div className="space-y-1">
+                <Label className="text-xs font-semibold text-muted-foreground px-1">SORT BY</Label>
                 <Select
                     value={filters.sortBy}
                     onValueChange={(value) => handleFilterChange('sortBy', value)}
@@ -486,16 +486,17 @@ export default function TipsAndGratuityReportPage() {
                     </SelectContent>
                 </Select>
             </div>
-            <div className="flex items-center gap-2">
-                <p className="text-xs font-semibold text-muted-foreground">REPORT PERIOD</p>
+            <div className="space-y-1">
+                <Label className="text-xs font-semibold text-muted-foreground px-1">REPORT PERIOD</Label>
                 <DateRangePicker
                   dateRange={filters.dateRange}
                   onDateRangeChange={(range) => handleFilterChange('dateRange', range)}
                 />
             </div>
           </div>
-          <Button variant="ghost" size="icon" onClick={resetAllFilters} className="self-end">
-            <RotateCcw className="h-4 w-4" />
+          <Button variant="ghost" size="sm" onClick={resetAllFilters} className="self-end">
+            <RotateCcw className="mr-2 h-4 w-4" />
+            Refresh
           </Button>
         </div>
 
