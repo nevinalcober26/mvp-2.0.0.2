@@ -28,42 +28,26 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Download,
-  Filter,
   RotateCcw,
   File as FileIcon,
   FileText,
   Sheet as SheetIcon,
   HandCoins,
+  WalletCards,
   CirclePercent,
   TrendingUp,
-  Info,
+  Users,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 import { DashboardHeader } from '@/components/dashboard/header';
 import { cn } from '@/lib/utils';
 import { OrdersPageSkeleton } from '@/components/dashboard/skeletons';
 import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
-import {
   isWithinInterval,
-  differenceInDays,
   subDays,
   endOfDay,
-  setHours,
-  setMinutes,
-  setSeconds,
 } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -80,13 +64,8 @@ import type { Order } from '@/app/dashboard/orders/types';
 import { mockDataStore } from '@/lib/mock-data-store';
 import { OrderDetailsSheet } from '@/app/dashboard/orders/order-details-sheet';
 import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
-import { AiSummary } from '@/components/dashboard/ai-summary';
-import {
-    TooltipProvider,
-    Tooltip as UiTooltip,
-    TooltipContent as UiTooltipContent,
-    TooltipTrigger as UiTooltipTrigger,
-  } from '@/components/ui/tooltip';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+
 
 type Transaction = {
   id: string;
@@ -94,61 +73,33 @@ type Transaction = {
   timestamp: number;
   totalAmount: number;
   paidAmount: number;
-  outstandingAmount: number;
-  paymentStatus: 'Paid' | 'Partial' | 'Unpaid' | 'Refunded';
   paymentMethod: string;
-  payers: number;
-  branch: 'Ras Al Khaimah' | 'Dubai Mall';
-  table: string;
-  splitMethod?: 'Equal' | 'Item-based' | 'Custom';
-  lastPaymentAttempt: number;
-  closeType: 'Auto' | 'Manual';
+  branch: string;
   staffName: string;
   tipAmount?: number;
   tipType?: 'Preset' | 'Custom';
-  serviceChargeAmount?: number;
 };
 
 const generateTransactionsFromOrders = (orders: Order[]): Transaction[] => {
-    return orders.map(order => {
-        const paymentStatusMap = {
-            'Fully Paid': 'Paid',
-            'Partial': 'Partial',
-            'Unpaid': 'Unpaid',
-            'Voided': 'Unpaid',
-            'Returned': 'Refunded',
-        };
-
-        const tipAmount = order.payments.reduce((acc, p) => acc + (p.tip || 0), 0);
-
-        return {
-            id: `txn_${order.orderId.replace('#', '')}`,
-            orderId: order.orderId,
-            timestamp: order.orderTimestamp,
-            totalAmount: order.totalAmount,
-            paidAmount: order.paidAmount,
-            outstandingAmount: order.totalAmount - order.paidAmount,
-            paymentStatus: paymentStatusMap[order.paymentState] as Transaction['paymentStatus'] || 'Unpaid',
-            paymentMethod: order.payments[0]?.method || 'Credit Card',
-            payers: order.payments.length > 0 ? order.payments.length : 1,
-            branch: order.branch,
-            table: order.table,
-            splitMethod: order.splitType === 'equally' ? 'Equal' : order.splitType === 'byItem' ? 'Item-based' : undefined,
-            lastPaymentAttempt: order.orderTimestamp + Math.random() * 3600000,
-            closeType: Math.random() > 0.5 ? 'Auto' : 'Manual',
-            staffName: order.staffName,
-            tipAmount: tipAmount > 0 ? tipAmount : undefined,
-            tipType: 'Custom',
-            serviceChargeAmount: Math.random() > 0.5 ? order.totalAmount * 0.1 : undefined,
-        };
+    return orders.flatMap(order => {
+        if (!order.payments || order.payments.length === 0) return [];
+        
+        return order.payments.map((p, index) => {
+            const tipType = p.tip ? (Math.random() > 0.4 ? 'Preset' : 'Custom') : undefined;
+            return {
+                id: `txn_${order.orderId.replace('#', '')}_${index}`,
+                orderId: order.orderId,
+                timestamp: order.orderTimestamp,
+                totalAmount: order.totalAmount,
+                paidAmount: parseFloat(p.amount),
+                paymentMethod: p.method,
+                branch: order.branch,
+                staffName: order.staffName,
+                tipAmount: p.tip,
+                tipType: tipType,
+            };
+        });
     });
-};
-
-const chartConfig = {
-  total: {
-    label: 'Total',
-    color: 'hsl(var(--chart-3))',
-  },
 };
 
 const initialFilterState = {
@@ -158,6 +109,21 @@ const initialFilterState = {
   } as DateRange | undefined,
   branch: 'all',
   staffName: 'all',
+};
+
+const avatarColors = [
+  'bg-blue-100 text-blue-600',
+  'bg-purple-100 text-purple-600',
+  'bg-pink-100 text-pink-600',
+  'bg-orange-100 text-orange-600',
+  'bg-teal-100 text-teal-600',
+  'bg-green-100 text-green-600',
+  'bg-yellow-100 text-yellow-600'
+];
+
+const getAvatarColorClass = (name: string) => {
+  const charCodeSum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return avatarColors[charCodeSum % avatarColors.length];
 };
 
 const ExportDialog = ({
@@ -173,9 +139,9 @@ const ExportDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Export Transactions</DialogTitle>
+          <DialogTitle>Export Report</DialogTitle>
           <DialogDescription>
-            Select a file format to download the current view of transactions.
+            Select a file format to download the current report view.
           </DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-3 gap-4 py-4">
@@ -202,11 +168,13 @@ const ExportDialog = ({
   );
 };
 
-export default function TipsAndChargesReportPage() {
+export default function TipsAndGratuityReportPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState(initialFilterState);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const { toast } = useToast();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -222,7 +190,7 @@ export default function TipsAndChargesReportPage() {
       setIsLoading(false);
     }, 500);
     return () => clearTimeout(timer);
-  }, [filters.dateRange]);
+  }, []);
   
   const handleViewDetails = (transaction: Transaction) => {
     const order = allOrders.find(o => o.orderId === transaction.orderId);
@@ -242,7 +210,7 @@ export default function TipsAndChargesReportPage() {
     setIsExportDialogOpen(false);
     toast({
       title: 'Export Initiated',
-      description: `Your transactions are being prepared for a ${format} download.`,
+      description: `Your report is being prepared for a ${format} download.`,
     });
   };
 
@@ -251,10 +219,12 @@ export default function TipsAndChargesReportPage() {
     value: string | DateRange | undefined
   ) => {
     setFilters((prev) => ({ ...prev, [filterName]: value }));
+    setCurrentPage(1);
   };
 
   const resetAllFilters = () => {
     setFilters(initialFilterState);
+    setCurrentPage(1);
   };
 
   const filteredTransactions = useMemo(() => {
@@ -272,102 +242,116 @@ export default function TipsAndChargesReportPage() {
       const matchesStaffName =
         filters.staffName === 'all' || transaction.staffName === filters.staffName;
 
-      return (
-        matchesDate &&
-        matchesBranch &&
-        matchesStaffName
-      );
+      return matchesDate && matchesBranch && matchesStaffName;
     });
   }, [transactions, filters]);
 
   const tipTransactions = useMemo(() => {
-    return filteredTransactions.filter(
-      (t) => t.tipAmount && t.tipAmount > 0
-    );
+    return filteredTransactions.filter(t => t.tipAmount && t.tipAmount > 0);
   }, [filteredTransactions]);
-
-  const totalGrossTips = useMemo(() => {
-    return tipTransactions.reduce((acc, t) => acc + (t.tipAmount || 0), 0);
-  }, [tipTransactions]);
-
-    const serviceChargeTransactions = useMemo(() => {
-    return filteredTransactions.filter(t => t.serviceChargeAmount && t.serviceChargeAmount > 0);
-  }, [filteredTransactions]);
-
-  const totalServiceCharge = useMemo(() => {
-      return serviceChargeTransactions.reduce((acc, t) => acc + (t.serviceChargeAmount || 0), 0);
-  }, [serviceChargeTransactions]);
-
-  const tipsKpiCards: StatCardData[] = useMemo(() => {
-    const paidTransactionsCount = filteredTransactions.filter(
-      (t) => t.paidAmount > 0
-    ).length;
-    const tipAdoptionRate =
-      paidTransactionsCount > 0
-        ? (tipTransactions.length / paidTransactionsCount) * 100
-        : 0;
-
-    const totalBillForTippedTxns = tipTransactions.reduce(
-      (acc, t) => acc + t.totalAmount,
-      0
-    );
-    const avgTipPercentage =
-      totalBillForTippedTxns > 0
-        ? (totalGrossTips / totalBillForTippedTxns) * 100
-        : 0;
-
-    return [
-      {
-        title: 'Total Tips Collected',
-        value: `$${totalGrossTips.toLocaleString('en-US', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })}`,
-        icon: HandCoins,
-        color: 'teal',
-        tooltipText: 'The total gross amount of all tips collected across the filtered transactions before any fees.'
-      },
-      {
-        title: 'Tip Adoption Rate',
-        value: `${tipAdoptionRate.toFixed(1)}%`,
-        icon: CirclePercent,
-        color: 'orange',
-        tooltipText: 'The percentage of transactions with a paid amount where a tip was also given.'
-      },
-      {
-        title: 'Average Tip %',
-        value: `${avgTipPercentage.toFixed(1)}%`,
-        icon: TrendingUp,
-        color: 'pink',
-        tooltipText: 'The average tip amount as a percentage of the total bill for transactions that included a tip.'
-      },
-    ];
-  }, [filteredTransactions, tipTransactions, totalGrossTips]);
-
-  const tipsByStaffChartData = useMemo(() => {
-    const data = tipTransactions.reduce(
-      (acc, t) => {
-        const staff = t.staffName;
-        acc[staff] = (acc[staff] || 0) + (t.tipAmount || 0);
-        return acc;
-      },
-      {} as Record<string, number>
-    );
-
-    return Object.entries(data)
-      .map(([name, total]) => ({ name, total }))
-      .sort((a, b) => b.total - a.total);
-  }, [tipTransactions]);
 
   const staffNames = useMemo(() => {
     return [...new Set(transactions.map((t) => t.staffName))].sort();
   }, [transactions]);
+  
+  const totalPages = Math.ceil(tipTransactions.length / itemsPerPage);
+  
+  const paginatedTransactions = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return tipTransactions.slice(startIndex, startIndex + itemsPerPage);
+  }, [tipTransactions, currentPage]);
 
-  const activeSecondaryFilterCount = useMemo(() => {
-    let count = 0;
-    if (filters.staffName !== 'all') count++;
-    return count;
-  }, [filters]);
+  const tipsKpiCards: StatCardData[] = useMemo(() => {
+    const grossTips = tipTransactions.reduce((acc, t) => acc + (t.tipAmount || 0), 0);
+    const netTips = grossTips * 0.97; // Assuming 3% fee
+    const totalBillForTipped = tipTransactions.reduce((acc, t) => acc + t.totalAmount, 0);
+    const avgTipPercentage = totalBillForTipped > 0 ? (grossTips / totalBillForTipped) * 100 : 0;
+    const presetTips = tipTransactions.filter(t => t.tipType === 'Preset').length;
+    const presetAdoption = tipTransactions.length > 0 ? (presetTips / tipTransactions.length) * 100 : 0;
+    const activeWaiters = new Set(tipTransactions.map(t => t.staffName)).size;
+
+    return [
+      { title: 'Gross Tips', value: `AED ${grossTips.toFixed(3)}`, icon: HandCoins, color: 'green', changeDescription: 'Total Collected', tooltipText: 'Total gross tips collected before any fees.' },
+      { title: 'Net Tips', value: `AED ${netTips.toFixed(3)}`, icon: WalletCards, color: 'blue', changeDescription: 'After 3% Fees', tooltipText: 'Net tips after processing fees.' },
+      { title: 'Average Tip %', value: `${avgTipPercentage.toFixed(1)}%`, icon: TrendingUp, color: 'green', changeDescription: 'of Bill Total', tooltipText: 'Average tip amount as a percentage of the total bill.' },
+      { title: 'Preset Adoption', value: `${presetAdoption.toFixed(1)}%`, icon: CirclePercent, color: 'red', changeDescription: 'vs Custom Tips', tooltipText: 'Percentage of tips made using preset amounts.' },
+      { title: 'Staff Context', value: activeWaiters.toString(), icon: Users, color: 'orange', changeDescription: 'Active Waiters', tooltipText: 'Number of unique staff members who received tips.' },
+    ];
+  }, [tipTransactions]);
+
+    const renderPagination = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 3;
+    
+    if (totalPages <= maxPagesToShow + 2) {
+        for (let i = 1; i <= totalPages; i++) {
+            pageNumbers.push(i);
+        }
+    } else {
+        pageNumbers.push(1);
+        if (currentPage > 3) {
+            pageNumbers.push('...');
+        }
+        
+        let startPage = Math.max(2, currentPage - 1);
+        let endPage = Math.min(totalPages - 1, currentPage + 1);
+
+        if(currentPage <= 2){
+            startPage = 2;
+            endPage = 3;
+        } else if (currentPage >= totalPages - 2) {
+            startPage = totalPages - 3;
+            endPage = totalPages - 2;
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            pageNumbers.push(i);
+        }
+        
+        if (currentPage < totalPages - 2) {
+            pageNumbers.push('...');
+        }
+        pageNumbers.push(totalPages);
+    }
+    
+    return (
+        <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              disabled={currentPage === 1}
+              className="h-8 w-8 p-0"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            {pageNumbers.map((page, index) =>
+              typeof page === 'number' ? (
+                <Button
+                  key={index}
+                  variant={currentPage === page ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setCurrentPage(page)}
+                  className="h-8 w-8 p-0"
+                >
+                  {page}
+                </Button>
+              ) : (
+                <span key={index} className="px-2 h-8 flex items-center justify-center">...</span>
+              )
+            )}
+             <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+        </div>
+    );
+};
 
   if (isLoading) {
     return <OrdersPageSkeleton view="list" />;
@@ -379,9 +363,9 @@ export default function TipsAndChargesReportPage() {
       <main className="p-4 sm:p-6 lg:p-8 space-y-6">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Tips & Charges Report</h1>
+            <h1 className="text-2xl font-bold">Tips & Gratuity Report</h1>
             <p className="text-muted-foreground">
-              Analyze tips and service charges applied to transactions.
+              Analyze gratuity patterns, staff performance, and net earnings.
             </p>
           </div>
           <Button variant="outline" onClick={() => setIsExportDialogOpen(true)}>
@@ -390,237 +374,120 @@ export default function TipsAndChargesReportPage() {
           </Button>
         </div>
 
-        <AiSummary data={tipTransactions} context="tips and charges" />
-            
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg border bg-card p-3">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg border bg-card p-3 shadow-sm">
           <div className="flex flex-wrap items-center gap-4">
-            <span className="text-sm font-medium">Filters:</span>
-            <DateRangePicker
-              dateRange={filters.dateRange}
-              onDateRangeChange={(range) => handleFilterChange('dateRange', range)}
-            />
-            <Select
-              value={filters.branch}
-              onValueChange={(value) => handleFilterChange('branch', value)}
-            >
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Branch/Venue" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Branches</SelectItem>
-                <SelectItem value="Ras Al Khaimah">Ras Al Khaimah</SelectItem>
-                <SelectItem value="Dubai Mall">Dubai Mall</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full sm:w-auto">
-                  <Filter className="mr-2 h-4 w-4" />
-                  More Filters
-                  {activeSecondaryFilterCount > 0 && (
-                    <Badge variant="secondary" className="ml-2 rounded-full px-1.5 py-0.5 text-xs">
-                      {activeSecondaryFilterCount}
-                    </Badge>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-screen max-w-sm" align="start">
-                <div className="space-y-4 p-4">
-                  <h4 className="font-medium leading-none">Additional Filters</h4>
-                    <div className="space-y-2">
-                        <Label htmlFor="staff-filter">Staff Name</Label>
-                        <Select
-                        value={filters.staffName}
-                        onValueChange={(value) => handleFilterChange('staffName', value)}
-                        >
-                        <SelectTrigger id="staff-filter">
-                            <SelectValue placeholder="Filter by Staff" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Staff</SelectItem>
-                            {staffNames.map((name) => (
-                            <SelectItem key={name} value={name}>{name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-              </PopoverContent>
-            </Popover>
+            <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground px-1">OUTLET</Label>
+                <Select
+                  value={filters.branch}
+                  onValueChange={(value) => handleFilterChange('branch', value)}
+                >
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Branch/Venue" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Branches</SelectItem>
+                    <SelectItem value="Ras Al Khaimah">Ras Al Khaimah</SelectItem>
+                    <SelectItem value="Dubai Mall">Dubai Mall</SelectItem>
+                  </SelectContent>
+                </Select>
+            </div>
+            <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground px-1">STAFF MEMBERS</Label>
+                <Select
+                    value={filters.staffName}
+                    onValueChange={(value) => handleFilterChange('staffName', value)}
+                >
+                    <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Filter by Staff" />
+                    </SelectTrigger>
+                    <SelectContent>
+                    <SelectItem value="all">All Staff</SelectItem>
+                    {staffNames.map((name) => (
+                        <SelectItem key={name} value={name}>{name}</SelectItem>
+                    ))}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground px-1">REPORT PERIOD</Label>
+                <DateRangePicker
+                  dateRange={filters.dateRange}
+                  onDateRangeChange={(range) => handleFilterChange('dateRange', range)}
+                />
+            </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={resetAllFilters}>
-            <RotateCcw className="mr-2 h-4 w-4" />
-            Reset All Filters
+          <Button variant="ghost" size="icon" onClick={resetAllFilters} className="self-end">
+            <RotateCcw className="h-4 w-4" />
           </Button>
         </div>
 
-        <div className="space-y-6">
-            <StatCards cards={tipsKpiCards} />
+        <StatCards cards={tipsKpiCards} />
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Top Tips by Staff</CardTitle>
+        <Card>
+            <CardHeader>
+                <CardTitle>Tip Transaction Log</CardTitle>
                 <CardDescription>
-                  Total tips collected by each staff member.
+                Detailed overview of gratuities per order and payer.
                 </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer
-                  config={chartConfig}
-                  className="h-[300px] w-full"
-                >
-                  <BarChart
-                    data={tipsByStaffChartData}
-                    layout="vertical"
-                    margin={{ left: 20 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                    <YAxis
-                      dataKey="name"
-                      type="category"
-                      tickLine={false}
-                      axisLine={false}
-                    />
-                    <XAxis
-                      type="number"
-                      tickFormatter={(value) => `$${value}`}
-                      hide={false}
-                    />
-                    <Tooltip
-                      cursor={{ fill: 'hsl(var(--muted))' }}
-                      content={<ChartTooltipContent indicator="dot" />}
-                    />
-                    <Bar
-                      dataKey="total"
-                      fill="var(--color-total)"
-                      radius={[0, 4, 4, 0]}
-                    />
-                  </BarChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Tips Report</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <TooltipProvider>
-                    <div className="relative w-full overflow-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Order ID</TableHead>
-                            <TableHead>Waiter</TableHead>
-                            <TableHead>
-                                <UiTooltip>
-                                    <UiTooltipTrigger className="flex items-center gap-1">Tip Amount <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
-                                    <UiTooltipContent><p>The monetary value of the tip.</p></UiTooltipContent>
-                                </UiTooltip>
-                            </TableHead>
-                            <TableHead>
-                                <UiTooltip>
-                                    <UiTooltipTrigger className="flex items-center gap-1">Tip % <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
-                                    <UiTooltipContent><p>The tip amount as a percentage of the paid amount.</p></UiTooltipContent>
-                                </UiTooltip>
-                            </TableHead>
-                            <TableHead>Method</TableHead>
-                            <TableHead>Type</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {tipTransactions.slice(0, 10).map((t) => (
-                            <TableRow key={t.id} onClick={() => handleViewDetails(t)} className="cursor-pointer">
-                                <TableCell className="font-medium">{t.orderId}</TableCell>
-                                <TableCell>{t.staffName}</TableCell>
-                                <TableCell className="font-mono">${t.tipAmount?.toFixed(2)}</TableCell>
-                                <TableCell className="font-mono">
-                                  {t.paidAmount > 0 ? `${((t.tipAmount! / t.paidAmount) * 100).toFixed(1)}%` : 'N/A'}
-                                </TableCell>
-                                <TableCell>{t.paymentMethod}</TableCell>
-                                <TableCell><Badge variant="outline">{t.tipType}</Badge></TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                <TableHeader>
+                    <TableRow>
+                    <TableHead>Order ID</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Staff Member</TableHead>
+                    <TableHead>Method</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Order Total</TableHead>
+                    <TableHead className="text-right">Tip Amount</TableHead>
+                    <TableHead className="text-right">Tip %</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {paginatedTransactions.map((t) => (
+                    <TableRow key={t.id} onClick={() => handleViewDetails(t)} className="cursor-pointer">
+                        <TableCell className="font-medium">{t.orderId}</TableCell>
+                        <TableCell>{new Date(t.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</TableCell>
+                        <TableCell>
+                            <div className="flex items-center gap-2">
+                                <Avatar className="h-6 w-6">
+                                    <AvatarFallback className={cn("text-xs font-bold", getAvatarColorClass(t.staffName))}>
+                                        {t.staffName.split(' ').map(n => n[0]).join('')}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <span>{t.staffName}</span>
+                            </div>
+                        </TableCell>
+                        <TableCell>{t.paymentMethod}</TableCell>
+                        <TableCell>
+                            <Badge variant={t.tipType === 'Custom' ? 'secondary' : 'default'} className={cn(t.tipType === 'Custom' && 'bg-blue-100 text-blue-700', t.tipType === 'Preset' && 'bg-green-100 text-green-700')}>
+                                {t.tipType}
+                            </Badge>
+                        </TableCell>
+                        <TableCell>AED {t.totalAmount.toFixed(2)}</TableCell>
+                        <TableCell className="text-right font-semibold text-foreground">AED {t.tipAmount?.toFixed(2)}</TableCell>
+                        <TableCell className="text-right font-semibold text-primary">{((t.tipAmount! / t.totalAmount) * 100).toFixed(1)}%</TableCell>
+                    </TableRow>
+                    ))}
+                </TableBody>
+                </Table>
+                {paginatedTransactions.length === 0 && (
+                <p className="text-center text-muted-foreground py-8">
+                    No tip transactions found for the selected filters.
+                </p>
+                )}
+            </CardContent>
+            {totalPages > 1 && (
+                <CardFooter className="flex items-center justify-between">
+                    <div className="text-xs text-muted-foreground">
+                        Showing <strong>{(currentPage - 1) * itemsPerPage + 1}</strong> to <strong>{Math.min(currentPage * itemsPerPage, tipTransactions.length)}</strong> of <strong>{tipTransactions.length}</strong> transactions
                     </div>
-                  </TooltipProvider>
-                  {tipTransactions.length === 0 && (
-                    <p className="text-center text-muted-foreground p-8">
-                      No transactions with tips match the current filters.
-                    </p>
-                  )}
-                </CardContent>
-                <CardFooter className="flex-col items-start bg-muted/50 p-6 space-y-2 border-t">
-                  <div className="flex justify-between items-center w-full text-sm font-semibold">
-                    <span>Gross Tips Collected</span>
-                    <span className="font-bold text-lg">${totalGrossTips.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between items-center w-full text-sm text-muted-foreground">
-                    <span>Net Tips (after 5% fee)</span>
-                    <span className="font-bold text-lg">${(totalGrossTips * 0.95).toFixed(2)}</span>
-                  </div>
+                    {renderPagination()}
                 </CardFooter>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Service Charge Report</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <TooltipProvider>
-                    <div className="relative w-full overflow-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Order ID</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead className="text-right">
-                                <UiTooltip>
-                                    <UiTooltipTrigger className="flex items-center gap-1 justify-end">Bill Amount <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
-                                    <UiTooltipContent><p>The total amount of the bill before service charge.</p></UiTooltipContent>
-                                </UiTooltip>
-                            </TableHead>
-                            <TableHead className="text-right">
-                                <UiTooltip>
-                                    <UiTooltipTrigger className="flex items-center gap-1 justify-end">Service Charge <Info className="h-3 w-3 text-muted-foreground" /></UiTooltipTrigger>
-                                    <UiTooltipContent><p>The amount added to the bill as a service charge.</p></UiTooltipContent>
-                                </UiTooltip>
-                            </TableHead>
-                            <TableHead>Staff</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {serviceChargeTransactions.slice(0, 10).map((t) => (
-                            <TableRow key={t.id} onClick={() => handleViewDetails(t)} className="cursor-pointer">
-                                <TableCell className="font-medium">{t.orderId}</TableCell>
-                                <TableCell>{new Date(t.timestamp).toLocaleDateString()}</TableCell>
-                                <TableCell className="text-right font-mono">${t.totalAmount.toFixed(2)}</TableCell>
-                                <TableCell className="text-right font-mono">${t.serviceChargeAmount?.toFixed(2)}</TableCell>
-                                <TableCell>{t.staffName}</TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </TooltipProvider>
-                  {serviceChargeTransactions.length === 0 && (
-                    <p className="text-center text-muted-foreground p-8">
-                      No transactions with service charges match the current filters.
-                    </p>
-                  )}
-                </CardContent>
-                <CardFooter className="bg-muted/50 p-6 border-t">
-                  <div className="flex justify-between items-center w-full text-sm font-semibold">
-                    <span>Total Service Charges Collected</span>
-                    <span className="font-bold text-lg">${totalServiceCharge.toFixed(2)}</span>
-                  </div>
-                </CardFooter>
-              </Card>
-            </div>
-        </div>
+            )}
+        </Card>
       </main>
       <ExportDialog
         open={isExportDialogOpen}
