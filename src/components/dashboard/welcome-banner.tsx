@@ -15,8 +15,8 @@ interface WelcomeBannerProps {
 
 export function WelcomeBanner({ statCards, chartData }: WelcomeBannerProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [summary, setSummary] = useState('');
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [summary, setSummary] = useState("Welcome back! Click the refresh button for an AI-powered summary of today's performance.");
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('success');
   const isLoadingRef = useRef(false);
   const lastSummarizedRef = useRef<string>('');
 
@@ -55,8 +55,8 @@ export function WelcomeBanner({ statCards, chartData }: WelcomeBannerProps) {
         })
         .catch((err) => {
           console.error('AI Banner Summary Error:', err);
-          setSummary("Welcome back! Your dashboard is active and ready for management. Let's make today successful! 🚀");
-          setStatus('success');
+          setSummary("There was an issue generating the AI summary. Please try again.");
+          setStatus('error');
         })
         .finally(() => {
           isLoadingRef.current = false;
@@ -65,14 +65,6 @@ export function WelcomeBanner({ statCards, chartData }: WelcomeBannerProps) {
       setStatus('idle');
     }
   }, [statCards, chartData]);
-
-  useEffect(() => {
-    // Initial load delay to avoid collision with other AI calls on mount
-    const timer = setTimeout(() => {
-      generateSummary();
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [generateSummary]);
 
   const renderSummaryWithBold = (text: string) => {
     if (!text) return null;
