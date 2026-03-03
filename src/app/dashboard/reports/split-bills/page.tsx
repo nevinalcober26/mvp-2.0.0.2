@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -47,11 +47,16 @@ import {
   ChevronRight,
   Package,
   ChevronDown,
+  X,
+  Lock,
+  File as FileIcon,
+  FileText,
+  Sheet as SheetIcon,
 } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard/header';
 import { cn } from '@/lib/utils';
 import { OrdersPageSkeleton } from '@/components/dashboard/skeletons';
-import { isWithinInterval, subDays, endOfDay } from 'date-fns';
+import { isWithinInterval, subDays, endOfDay, isSameDay, format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
@@ -60,6 +65,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { type DateRange } from 'react-day-picker';
 import { DateRangePicker } from '@/components/dashboard/reports/date-range-picker';
@@ -115,6 +121,91 @@ const initialFilterState = {
   splitMethod: 'all',
 };
 
+const ExportDialog = ({ open, onOpenChange, onExport, dateRange }: { open: boolean; onOpenChange: (open: boolean) => void; onExport: (format: "CSV" | "Excel" | "PDF") => void; dateRange?: DateRange; }) => {
+    const rangeLabel = React.useMemo(() => {
+        if (!dateRange?.from) return 'All Time';
+        if (isSameDay(dateRange.from, new Date()) && !dateRange.to) return 'Today';
+        if (!dateRange.to || isSameDay(dateRange.from, dateRange.to)) {
+            return format(dateRange.from, "PPP");
+        }
+        return `${format(dateRange.from, "LLL d")} - ${format(dateRange.to, "LLL d, y")}`;
+    }, [dateRange]);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-3xl p-0 overflow-hidden border-0 shadow-2xl rounded-2xl bg-white">
+        <DialogClose asChild>
+          <Button variant="ghost" size="icon" className="absolute top-4 right-4 rounded-full h-10 w-10 bg-black/5 hover:bg-black/10 z-10">
+            <X className="h-5 w-5 text-muted-foreground" />
+          </Button>
+        </DialogClose>
+        <div className="p-10 pt-12 text-center space-y-6">
+          <div className="flex justify-center">
+            <div className="h-20 w-20 rounded-2xl bg-[#18B4A6] flex items-center justify-center shadow-lg">
+              <Download className="h-10 w-10 text-white" />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <DialogTitle className="text-3xl font-bold tracking-tight">Export Your Data</DialogTitle>
+            <DialogDescription className="text-base text-muted-foreground">Select your preferred format and download instantly</DialogDescription>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+            <button
+              onClick={() => onExport('CSV')}
+              className="flex flex-col items-center gap-5 p-6 rounded-2xl border-2 border-green-500/10 bg-green-50/50 hover:border-green-500/30 hover:bg-green-50 transition-all group outline-none text-center"
+            >
+              <div className="relative h-16 w-16 rounded-2xl flex items-center justify-center bg-green-500 shadow-lg shadow-green-500/20 transition-all duration-300 group-hover:scale-110 group-hover:-rotate-6">
+                <FileIcon className="h-8 w-8 text-white" />
+                <span className="absolute bottom-1 right-1 text-[8px] font-bold bg-white text-green-600 px-1 rounded-sm">CSV</span>
+              </div>
+              <div className="space-y-1">
+                <p className="text-lg font-bold text-foreground">CSV</p>
+                <p className="text-xs text-muted-foreground">Perfect for Excel & Google Sheets</p>
+              </div>
+            </button>
+            <button
+              onClick={() => onExport('Excel')}
+              className="flex flex-col items-center gap-5 p-6 rounded-2xl border-2 border-blue-500/10 bg-blue-50/50 hover:border-blue-500/30 hover:bg-blue-50 transition-all group outline-none text-center"
+            >
+              <div className="relative h-16 w-16 rounded-2xl flex items-center justify-center bg-blue-500 shadow-lg shadow-blue-500/20 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
+                <SheetIcon className="h-8 w-8 text-white" />
+                <span className="absolute bottom-1 right-1 text-sm font-bold bg-white text-blue-600 px-1.5 rounded-sm">x</span>
+              </div>
+              <div className="space-y-1">
+                <p className="text-lg font-bold text-foreground">Excel</p>
+                <p className="text-xs text-muted-foreground">Advanced formatting & formulas</p>
+              </div>
+            </button>
+            <button
+              onClick={() => onExport('PDF')}
+              className="flex flex-col items-center gap-5 p-6 rounded-2xl border-2 border-red-500/10 bg-red-50/50 hover:border-red-500/30 hover:bg-red-50 transition-all group outline-none text-center"
+            >
+              <div className="relative h-16 w-16 rounded-2xl flex items-center justify-center bg-red-500 shadow-lg shadow-red-500/20 transition-all duration-300 group-hover:scale-110 group-hover:-rotate-6">
+                <FileText className="h-8 w-8 text-white" />
+                 <span className="absolute bottom-1 right-1 text-[8px] font-bold bg-white text-red-600 px-1 rounded-sm">PDF</span>
+              </div>
+              <div className="space-y-1">
+                <p className="text-lg font-bold text-foreground">PDF</p>
+                <p className="text-xs text-muted-foreground">Print-ready professional docs</p>
+              </div>
+            </button>
+          </div>
+          <div className="pt-6">
+            <div className="flex items-center justify-center gap-4 text-xs font-medium text-muted-foreground bg-muted/50 p-3 rounded-lg border">
+              <Lock className="h-3.5 w-3.5" />
+              <span>Your data is encrypted and secure</span>
+              <span className="h-1 w-1 rounded-full bg-border" />
+              <Clock className="h-3.5 w-3.5" />
+              <span>Report Range: {rangeLabel}</span>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+
 export default function SplitBillsReportPage() {
   const [settlementLogs, setSettlementLogs] = useState<SplitSettlementLog[]>(
     []
@@ -124,7 +215,7 @@ export default function SplitBillsReportPage() {
   const [filters, setFilters] = useState(initialFilterState);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
-
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const { toast } = useToast();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -153,6 +244,14 @@ export default function SplitBillsReportPage() {
         description: `Details for order ${log.orderId} are not available.`,
       });
     }
+  };
+
+    const handleExport = (format: 'CSV' | 'Excel' | 'PDF') => {
+    setIsExportDialogOpen(false);
+    toast({
+      title: 'Export Initiated',
+      description: `Your transactions are being prepared for a ${format} download.`,
+    });
   };
 
   const handleFilterChange = (
@@ -267,7 +366,7 @@ export default function SplitBillsReportPage() {
               behavior.
             </p>
           </div>
-          <Button variant="outline" disabled>
+          <Button variant="outline" onClick={() => setIsExportDialogOpen(true)}>
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
@@ -431,6 +530,12 @@ export default function SplitBillsReportPage() {
             )}
         </Card>
       </main>
+      <ExportDialog
+        open={isExportDialogOpen}
+        onOpenChange={setIsExportDialogOpen}
+        onExport={handleExport}
+        dateRange={filters.dateRange}
+      />
       <OrderDetailsSheet
         order={selectedOrder}
         open={isSheetOpen}
