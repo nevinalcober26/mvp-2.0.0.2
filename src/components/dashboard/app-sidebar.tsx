@@ -372,15 +372,6 @@ export function AppSidebar() {
             </div>
           </div>
 
-          <div className="relative w-full group-data-[collapsible=icon]:hidden">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search menu..."
-              className="h-9 w-full rounded-lg bg-secondary pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
         </SidebarHeader>
 
         <SidebarContent className="p-0 pb-4">
