@@ -102,6 +102,12 @@ export default function EditBranchPage() {
   const [quickTagSearch, setQuickTagSearch] = useState('');
   const [popularRate, setPopularRate] = useState<number | null>(15);
 
+  const currencySymbols: { [key: string]: string } = {
+    AED: 'د.إ',
+    USD: '$',
+    EUR: '€',
+  };
+
   const handleAddRate = (rate: number) => {
     if (!isNaN(rate) && rate > 0 && !suggestedRates.includes(rate)) {
       setSuggestedRates(prev => [...prev, rate].sort((a, b) => a - b));
@@ -502,9 +508,9 @@ export default function EditBranchPage() {
                           <Select value={currency} onValueChange={setCurrency}>
                             <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="AED">AED - UAE Dirham</SelectItem>
-                              <SelectItem value="USD">USD - US Dollar</SelectItem>
-                              <SelectItem value="EUR">EUR - Euro</SelectItem>
+                              <SelectItem value="AED">AED - UAE Dirham (د.إ)</SelectItem>
+                              <SelectItem value="USD">USD - US Dollar ($)</SelectItem>
+                              <SelectItem value="EUR">EUR - Euro (€)</SelectItem>
                             </SelectContent>
                           </Select>
                           <p className="text-xs text-muted-foreground pt-1">The currency used for all tip calculations.</p>
@@ -558,7 +564,7 @@ export default function EditBranchPage() {
                       <CardContent className="space-y-6 pt-2">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                               <div className="space-y-2 text-left">
-                              <Label>Max Tip Amount Allowed ({feeType === 'Percentage' ? '%' : currency})</Label>
+                              <Label>Max Tip Amount Allowed ({feeType === 'Percentage' ? '%' : currencySymbols[currency]})</Label>
                               <Input value={maxRate} onChange={(e) => setMaxRate(e.target.value)} placeholder="e.g. 100" className="bg-background"/>
                               <p className="text-xs text-muted-foreground pt-1">Set a maximum limit for tips to prevent errors.</p>
                               </div>
