@@ -40,6 +40,7 @@ import {
   CalendarDays,
   HandCoins,
   X,
+  Star,
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
@@ -82,6 +83,7 @@ export default function AddNewBranchPage() {
   const [customEntryEnabled, setCustomEntryEnabled] = useState(false);
   const [suggestedRates, setSuggestedRates] = useState([10, 15, 20]);
   const [quickTagSearch, setQuickTagSearch] = useState('');
+  const [popularRate, setPopularRate] = useState<number | null>(15);
 
   const handleAddRate = (rate: number) => {
     if (!isNaN(rate) && rate > 0 && !suggestedRates.includes(rate)) {
@@ -537,7 +539,10 @@ export default function AddNewBranchPage() {
                                 type="button"
                                 variant="link"
                                 className="p-0 h-auto text-xs text-muted-foreground hover:text-destructive"
-                                onClick={() => setSuggestedRates([])}
+                                onClick={() => {
+                                  setSuggestedRates([]);
+                                  setPopularRate(null);
+                                }}
                             >
                                 Clear All
                             </Button>
@@ -545,12 +550,38 @@ export default function AddNewBranchPage() {
                         </div>
                         <div className="flex flex-wrap items-center gap-2 min-h-[28px]">
                             {suggestedRates.map((rate, index) => (
-                            <Badge key={index} className="bg-primary/80 hover:bg-primary/70 text-white text-sm p-2 rounded-md font-semibold">
-                                {rate}{feeType === 'Percentage' && '%'}
-                                <button type="button" onClick={() => setSuggestedRates(rates => rates.filter((_, i) => i !== index))} className="ml-2 rounded-full hover:bg-black/20 p-0.5">
-                                <X className="h-3 w-3" />
+                              <Badge
+                                key={index}
+                                className={cn(
+                                  "text-sm p-2 rounded-md font-semibold flex items-center gap-1 transition-all",
+                                  popularRate === rate
+                                    ? "bg-yellow-400 text-yellow-900 shadow-lg border-2 border-white/50"
+                                    : "bg-primary/80 hover:bg-primary/70 text-white"
+                                )}
+                              >
+                                <span>{rate}{feeType === 'Percentage' && '%'}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => setPopularRate(rate === popularRate ? null : rate)}
+                                  className="rounded-full hover:bg-black/20 p-0.5"
+                                >
+                                  <Star
+                                    className={cn(
+                                      "h-3.5 w-3.5 transition-colors",
+                                      popularRate === rate
+                                        ? "fill-yellow-900 text-yellow-900"
+                                        : "text-white/50 hover:text-white"
+                                    )}
+                                  />
                                 </button>
-                            </Badge>
+                                <button
+                                  type="button"
+                                  onClick={() => setSuggestedRates(rates => rates.filter((_, i) => i !== index))}
+                                  className="ml-1 rounded-full hover:bg-black/20 p-0.5"
+                                >
+                                  <X className="h-3.5 w-3.5" />
+                                </button>
+                              </Badge>
                             ))}
                         </div>
                         <Popover>
