@@ -39,10 +39,12 @@ import {
   ExternalLink,
   CalendarDays,
   HandCoins,
+  X,
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 const cuisines = ['Italian', 'Boutique Café', 'Signature Store', 'Japanese', 'Mexican', 'Indian', 'French'];
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -70,9 +72,13 @@ export default function AddNewBranchPage() {
 
   const [specialHours, setSpecialHours] = useState<any[]>([]);
 
-  const [tippingEnabled, setTippingEnabled] = useState(true);
-  const [customTipEnabled, setCustomTipEnabled] = useState(true);
-  const [serviceChargeEnabled, setServiceChargeEnabled] = useState(false);
+  const [tipFeeEnabled, setTipFeeEnabled] = useState(true);
+  const [currency, setCurrency] = useState('AED');
+  const [feeType, setFeeType] = useState('Percentage');
+  const [maxRate, setMaxRate] = useState('100');
+  const [customEntryEnabled, setCustomEntryEnabled] = useState(false);
+  const [suggestedRates, setSuggestedRates] = useState([20, 10, 30]);
+  const [quickTagSearch, setQuickTagSearch] = useState('');
 
   const handleUpdateRegularHour = (index: number, field: string, value: any) => {
     const updated = [...regularHours];
@@ -463,72 +469,64 @@ export default function AddNewBranchPage() {
               </TabsContent>
 
               <TabsContent value="tip-fee" className="p-8 space-y-10 focus-visible:ring-0 mt-0 bg-background">
-                <section className="space-y-6">
+                <section className="space-y-8">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-bold">Tip & Gratuity Settings</h3>
-                    <div className="flex items-center gap-3">
-                      <Label htmlFor="tipping-enabled" className="text-sm font-medium">Enable Tipping</Label>
-                      <Switch id="tipping-enabled" checked={tippingEnabled} onCheckedChange={setTippingEnabled} />
+                    <h3 className="text-lg font-bold">Tip Fee Settings</h3>
+                    <Switch id="tip-fee-enabled" checked={tipFeeEnabled} onCheckedChange={setTipFeeEnabled} />
+                  </div>
+
+                  <div className={cn(!tipFeeEnabled && "opacity-50 pointer-events-none", "space-y-6")}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2 text-left">
+                        <Label>Currency</Label>
+                        <Select value={currency} onValueChange={setCurrency}>
+                          <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="AED">AED</SelectItem>
+                            <SelectItem value="USD">USD</SelectItem>
+                            <SelectItem value="EUR">EUR</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2 text-left">
+                        <Label>Fee Type</Label>
+                        <Select value={feeType} onValueChange={setFeeType}>
+                          <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Percentage">Percentage</SelectItem>
+                            <SelectItem value="Fixed">Fixed Amount</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                      <div className="space-y-2 text-left">
+                        <Label>Max Rate</Label>
+                        <Input value={maxRate} onChange={(e) => setMaxRate(e.target.value)} placeholder="100" className="bg-background"/>
+                      </div>
+                      <div className="space-y-2 text-left">
+                        <Label>Custom Entry</Label>
+                        <div className="flex items-center h-[44px]">
+                          <Switch id="custom-entry-enabled" checked={customEntryEnabled} onCheckedChange={setCustomEntryEnabled} />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-4 text-left">
+                      <Label>Suggested Rates</Label>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {suggestedRates.map((rate, index) => (
+                          <Badge key={index} className="bg-primary/80 hover:bg-primary/70 text-white text-sm p-2 rounded-md font-semibold">
+                            {rate}
+                            <button type="button" onClick={() => setSuggestedRates(rates => rates.filter((_, i) => i !== index))} className="ml-2 rounded-full hover:bg-black/20 p-0.5">
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                        <Button type="button" variant="ghost" onClick={() => setSuggestedRates([])}>Clear All</Button>
+                      </div>
+                      <Input placeholder="Search or select quick tags" value={quickTagSearch} onChange={(e) => setQuickTagSearch(e.target.value)} className="bg-background"/>
                     </div>
                   </div>
-
-                  <div className={cn(!tippingEnabled && "opacity-50 pointer-events-none", "space-y-6")}>
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Suggested Tip Percentages</CardTitle>
-                        <CardDescription>Set predefined percentages for customers to select from.</CardDescription>
-                      </CardHeader>
-                      <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div>
-                          <Label className="text-xs font-semibold text-muted-foreground">Option 1 (%)</Label>
-                          <Input defaultValue="10" />
-                        </div>
-                        <div>
-                          <Label className="text-xs font-semibold text-muted-foreground">Option 2 (%)</Label>
-                          <Input defaultValue="15" />
-                        </div>
-                        <div>
-                          <Label className="text-xs font-semibold text-muted-foreground">Option 3 (%)</Label>
-                          <Input defaultValue="20" />
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Custom Tips</CardTitle>
-                        <CardDescription>Allow customers to enter their own tip amount.</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
-                            <Label htmlFor="custom-tip-enabled">Allow Custom Tip Amount</Label>
-                            <p className="text-xs text-muted-foreground">Customers can enter any amount they wish to tip.</p>
-                          </div>
-                          <Switch id="custom-tip-enabled" checked={customTipEnabled} onCheckedChange={setCustomTipEnabled} />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  <Card>
-                      <CardHeader>
-                          <CardTitle>Automatic Service Charge</CardTitle>
-                          <CardDescription>Apply a mandatory service charge to all bills.</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                          <div className="flex items-center justify-between rounded-lg border p-4">
-                            <div className="space-y-0.5">
-                                <Label htmlFor="service-charge-enabled">Enable Automatic Service Charge</Label>
-                            </div>
-                            <Switch id="service-charge-enabled" checked={serviceChargeEnabled} onCheckedChange={setServiceChargeEnabled}/>
-                          </div>
-                          <div className={cn("space-y-2", !serviceChargeEnabled && "opacity-50 pointer-events-none")}>
-                              <Label className="text-xs font-semibold text-muted-foreground">Service Charge Percentage (%)</Label>
-                              <Input placeholder="e.g. 10" disabled={!serviceChargeEnabled}/>
-                          </div>
-                      </CardContent>
-                  </Card>
                 </section>
               </TabsContent>
             </Tabs>
