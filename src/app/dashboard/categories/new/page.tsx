@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -46,6 +45,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const cuisines = ['Italian', 'Boutique Café', 'Signature Store', 'Japanese', 'Mexican', 'Indian', 'French'];
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -55,6 +55,8 @@ const TIME_OPTIONS = [
   '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM', '06:00 PM', '07:00 PM',
   '08:00 PM', '09:00 PM', '10:00 PM', '11:00 PM', '12:00 AM'
 ];
+
+const PRESET_RATES = [10, 15, 20, 30];
 
 export default function AddNewBranchPage() {
   const router = useRouter();
@@ -78,8 +80,23 @@ export default function AddNewBranchPage() {
   const [feeType, setFeeType] = useState('Percentage');
   const [maxRate, setMaxRate] = useState('100');
   const [customEntryEnabled, setCustomEntryEnabled] = useState(false);
-  const [suggestedRates, setSuggestedRates] = useState([20, 10, 30]);
+  const [suggestedRates, setSuggestedRates] = useState([10, 15, 20]);
   const [quickTagSearch, setQuickTagSearch] = useState('');
+
+  const handleAddRate = (rate: number) => {
+    if (!isNaN(rate) && rate > 0 && !suggestedRates.includes(rate)) {
+      setSuggestedRates(prev => [...prev, rate].sort((a, b) => a - b));
+    }
+  };
+
+  const handleAddSuggestedRate = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && quickTagSearch) {
+      e.preventDefault();
+      const newRate = parseInt(quickTagSearch, 10);
+      handleAddRate(newRate);
+      setQuickTagSearch('');
+    }
+  };
 
   const handleUpdateRegularHour = (index: number, field: string, value: any) => {
     const updated = [...regularHours];
@@ -512,20 +529,58 @@ export default function AddNewBranchPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="space-y-4 text-left">
-                      <Label>Suggested Rates</Label>
-                      <div className="flex flex-wrap items-center gap-2">
-                        {suggestedRates.map((rate, index) => (
-                          <Badge key={index} className="bg-primary/80 hover:bg-primary/70 text-white text-sm p-2 rounded-md font-semibold">
-                            {rate}
-                            <button type="button" onClick={() => setSuggestedRates(rates => rates.filter((_, i) => i !== index))} className="ml-2 rounded-full hover:bg-black/20 p-0.5">
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                        <Button type="button" variant="ghost" onClick={() => setSuggestedRates([])}>Clear All</Button>
-                      </div>
-                      <Input placeholder="Search or select quick tags" value={quickTagSearch} onChange={(e) => setQuickTagSearch(e.target.value)} className="bg-background"/>
+                    <div className="space-y-2 text-left">
+                        <div className="flex justify-between items-center">
+                            <Label>Suggested Rates</Label>
+                            {suggestedRates.length > 0 && (
+                            <Button
+                                type="button"
+                                variant="link"
+                                className="p-0 h-auto text-xs text-muted-foreground hover:text-destructive"
+                                onClick={() => setSuggestedRates([])}
+                            >
+                                Clear All
+                            </Button>
+                            )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 min-h-[28px]">
+                            {suggestedRates.map((rate, index) => (
+                            <Badge key={index} className="bg-primary/80 hover:bg-primary/70 text-white text-sm p-2 rounded-md font-semibold">
+                                {rate}{feeType === 'Percentage' && '%'}
+                                <button type="button" onClick={() => setSuggestedRates(rates => rates.filter((_, i) => i !== index))} className="ml-2 rounded-full hover:bg-black/20 p-0.5">
+                                <X className="h-3 w-3" />
+                                </button>
+                            </Badge>
+                            ))}
+                        </div>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <Input
+                                placeholder="Select or enter custom rate..."
+                                value={quickTagSearch}
+                                onChange={(e) => setQuickTagSearch(e.target.value)}
+                                onKeyDown={handleAddSuggestedRate}
+                                className="bg-background mt-2"
+                            />
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[--radix-popover-trigger-width] p-1">
+                            <div className="grid grid-cols-4 gap-1">
+                                {PRESET_RATES.map((rate) => (
+                                <Button
+                                    key={rate}
+                                    type="button"
+                                    variant="ghost"
+                                    className="font-semibold"
+                                    onClick={() => {
+                                        handleAddRate(rate);
+                                    }}
+                                >
+                                    {rate}%
+                                </Button>
+                                ))}
+                            </div>
+                            </PopoverContent>
+                        </Popover>
                     </div>
                   </div>
                 </section>
