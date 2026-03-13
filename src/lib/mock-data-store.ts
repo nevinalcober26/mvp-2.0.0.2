@@ -223,11 +223,46 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
         const randomDate = new Date(orderTimestamp);
         
         const customerPayments: CustomerPayment[] = [];
-        // Split about 1/3 of fully paid orders.
-        const shouldSplit = paidAmount > 0 && paymentState === 'Fully Paid' && i % 3 === 0;
+        const isSplit = paidAmount > 0 && paymentState === 'Fully Paid' && i % 3 === 0;
+        const splitType = isSplit ? (i % 6 === 0 ? 'byItem' : 'equally') : undefined;
 
-        if (paidAmount > 0) {
-            if (shouldSplit) {
+        if (isSplit) {
+            if (splitType === 'byItem' && currentItems.length > 1) {
+                // Item-based split logic
+                const itemsToPay = [...currentItems];
+                let guestIndex = 0;
+                let finalPaidAmount = 0;
+
+                while (itemsToPay.length > 0) {
+                    const itemsForThisPayment: OrderItem[] = [];
+                    let paymentAmount = 0;
+                    const numItemsInPayment = Math.random() > 0.6 && itemsToPay.length > 1 ? 2 : 1;
+                    
+                    for (let k = 0; k < numItemsInPayment && itemsToPay.length > 0; k++) {
+                        const item = itemsToPay.shift()!;
+                        itemsForThisPayment.push(item);
+                        paymentAmount += item.price * item.quantity;
+                    }
+                    
+                    if (itemsForThisPayment.length > 0) {
+                        finalPaidAmount += paymentAmount;
+                        const tip = paymentAmount * (Math.random() * 0.1 + 0.1);
+                        customerPayments.push({
+                            id: `txn_${12345 + i}_${guestIndex}`,
+                            amount: paymentAmount,
+                            tip: parseFloat(tip.toFixed(2)),
+                            method: guestIndex % 2 === 0 ? 'Credit Card' : 'Online',
+                            status: 'Paid',
+                            date: format(subMinutes(randomDate, Math.random() * 5), 'PPpp'),
+                            items: itemsForThisPayment.map(it => ({name: it.name, quantity: it.quantity})),
+                        });
+                        guestIndex++;
+                    }
+                }
+                // Ensure the order's paidAmount reflects the sum of itemized payments
+                paidAmount = finalPaidAmount;
+
+            } else { // 'equally' or fallback
                 const numPayers = Math.floor(Math.random() * 2) + 2; // 2-3 payers
                 const basePayment = parseFloat((paidAmount / numPayers).toFixed(2));
                 const totalTip = parseFloat((paidAmount * (Math.random() * 0.1 + 0.1)).toFixed(2));
@@ -253,19 +288,18 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
                         date: format(subMinutes(randomDate, Math.random() * 5), 'PPpp'),
                     });
                 }
-            } else {
-                // Not split
-                const tip = paidAmount * (Math.random() > 0.5 ? 0.1 : 0.15);
-                 if (paidAmount > 0.01) {
-                    customerPayments.push({
-                        id: `txn_${12345 + i}`,
-                        amount: paidAmount,
-                        tip: tip,
-                        method: i % 3 === 0 ? 'Cash' : 'Credit Card',
-                        status: 'Paid',
-                        date: format(subHours(randomDate, Math.random() > 0.5 ? 0 : 1), 'PPpp'),
-                    });
-                 }
+            }
+        } else if (paidAmount > 0) {
+            const tip = paidAmount * (Math.random() > 0.5 ? 0.1 : 0.15);
+            if (paidAmount > 0.01) {
+                customerPayments.push({
+                    id: `txn_${12345 + i}`,
+                    amount: paidAmount,
+                    tip: tip,
+                    method: i % 3 === 0 ? 'Cash' : 'Credit Card',
+                    status: 'Paid',
+                    date: format(subHours(randomDate, Math.random() > 0.5 ? 0 : 1), 'PPpp'),
+                });
             }
         }
         
@@ -275,7 +309,8 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
             date: p.date,
             transactionId: p.id,
             guestName: customer?.name || `Guest ${index + 1}`,
-            tip: p.tip
+            tip: p.tip,
+            items: p.items,
         }));
         
         const order: Order = {
@@ -291,7 +326,7 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
             orderDate: randomDate.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
             orderTimestamp: randomDate.getTime(),
             payments: orderPayments,
-            splitType: customerPayments.length > 1 ? (Math.random() > 0.5 ? 'equally' : 'byItem') : undefined,
+            splitType: splitType,
             customer: customer ? { name: customer.name, email: customer.email, phone: customer.phone } : undefined,
             staffName: staffNames[i % staffNames.length],
             orderComments: comments[i % comments.length] || undefined,
@@ -317,7 +352,7 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
               date: format(randomDate, 'PP'),
               type: i % 2 === 0 ? 'Dine-in' : 'Takeaway',
               paymentStatus: order.paymentState === 'Fully Paid' ? 'Paid' : order.paymentState === 'Partial' ? 'Partial' : 'Unpaid',
-              tip: customerPayments.reduce((acc, p) => acc + p.tip, 0),
+              tip: customerPayments.reduce((acc, p) => acc + (p.tip || 0), 0),
               isSplit: order.splitType !== undefined,
               total: order.totalAmount,
               payments: customerPayments,

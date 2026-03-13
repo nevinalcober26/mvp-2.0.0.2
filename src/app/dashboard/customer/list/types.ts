@@ -1,3 +1,4 @@
+'use client';
 export type Payment = {
   id: string;
   amount: number;
@@ -5,6 +6,7 @@ export type Payment = {
   method: 'Credit Card' | 'Cash' | 'Online';
   status: 'Paid' | 'Failed' | 'Refunded';
   date: string;
+  items?: { name: string; quantity: number }[];
 };
 
 export type Visit = {

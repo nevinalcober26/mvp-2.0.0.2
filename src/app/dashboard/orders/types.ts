@@ -13,6 +13,7 @@ export type Payment = {
   transactionId: string;
   guestName: string;
   tip?: number;
+  items?: { name: string; quantity: number }[];
 };
 
 export type Customer = {

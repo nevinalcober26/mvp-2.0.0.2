@@ -8,7 +8,6 @@ import {
   SheetHeader,
   SheetFooter,
   SheetClose,
-  SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet';
 import {
@@ -73,7 +72,7 @@ export function OrderDetailsSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-4xl w-full p-0">
-        <SheetTitle className="sr-only">Order Details</SheetTitle>
+        <DialogTitleComponent className="sr-only">Order Details</DialogTitleComponent>
         <SheetDescription className="sr-only">A detailed view of the selected order, including items, payment status, and customer information.</SheetDescription>
         <div className="flex flex-col h-full">
           <SheetHeader className="p-6 border-b bg-muted/50">
@@ -226,10 +225,17 @@ export function OrderDetailsSheet({
                                         <div>
                                           <p className="font-medium text-sm">
                                             {order.splitType === 'byItem'
-                                                ? `Paid for items: $${payment.amount} via ${payment.method}`
-                                                : `Payment of $${payment.amount} via ${payment.method}`}
+                                              ? `Payment for items: $${payment.amount} via ${payment.method}`
+                                              : `Payment of $${payment.amount} via ${payment.method}`}
                                           </p>
-                                          <p className="mt-0.5 text-sm text-muted-foreground">
+                                          {order.splitType === 'byItem' && payment.items && payment.items.length > 0 && (
+                                            <ul className="text-xs text-muted-foreground list-disc pl-5 mt-1">
+                                              {payment.items.map((item, idx) => (
+                                                <li key={idx}>{item.quantity}x {item.name}</li>
+                                              ))}
+                                            </ul>
+                                          )}
+                                          <p className="mt-1 text-sm text-muted-foreground">
                                             by {payment.guestName} on {payment.date}
                                           </p>
                                           <p className="mt-1 text-xs text-muted-foreground">
@@ -386,13 +392,9 @@ export function OrderDetailsSheet({
       {order.staffReference && (
         <Dialog open={isStaffInfoOpen} onOpenChange={setIsStaffInfoOpen}>
             <DialogContent className="bg-white p-0 max-w-sm overflow-hidden rounded-3xl border-0 shadow-2xl">
-                <DialogTitleComponent className="sr-only">Server Performance: {order.staffName}</DialogTitleComponent>
-                <DialogDescriptionComponent className="sr-only">A summary of {order.staffName}'s performance including sales and tips for the current period.</DialogDescriptionComponent>
-
                 <RadixDialogClose className="absolute top-4 left-4 z-50 h-10 w-10 rounded-full bg-black/20 text-white ring-offset-0 focus:ring-0 focus:outline-none flex items-center justify-center transition-all hover:bg-black/30">
                     <X className="h-5 w-5" />
                 </RadixDialogClose>
-                
                 <div className="relative">
                     <div className="h-64 w-full bg-gradient-to-br from-teal-300 to-cyan-400 p-8 flex flex-col items-center justify-center">
                         <Avatar className="h-28 w-28 border-4 border-white/30 shadow-xl">
