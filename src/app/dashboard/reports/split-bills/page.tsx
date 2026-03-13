@@ -492,8 +492,18 @@ export default function SplitBillsReportPage() {
                         <TableCell>
                           {log.payerBreakdown.length > 2 ? (
                             <UiTooltip>
-                              <UiTooltipTrigger>
-                                <Badge variant="secondary">{log.splits} Payments</Badge>
+                              <UiTooltipTrigger asChild>
+                                <div className="flex flex-wrap items-center gap-1 cursor-pointer">
+                                  {log.payerBreakdown.slice(0, 2).map((amount, i) => (
+                                    <Badge
+                                      key={i}
+                                      className="bg-green-100 text-green-700"
+                                    >
+                                      AED {amount.toFixed(2)}
+                                    </Badge>
+                                  ))}
+                                  <Badge variant="secondary" className="font-bold">+</Badge>
+                                </div>
                               </UiTooltipTrigger>
                               <UiTooltipContent>
                                 <div className="p-1">
