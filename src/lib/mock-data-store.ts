@@ -291,7 +291,7 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
             orderDate: randomDate.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
             orderTimestamp: randomDate.getTime(),
             payments: orderPayments,
-            splitType: customerPayments.length > 1 ? (i % 2 === 0 ? 'equally' : 'byItem') : undefined,
+            splitType: customerPayments.length > 1 ? (Math.random() > 0.5 ? 'equally' : 'byItem') : undefined,
             customer: customer ? { name: customer.name, email: customer.email, phone: customer.phone } : undefined,
             staffName: staffNames[i % staffNames.length],
             orderComments: comments[i % comments.length] || undefined,
