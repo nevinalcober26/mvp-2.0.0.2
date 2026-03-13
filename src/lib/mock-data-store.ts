@@ -172,11 +172,11 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
         const hasCustomer = i % 4 !== 0;
         const customer = hasCustomer ? customers[i % customers.length] : undefined;
 
-        const orderItemsCount = Math.floor(Math.random() * 3) + 1;
-        const currentItems: OrderItem[] = Array.from({ length: orderItemsCount }, () => {
+        const orderItemsCount = Math.floor(Math.random() * 4) + 2; // 2-5 items
+        const currentItems: OrderItem[] = Array.from({ length: orderItemsCount }, (_, k) => {
             const item = products[Math.floor(Math.random() * products.length)];
             return {
-                id: `${item.id}-${i}`,
+                id: `${item.id}-${i}-${k}`,
                 name: item.name,
                 quantity: Math.floor(Math.random() * 2) + 1,
                 price: item.price,
@@ -223,15 +223,17 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
         const randomDate = new Date(orderTimestamp);
         
         const customerPayments: CustomerPayment[] = [];
-        const isSplit = paidAmount > 0 && paymentState === 'Fully Paid' && i % 3 === 0;
+        const isSplit = paidAmount > 0.01 && paymentState === 'Fully Paid' && i % 3 === 0 && currentItems.length >= 2;
         const splitType = isSplit ? (i % 6 === 0 ? 'byItem' : 'equally') : undefined;
 
         if (isSplit) {
-            if (splitType === 'byItem' && currentItems.length > 1) {
-                // Item-based split logic
+            orderStatus = 'Completed'; // Split bills should be completed
+            paymentState = 'Fully Paid';
+            paidAmount = totalAmount;
+
+            if (splitType === 'byItem') {
                 const itemsToPay = [...currentItems];
                 let guestIndex = 0;
-                let finalPaidAmount = 0;
 
                 while (itemsToPay.length > 0) {
                     const itemsForThisPayment: OrderItem[] = [];
@@ -245,8 +247,7 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
                     }
                     
                     if (itemsForThisPayment.length > 0) {
-                        finalPaidAmount += paymentAmount;
-                        const tip = paymentAmount * (Math.random() * 0.1 + 0.1);
+                        const tip = paymentAmount * (Math.random() * 0.1 + 0.05);
                         customerPayments.push({
                             id: `txn_${12345 + i}_${guestIndex}`,
                             amount: paymentAmount,
@@ -259,25 +260,25 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
                         guestIndex++;
                     }
                 }
-                // Ensure the order's paidAmount reflects the sum of itemized payments
-                paidAmount = finalPaidAmount;
-
-            } else { // 'equally' or fallback
+            } else { // 'equally'
                 const numPayers = Math.floor(Math.random() * 2) + 2; // 2-3 payers
-                const basePayment = parseFloat((paidAmount / numPayers).toFixed(2));
-                const totalTip = parseFloat((paidAmount * (Math.random() * 0.1 + 0.1)).toFixed(2));
-                const baseTip = parseFloat((totalTip / numPayers).toFixed(2));
-                let accumulatedPayment = 0;
-                let accumulatedTip = 0;
-
+                const totalTip = parseFloat((totalAmount * (Math.random() * 0.1 + 0.1)).toFixed(2));
+                let remainingAmount = totalAmount;
+                let remainingTip = totalTip;
+                
                 for (let j = 0; j < numPayers; j++) {
                     const isLastPayer = j === numPayers - 1;
+                    let paymentAmount, tipAmount;
                     
-                    const paymentAmount = isLastPayer ? paidAmount - accumulatedPayment : basePayment;
-                    const tipAmount = isLastPayer ? totalTip - accumulatedTip : baseTip;
-
-                    accumulatedPayment += paymentAmount;
-                    accumulatedTip += tipAmount;
+                    if (isLastPayer) {
+                        paymentAmount = remainingAmount;
+                        tipAmount = remainingTip;
+                    } else {
+                        paymentAmount = parseFloat((totalAmount / numPayers).toFixed(2));
+                        tipAmount = parseFloat((totalTip / numPayers).toFixed(2));
+                        remainingAmount -= paymentAmount;
+                        remainingTip -= tipAmount;
+                    }
 
                     customerPayments.push({
                         id: `txn_${12345 + i}_${j}`,
@@ -290,17 +291,15 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
                 }
             }
         } else if (paidAmount > 0) {
-            const tip = paidAmount * (Math.random() > 0.5 ? 0.1 : 0.15);
-            if (paidAmount > 0.01) {
-                customerPayments.push({
-                    id: `txn_${12345 + i}`,
-                    amount: paidAmount,
-                    tip: tip,
-                    method: i % 3 === 0 ? 'Cash' : 'Credit Card',
-                    status: 'Paid',
-                    date: format(subHours(randomDate, Math.random() > 0.5 ? 0 : 1), 'PPpp'),
-                });
-            }
+            const tip = paymentState === 'Fully Paid' ? paidAmount * (Math.random() > 0.5 ? 0.1 : 0.15) : 0;
+            customerPayments.push({
+                id: `txn_${12345 + i}`,
+                amount: paidAmount,
+                tip: tip,
+                method: i % 3 === 0 ? 'Cash' : 'Credit Card',
+                status: 'Paid',
+                date: format(subHours(randomDate, Math.random() > 0.5 ? 0 : 1), 'PPpp'),
+            });
         }
         
         const orderPayments: OrderPayment[] = customerPayments.map((p, index) => ({

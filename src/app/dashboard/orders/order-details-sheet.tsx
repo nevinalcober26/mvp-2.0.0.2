@@ -180,7 +180,7 @@ export function OrderDetailsSheet({
                             <Package className="h-5 w-5" />
                           )}
                           <span>
-                            Payment split <strong>{order.splitType === 'byItem' ? 'by Item' : order.splitType}</strong>.
+                            Payment split <strong>{order.splitType === 'byItem' ? 'by Item' : 'Equally'}</strong>.
                           </span>
                         </div>
                       ) : order.paymentState === 'Partial' ? (
@@ -221,33 +221,36 @@ export function OrderDetailsSheet({
                                           <Check className="h-3 w-3 text-primary-foreground" />
                                         </span>
                                       </div>
-                                      <div className="min-w-0 flex-1 flex justify-between items-start">
-                                        <div>
-                                          <p className="font-medium text-sm">
-                                            {order.splitType === 'byItem'
-                                              ? `Payment for items: $${payment.amount} via ${payment.method}`
-                                              : `Payment of $${payment.amount} via ${payment.method}`}
-                                          </p>
-                                          {order.splitType === 'byItem' && payment.items && payment.items.length > 0 && (
-                                            <ul className="text-xs text-muted-foreground list-disc pl-5 mt-1">
-                                              {payment.items.map((item, idx) => (
-                                                <li key={idx}>{item.quantity}x {item.name}</li>
-                                              ))}
-                                            </ul>
-                                          )}
-                                          <p className="mt-1 text-sm text-muted-foreground">
-                                            by {payment.guestName} on {payment.date}
-                                          </p>
-                                          <p className="mt-1 text-xs text-muted-foreground">
-                                            Transaction ID: {payment.transactionId}
-                                          </p>
+                                      <div className="min-w-0 flex-1">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <p className="font-medium text-sm">
+                                                    Payment of ${payment.amount} via {payment.method}
+                                                </p>
+                                                <p className="mt-1 text-sm text-muted-foreground">
+                                                    by {payment.guestName} on {payment.date}
+                                                </p>
+                                            </div>
+                                            <Badge
+                                            variant="outline"
+                                            className="bg-green-100 text-green-700 border-transparent shrink-0"
+                                            >
+                                            Success
+                                            </Badge>
                                         </div>
-                                        <Badge
-                                          variant="outline"
-                                          className="bg-green-100 text-green-700 border-transparent shrink-0"
-                                        >
-                                          Success
-                                        </Badge>
+                                        {order.splitType === 'byItem' && payment.items && payment.items.length > 0 && (
+                                            <div className="mt-2 text-xs text-muted-foreground p-3 bg-muted/50 rounded-md border">
+                                                <p className="font-semibold text-foreground mb-1">Items Paid For:</p>
+                                                <ul className="list-disc pl-4 space-y-1">
+                                                {payment.items.map((item, idx) => (
+                                                    <li key={idx}>{item.quantity}x {item.name}</li>
+                                                ))}
+                                                </ul>
+                                            </div>
+                                        )}
+                                        <p className="mt-2 text-xs text-muted-foreground">
+                                            Transaction ID: {payment.transactionId}
+                                        </p>
                                       </div>
                                     </div>
                                   </div>
