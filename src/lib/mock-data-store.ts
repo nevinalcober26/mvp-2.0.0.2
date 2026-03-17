@@ -7,6 +7,7 @@ import { format, subDays, subHours, endOfDay, setHours, setMinutes, subMinutes, 
 import type { Column } from '@/app/dashboard/categories/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { VariationGroup } from '@/app/dashboard/catalog/variations/types';
+import type { ComboGroup } from '@/app/dashboard/catalog/combo-groups/types';
 
 export const mockComboGroups = ['Lunch Special', 'Family Deal', 'Dinner for Two', 'Breakfast Combo'];
 
@@ -442,6 +443,7 @@ class MockDataStore {
     public categories: Column[];
     public branches: Branch[];
     public variationGroups: VariationGroup[];
+    public comboGroups: ComboGroup[];
 
     constructor() {
         this.branches = mockBranches;
@@ -450,6 +452,29 @@ class MockDataStore {
         this.customers = customers;
         this.orders = orders;
         this.variationGroups = mockVariationGroups;
+        this.comboGroups = [
+             {
+                id: 'combo_1',
+                name: 'Lunch Special',
+                description: 'A perfect combo for a quick and satisfying lunch.',
+                price: 25.99,
+                productIds: ['prod_0', 'prod_1', 'prod_11'],
+            },
+            {
+                id: 'combo_2',
+                name: 'Dinner for Two',
+                description: 'Share a romantic dinner with our special selection.',
+                price: 55.00,
+                productIds: ['prod_8', 'prod_4', 'prod_9'],
+            },
+            {
+                id: 'combo_3',
+                name: 'Breakfast Power-Up',
+                description: 'Start your day with energy.',
+                price: 18.00,
+                productIds: ['prod_6', 'prod_10', 'prod_12'],
+            },
+        ];
         this.categories = [
           {
             id: 'food',
