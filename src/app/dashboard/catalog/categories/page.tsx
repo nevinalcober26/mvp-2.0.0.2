@@ -23,7 +23,7 @@ import { SortableItem } from '@/app/dashboard/categories/dnd/SortableItem';
 import { Item as ItemComponent } from '@/components/dashboard/dnd/Item';
 import { AddCategorySheet, type CategoryFormValues } from '@/app/dashboard/categories/add-category-sheet';
 import { CategorySheet } from '@/app/dashboard/categories/category-sheet';
-import { CategoryScheduleSheet as ScheduleSheet } from '@/app/dashboard/categories/schedule-sheet';
+import { CategoryScheduleSheet } from '@/app/dashboard/categories/schedule-sheet';
 import type { Column, Item, ScheduleRule } from '@/app/dashboard/categories/types';
 import { mockDataStore } from '@/lib/mock-data-store';
 import { useToast } from '@/hooks/use-toast';
@@ -449,7 +449,7 @@ export default function CategoriesPage() {
         
         <AddCategorySheet open={isAddSheetOpen} onOpenChange={setIsAddSheetOpen} onAddCategory={handleAddCategory} board={board} initialParentId={initialParentId} />
         <CategorySheet open={isEditSheetOpen} onOpenChange={setIsEditSheetOpen} category={selectedCategory} board={board} onUpdateCategory={handleUpdateCategory} />
-        <ScheduleSheet open={isScheduleSheetOpen} onOpenChange={setIsScheduleSheetOpen} category={selectedCategory} onSave={handleSaveSchedule} />
+        <CategoryScheduleSheet open={isScheduleSheetOpen} onOpenChange={setIsScheduleSheetOpen} category={selectedCategory} onSave={handleSaveSchedule} />
         
         <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
             <AlertDialogContent>
