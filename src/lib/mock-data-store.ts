@@ -164,8 +164,8 @@ const generateMockProducts = (count: number): Product[] => {
         const status = productStatuses[i % productStatuses.length];
         const price = Math.floor(Math.random() * 30) + 5;
         const variations: Variation[] | undefined = i % 5 === 0 ? [
-            { id: `var_${i}_1`, value: 'Small', matrix: `S-${i}`, price: price * 0.8, hidden: false, categoryPage: true, productPage: true },
-            { id: `var_${i}_2`, value: 'Large', matrix: `L-${i}`, price: price * 1.2, hidden: false, categoryPage: true, productPage: true }
+            { id: `var_${i}_1`, value: 'Small', matrix: `S-${i}`, priceMode: 'override', priceValue: price * 0.8, hidden: false, categoryPage: true, productPage: true },
+            { id: `var_${i}_2`, value: 'Large', matrix: `L-${i}`, priceMode: 'override', priceValue: price * 1.2, hidden: false, categoryPage: true, productPage: true }
         ] : undefined;
 
         products.push({

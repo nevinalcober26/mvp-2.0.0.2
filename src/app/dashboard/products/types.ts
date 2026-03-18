@@ -1,8 +1,9 @@
 export type Variation = {
   id: string;
   value: string;
-  matrix: string;
-  price: number;
+  matrix?: string;
+  priceMode: 'override' | 'add' | 'subtract';
+  priceValue: number;
   hidden: boolean;
   categoryPage?: boolean;
   productPage?: boolean;

@@ -108,7 +108,8 @@ const productSchema = z
         z.object({
           value: z.string().min(1, 'Variation value is required'),
           matrix: z.string().optional(),
-          price: z.coerce.number().min(0, "Price can't be negative"),
+          priceMode: z.enum(['override', 'add', 'subtract']).default('override'),
+          priceValue: z.coerce.number().min(0, "Price value can't be negative"),
           hidden: z.boolean().default(false),
           categoryPage: z.boolean().default(false),
           productPage: z.boolean().default(false),
@@ -1101,36 +1102,74 @@ export function ProductSheet({
                                                             </FormItem>
                                                         )}
                                                     />
-
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                        <FormField
-                                                            control={form.control}
-                                                            name={`variations.${index}.price`}
-                                                            render={({ field }) => (
-                                                                <FormItem>
-                                                                    <FormLabel>Price Override*</FormLabel>
-                                                                    <FormControl>
-                                                                        <Input type="number" placeholder="Overrides base price" {...field} />
-                                                                    </FormControl>
-                                                                    <FormDescription>This price will be used instead of the base product price.</FormDescription>
-                                                                    <FormMessage />
-                                                                </FormItem>
-                                                            )}
-                                                        />
-                                                        <FormField
-                                                            control={form.control}
-                                                            name={`variations.${index}.matrix`}
-                                                            render={({ field }) => (
-                                                                <FormItem>
-                                                                    <FormLabel>Matrix / SKU (Optional)</FormLabel>
-                                                                    <FormControl>
-                                                                        <Input placeholder="Identifier for POS" {...field} />
-                                                                    </FormControl>
-                                                                    <FormDescription>Optional ID for your inventory system.</FormDescription>
-                                                                    <FormMessage />
-                                                                </FormItem>
-                                                            )}
-                                                        />
+                                                    <div className="space-y-4">
+                                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                                                            <FormField
+                                                                control={form.control}
+                                                                name={`variations.${index}.priceMode`}
+                                                                render={({ field }) => (
+                                                                    <FormItem>
+                                                                        <FormLabel>Price Rule</FormLabel>
+                                                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                                            <FormControl>
+                                                                                <SelectTrigger>
+                                                                                    <SelectValue placeholder="Select a rule" />
+                                                                                </SelectTrigger>
+                                                                            </FormControl>
+                                                                            <SelectContent>
+                                                                                <SelectItem value="override">Set specific price</SelectItem>
+                                                                                <SelectItem value="add">Add to base price</SelectItem>
+                                                                                <SelectItem value="subtract">Subtract from base price</SelectItem>
+                                                                            </SelectContent>
+                                                                        </Select>
+                                                                        <FormMessage />
+                                                                    </FormItem>
+                                                                )}
+                                                            />
+                                                            <FormField
+                                                                control={form.control}
+                                                                name={`variations.${index}.priceValue`}
+                                                                render={({ field }) => (
+                                                                    <FormItem>
+                                                                        <FormLabel>
+                                                                            {
+                                                                                {
+                                                                                    'override': 'Specific Price (AED)',
+                                                                                    'add': 'Amount to Add (AED)',
+                                                                                    'subtract': 'Amount to Subtract (AED)'
+                                                                                }[form.watch(`variations.${index}.priceMode`) || 'override']
+                                                                            }
+                                                                        </FormLabel>
+                                                                        <FormControl>
+                                                                            <Input type="number" placeholder="0.00" {...field} />
+                                                                        </FormControl>
+                                                                        <FormMessage />
+                                                                    </FormItem>
+                                                                )}
+                                                            />
+                                                            <FormField
+                                                                control={form.control}
+                                                                name={`variations.${index}.matrix`}
+                                                                render={({ field }) => (
+                                                                    <FormItem>
+                                                                        <FormLabel>Matrix / SKU</FormLabel>
+                                                                        <FormControl>
+                                                                            <Input placeholder="Optional identifier" {...field} />
+                                                                        </FormControl>
+                                                                        <FormMessage />
+                                                                    </FormItem>
+                                                                )}
+                                                            />
+                                                        </div>
+                                                        <FormDescription className="px-1">
+                                                            {
+                                                                {
+                                                                'override': 'This specific price will be used for this variation, ignoring the base product price.',
+                                                                'add': 'This amount will be added to the base product price.',
+                                                                'subtract': 'This amount will be subtracted from the base product price.',
+                                                                }[form.watch(`variations.${index}.priceMode`) || 'override']
+                                                            }
+                                                        </FormDescription>
                                                     </div>
                                                     
                                                     <div>
@@ -1197,7 +1236,7 @@ export function ProductSheet({
                                     type="button"
                                     variant="outline"
                                     onClick={() =>
-                                    appendVariation({ value: '', matrix: '', price: 0, hidden: false, categoryPage: true, productPage: true })
+                                    appendVariation({ value: '', matrix: '', priceMode: 'override', priceValue: 0, hidden: false, categoryPage: true, productPage: true })
                                     }
                                 >
                                     <PlusCircle className="mr-2 h-4 w-4" />
