@@ -28,7 +28,7 @@ import { VariationGroupSheet } from './variation-group-sheet';
 import { useToast } from '@/hooks/use-toast';
 
 export default function VariationsPage() {
-  const [variationGroups, setVariationGroups] = useState<VariationGroup[]>(mockDataStore.variationGroups);
+  const [variationGroups, setVariationGroups] = useState<VariationGroup[]>(mockDataStore.variationGroups.sort((a, b) => a.sortOrder - b.sortOrder));
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<VariationGroup | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<VariationGroup | null>(null);
@@ -56,14 +56,20 @@ export default function VariationsPage() {
   };
 
   const handleSave = (data: VariationGroup) => {
+    // Sort options within the group
+    data.options.sort((a, b) => a.sortOrder - b.sortOrder);
+    
     setVariationGroups(groups => {
       const index = groups.findIndex(g => g.id === data.id);
+      let newGroups;
       if (index > -1) {
-        const newGroups = [...groups];
+        newGroups = [...groups];
         newGroups[index] = data;
-        return newGroups;
+      } else {
+        newGroups = [data, ...groups];
       }
-      return [data, ...groups];
+      // Sort groups by their sortOrder
+      return newGroups.sort((a,b) => a.sortOrder - b.sortOrder);
     });
   };
 
@@ -107,8 +113,10 @@ export default function VariationsPage() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                  <CardDescription>
-                    {group.options.length} options
+                  <CardDescription className="flex flex-wrap gap-2 items-center">
+                    <span>{group.options.length} options</span>
+                    {group.multiple && <Badge variant="outline">Multiple</Badge>}
+                    {group.required && <Badge variant="outline">Required</Badge>}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
