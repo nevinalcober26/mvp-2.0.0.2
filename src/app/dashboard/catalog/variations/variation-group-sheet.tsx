@@ -48,6 +48,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Textarea } from '@/components/ui/textarea';
 import Image from 'next/image';
+import { Switch } from '@/components/ui/switch';
 
 const variationOptionSchema = z.object({
   id: z.string().optional(),
@@ -57,6 +58,8 @@ const variationOptionSchema = z.object({
   salePrice: z.coerce.number().optional(),
   stock: z.coerce.number().optional(),
   description: z.string().optional(),
+  allowMultiQuantity: z.boolean().default(false),
+  maxQuantity: z.coerce.number().optional(),
 });
 
 const variationGroupSchema = z.object({
@@ -98,6 +101,8 @@ const SortableOptionItem = ({
     transition,
     zIndex: isDragging ? 1 : 'auto',
   };
+  
+  const allowMultiQuantity = form.watch(`options.${index}.allowMultiQuantity`);
 
   return (
     <div ref={setNodeRef} style={style}>
@@ -165,11 +170,46 @@ const SortableOptionItem = ({
 
                 <div className="md:col-span-2 grid grid-cols-2 gap-4">
                   <FormField control={form.control} name={`options.${index}.stock`} render={({ field }) => (<FormItem><FormLabel>Stock Quantity</FormLabel><FormControl><Input type="number" placeholder="e.g. 100" {...field} value={field.value ?? ''} /></FormControl></FormItem>)} />
-                  <div />
+                  <FormField
+                    control={form.control}
+                    name={`options.${index}.allowMultiQuantity`}
+                    render={({ field }) => (
+                        <FormItem className="space-y-2">
+                            <FormLabel>Allow Quantity</FormLabel>
+                            <div className="flex h-10 items-center justify-between rounded-md border bg-background px-3">
+                                <p className="text-sm font-medium text-muted-foreground">
+                                    Enable
+                                </p>
+                                <FormControl>
+                                    <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                            </div>
+                        </FormItem>
+                    )}
+                    />
                   <FormField control={form.control} name={`options.${index}.regularPrice`} render={({ field }) => (<FormItem><FormLabel>Regular Price (AED)</FormLabel><FormControl><Input type="number" step="0.01" placeholder="0.00" {...field} value={field.value ?? ''} /></FormControl></FormItem>)} />
                   <FormField control={form.control} name={`options.${index}.salePrice`} render={({ field }) => (<FormItem><FormLabel>Sale Price (AED)</FormLabel><FormControl><Input type="number" step="0.01" placeholder="0.00" {...field} value={field.value ?? ''} /></FormControl></FormItem>)} />
                 </div>
             </div>
+
+            {allowMultiQuantity && (
+                <div className="pt-4 mt-4 border-t">
+                    <FormField
+                        control={form.control}
+                        name={`options.${index}.maxQuantity`}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Maximum Quantity</FormLabel>
+                                <FormControl><Input type="number" placeholder="No limit" {...field} value={field.value ?? ''} /></FormControl>
+                                <FormDescription>Limit the quantity a customer can select for this option. Leave blank for no limit.</FormDescription>
+                            </FormItem>
+                        )}
+                    />
+                </div>
+            )}
             
             <FormField
               control={form.control}
@@ -206,6 +246,8 @@ export function VariationGroupSheet({ open, onOpenChange, group, onSave }: Varia
         salePrice: undefined,
         stock: undefined,
         description: '',
+        allowMultiQuantity: false,
+        maxQuantity: undefined,
       }],
     },
   });
@@ -250,6 +292,8 @@ export function VariationGroupSheet({ open, onOpenChange, group, onSave }: Varia
           salePrice: opt.salePrice,
           stock: opt.stock,
           description: opt.description || '',
+          allowMultiQuantity: opt.allowMultiQuantity || false,
+          maxQuantity: opt.maxQuantity,
         })),
       });
     } else {
@@ -266,6 +310,8 @@ export function VariationGroupSheet({ open, onOpenChange, group, onSave }: Varia
           salePrice: undefined,
           stock: undefined,
           description: '',
+          allowMultiQuantity: false,
+          maxQuantity: undefined,
         }],
       });
     }
@@ -288,6 +334,8 @@ export function VariationGroupSheet({ open, onOpenChange, group, onSave }: Varia
         salePrice: opt.salePrice,
         stock: opt.stock,
         description: opt.description,
+        allowMultiQuantity: opt.allowMultiQuantity,
+        maxQuantity: opt.allowMultiQuantity ? opt.maxQuantity : undefined,
       })),
     };
 
@@ -365,6 +413,8 @@ export function VariationGroupSheet({ open, onOpenChange, group, onSave }: Varia
                       salePrice: undefined,
                       stock: undefined,
                       description: '',
+                      allowMultiQuantity: false,
+                      maxQuantity: undefined,
                   })}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Add Option

@@ -7,6 +7,8 @@ export interface VariationOption {
   salePrice?: number;
   stock?: number;
   description?: string;
+  allowMultiQuantity?: boolean;
+  maxQuantity?: number;
 }
 
 export interface VariationGroup {
