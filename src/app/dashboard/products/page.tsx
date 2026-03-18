@@ -141,7 +141,6 @@ const SortableProductRow = ({
       </TableCell>
       <TableCell className="font-medium">{product.name}</TableCell>
       <TableCell>{product.category}</TableCell>
-      <TableCell>{product.branch}</TableCell>
       <TableCell>${product.price.toFixed(2)}</TableCell>
       <TableCell>{product.stock}</TableCell>
       <TableCell>
@@ -188,7 +187,6 @@ export default function ProductsPage() {
   const itemsPerPage = 10;
   const [filters, setFilters] = useState({
     search: '',
-    branch: 'all',
     status: 'all',
   });
   const [sortConfig, setSortConfig] = useState<{
@@ -233,11 +231,9 @@ export default function ProductsPage() {
       const matchesSearch = product.name
         .toLowerCase()
         .includes(filters.search.toLowerCase());
-      const matchesBranch =
-        filters.branch === 'all' || product.branch === filters.branch;
       const matchesStatus =
         filters.status === 'all' || product.status === filters.status;
-      return matchesSearch && matchesBranch && matchesStatus;
+      return matchesSearch && matchesStatus;
     });
 
     if (sortConfig !== null) {
@@ -455,20 +451,6 @@ export default function ProductsPage() {
                   className="max-w-sm"
                 />
                 <Select
-                  value={filters.branch}
-                  onValueChange={(value) => handleFilterChange('branch', value)}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="All Branches" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Branches</SelectItem>
-                    {mockDataStore.branches.map(branch => (
-                      <SelectItem key={branch.id} value={branch.name}>{branch.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select
                   value={filters.status}
                   onValueChange={(value) => handleFilterChange('status', value)}
                 >
@@ -519,9 +501,6 @@ export default function ProductsPage() {
                         <SortableHeader tKey="category" label="Category" />
                       </TableHead>
                       <TableHead>
-                        <SortableHeader tKey="branch" label="Branch" />
-                      </TableHead>
-                      <TableHead>
                         <SortableHeader
                           tKey="price"
                           label="Price"
@@ -551,7 +530,7 @@ export default function ProductsPage() {
                       {isLoading ? (
                         [...Array(5)].map((_, i) => (
                           <TableRow key={i}>
-                            {[...Array(10)].map((_, j) => (
+                            {[...Array(9)].map((_, j) => (
                               <TableCell key={j}>
                                 <div className="h-4 bg-muted rounded animate-pulse"></div>
                               </TableCell>
@@ -572,7 +551,7 @@ export default function ProductsPage() {
                       ) : (
                         <TableRow>
                           <TableCell
-                            colSpan={10}
+                            colSpan={9}
                             className="h-24 text-center text-muted-foreground"
                           >
                             No products found.
