@@ -26,21 +26,21 @@ import { cn } from '@/lib/utils';
 const initialPropertiesData: Omit<Property, 'id'>[] = [
   { name: 'Algae', imageUrl: null },
   { name: 'Celery', imageUrl: null },
-  { name: 'Cocoa', imageUrl: 'https://picsum.photos/seed/cocoa/96' },
-  { name: 'Dairy', imageUrl: 'https://picsum.photos/seed/dairy/96' },
-  { name: 'Egg', imageUrl: 'https://picsum.photos/seed/egg/96' },
-  { name: 'Fish', imageUrl: 'https://picsum.photos/seed/fish/96' },
+  { name: 'Cocoa', imageUrl: 'https://picsum.photos/seed/cocoa/100' },
+  { name: 'Dairy', imageUrl: 'https://picsum.photos/seed/dairy/100' },
+  { name: 'Egg', imageUrl: 'https://picsum.photos/seed/egg/100' },
+  { name: 'Fish', imageUrl: 'https://picsum.photos/seed/fish/100' },
   { name: 'Gluten', imageUrl: null },
   { name: 'Legume', imageUrl: null },
-  { name: 'Milk', imageUrl: 'https://picsum.photos/seed/milk/96' },
-  { name: 'Mushroom', imageUrl: 'https://picsum.photos/seed/mushroom/96' },
-  { name: 'Nuts', imageUrl: 'https://picsum.photos/seed/nuts/96' },
-  { name: 'Seeds', imageUrl: 'https://picsum.photos/seed/seeds/96' },
-  { name: 'Shellfish', imageUrl: 'https://picsum.photos/seed/shellfish/96' },
-  { name: 'Soy', imageUrl: 'https://picsum.photos/seed/soy/96' },
-  { name: 'Vegan', imageUrl: 'https://picsum.photos/seed/vegan/96' },
-  { name: 'Vegetarian', imageUrl: 'https://picsum.photos/seed/vegetarian/96' },
-  { name: 'Spicy', imageUrl: 'https://picsum.photos/seed/spicy/96' },
+  { name: 'Milk', imageUrl: 'https://picsum.photos/seed/milk/100' },
+  { name: 'Mushroom', imageUrl: 'https://picsum.photos/seed/mushroom/100' },
+  { name: 'Nuts', imageUrl: 'https://picsum.photos/seed/nuts/100' },
+  { name: 'Seeds', imageUrl: 'https://picsum.photos/seed/seeds/100' },
+  { name: 'Shellfish', imageUrl: 'https://picsum.photos/seed/shellfish/100' },
+  { name: 'Soy', imageUrl: 'https://picsum.photos/seed/soy/100' },
+  { name: 'Vegan', imageUrl: 'https://picsum.photos/seed/vegan/100' },
+  { name: 'Vegetarian', imageUrl: 'https://picsum.photos/seed/vegetarian/100' },
+  { name: 'Spicy', imageUrl: 'https://picsum.photos/seed/spicy/100' },
   { name: 'Halal', imageUrl: null },
 ].sort((a,b) => a.name.localeCompare(b.name));
 
@@ -187,9 +187,9 @@ export default function PropertiesPage() {
                                 {paginatedProperties.map(prop => (
                                     <Card key={prop.id} className="group relative transition-all hover:shadow-md">
                                         <CardContent className="flex flex-col items-center justify-center p-6 gap-4 aspect-square">
-                                            <div className="w-24 h-24 rounded-lg bg-muted flex items-center justify-center border overflow-hidden">
+                                            <div className="w-[100px] h-[100px] rounded-lg bg-muted flex items-center justify-center border overflow-hidden">
                                                 {prop.imageUrl ? (
-                                                    <Image src={prop.imageUrl} alt={prop.name} width={96} height={96} className="object-contain" />
+                                                    <Image src={prop.imageUrl} alt={prop.name} width={100} height={100} className="object-contain" />
                                                 ) : (
                                                     <ImageIcon className="h-10 w-10 text-muted-foreground" />
                                                 )}

@@ -140,9 +140,9 @@ export function PropertySheet({ open, onOpenChange, property, onSave }: Property
                 <FormItem>
                   <FormLabel>Property Icon</FormLabel>
                   <div className="flex items-center gap-4">
-                    <div className="w-24 h-24 rounded-lg border-2 border-dashed flex items-center justify-center bg-muted overflow-hidden">
+                    <div className="w-[100px] h-[100px] rounded-lg border-2 border-dashed flex items-center justify-center bg-muted overflow-hidden">
                       {imagePreview ? (
-                        <Image src={imagePreview} alt="Property icon preview" width={96} height={96} className="object-contain" />
+                        <Image src={imagePreview} alt="Property icon preview" width={100} height={100} className="object-contain" />
                       ) : (
                         <ImageIcon className="h-10 w-10 text-muted-foreground" />
                       )}
@@ -166,7 +166,7 @@ export function PropertySheet({ open, onOpenChange, property, onSave }: Property
                     </div>
                   </div>
                   <FormDescription>
-                    Recommended size: 96x96 pixels. Use a transparent PNG or SVG for best results.
+                    Recommended size: 100x100 pixels. Use a transparent PNG or SVG for best results.
                   </FormDescription>
                    <FormMessage />
                 </FormItem>
