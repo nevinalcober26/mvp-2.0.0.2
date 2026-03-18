@@ -139,34 +139,35 @@ export function PropertySheet({ open, onOpenChange, property, onSave }: Property
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Property Icon</FormLabel>
-                  <div className="flex items-center gap-4">
-                    <div className="w-[100px] h-[100px] rounded-lg border-2 border-dashed flex items-center justify-center bg-muted overflow-hidden">
-                      {imagePreview ? (
-                        <Image src={imagePreview} alt="Property icon preview" width={100} height={100} className="object-contain" />
-                      ) : (
-                        <ImageIcon className="h-10 w-10 text-muted-foreground" />
-                      )}
-                    </div>
-                    <div className="flex flex-col gap-2">
-                        <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
-                            <Upload className="mr-2 h-4 w-4" /> Upload Image
-                        </Button>
-                        <Input 
-                            type="file" 
-                            className="hidden" 
-                            ref={fileInputRef} 
-                            onChange={handleLogoUpload}
-                            accept="image/png, image/jpeg, image/svg+xml"
-                        />
-                        {imagePreview && (
-                            <Button type="button" variant="ghost" className="text-destructive" onClick={clearImage}>
-                                <X className="mr-2 h-4 w-4" /> Remove Image
-                            </Button>
-                        )}
-                    </div>
-                  </div>
+                   <FormControl>
+                      <div className="space-y-2">
+                          <label className="cursor-pointer block w-full aspect-square max-w-[160px] rounded-lg border-2 border-dashed flex items-center justify-center bg-muted overflow-hidden hover:bg-muted/80 hover:border-primary transition-colors">
+                              {imagePreview ? (
+                                  <Image src={imagePreview} alt="Property icon preview" width={160} height={160} className="object-contain" />
+                              ) : (
+                                  <div className="text-center text-muted-foreground p-4">
+                                      <Upload className="h-8 w-8 mx-auto mb-2" />
+                                      <p className="text-sm font-semibold">Click to upload an image</p>
+                                      <p className="text-xs mt-1">100x100 pixels recommended</p>
+                                  </div>
+                              )}
+                              <Input 
+                                  type="file" 
+                                  className="hidden" 
+                                  ref={fileInputRef} 
+                                  onChange={handleLogoUpload}
+                                  accept="image/png, image/jpeg, image/svg+xml"
+                              />
+                          </label>
+                          {imagePreview && (
+                              <Button type="button" variant="link" size="sm" className="text-destructive font-semibold px-0 hover:no-underline" onClick={clearImage}>
+                                  <X className="mr-1 h-4 w-4" /> Remove Image
+                              </Button>
+                          )}
+                      </div>
+                  </FormControl>
                   <FormDescription>
-                    Recommended size: 100x100 pixels. Use a transparent PNG or SVG for best results.
+                    Use a transparent PNG or SVG for best results.
                   </FormDescription>
                    <FormMessage />
                 </FormItem>

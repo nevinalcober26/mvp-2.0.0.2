@@ -22,6 +22,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const initialPropertiesData: Omit<Property, 'id'>[] = [
   { name: 'Algae', imageUrl: null },
@@ -144,7 +145,7 @@ export default function PropertiesPage() {
                                     <TableRow>
                                         <TableHead className="w-[80px]">Icon</TableHead>
                                         <TableHead>Property Name</TableHead>
-                                        <TableHead className="text-right w-[250px]">Actions</TableHead>
+                                        <TableHead className="text-right w-[150px]">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -162,14 +163,26 @@ export default function PropertiesPage() {
                                                 </TableCell>
                                                 <TableCell className="font-medium text-base">{prop.name}</TableCell>
                                                 <TableCell className="text-right">
-                                                    <div className="flex gap-2 justify-end">
-                                                        <Button variant="outline" size="sm" onClick={() => handleEdit(prop)}>
-                                                            <Edit className="h-4 w-4 mr-2" /> Edit
-                                                        </Button>
-                                                        <Button variant="outline" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/5" onClick={() => setDeleteTarget(prop)}>
-                                                            <Trash className="h-4 w-4 mr-2" /> Delete
-                                                        </Button>
-                                                    </div>
+                                                    <TooltipProvider>
+                                                      <div className="flex gap-1 justify-end">
+                                                          <Tooltip>
+                                                              <TooltipTrigger asChild>
+                                                                  <Button variant="ghost" size="icon" onClick={() => handleEdit(prop)}>
+                                                                      <Edit className="h-4 w-4" />
+                                                                  </Button>
+                                                              </TooltipTrigger>
+                                                              <TooltipContent>Edit Property</TooltipContent>
+                                                          </Tooltip>
+                                                          <Tooltip>
+                                                              <TooltipTrigger asChild>
+                                                                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive hover:bg-destructive/5" onClick={() => setDeleteTarget(prop)}>
+                                                                      <Trash className="h-4 w-4" />
+                                                                  </Button>
+                                                              </TooltipTrigger>
+                                                              <TooltipContent>Delete Property</TooltipContent>
+                                                          </Tooltip>
+                                                      </div>
+                                                    </TooltipProvider>
                                                 </TableCell>
                                             </TableRow>
                                         ))
@@ -185,9 +198,9 @@ export default function PropertiesPage() {
                         ) : (
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 {paginatedProperties.map(prop => (
-                                    <Card key={prop.id} className="group relative transition-all hover:shadow-md">
+                                    <Card key={prop.id} className="group relative transition-all hover:shadow-lg border hover:border-primary/50">
                                         <CardContent className="flex flex-col items-center justify-center p-6 gap-4 aspect-square">
-                                            <div className="w-[100px] h-[100px] rounded-lg bg-muted flex items-center justify-center border overflow-hidden">
+                                            <div className="w-[100px] h-[100px] rounded-lg bg-muted flex items-center justify-center border overflow-hidden transition-transform group-hover:scale-105">
                                                 {prop.imageUrl ? (
                                                     <Image src={prop.imageUrl} alt={prop.name} width={100} height={100} className="object-contain" />
                                                 ) : (
