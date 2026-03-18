@@ -34,6 +34,8 @@ import {
   SelectTrigger,
   SelectValue,
   SelectSeparator,
+  SelectGroup,
+  SelectLabel,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -1073,10 +1075,29 @@ export function ProductSheet({
                                                         name={`variations.${index}.value`}
                                                         render={({ field }) => (
                                                             <FormItem className="w-full">
-                                                                <FormLabel>Variation Name*</FormLabel>
-                                                                <FormControl>
-                                                                    <Input placeholder="e.g. Large" {...field} />
-                                                                </FormControl>
+                                                                <FormLabel>Variation Value*</FormLabel>
+                                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                                    <FormControl>
+                                                                        <SelectTrigger>
+                                                                            <SelectValue placeholder="Select a variation value" />
+                                                                        </SelectTrigger>
+                                                                    </FormControl>
+                                                                    <SelectContent>
+                                                                        {mockDataStore.variationGroups.map((group, groupIndex) => (
+                                                                            <React.Fragment key={group.id}>
+                                                                                <SelectGroup>
+                                                                                    <SelectLabel>{group.name}</SelectLabel>
+                                                                                    {group.options.map((option) => (
+                                                                                        <SelectItem key={option.id} value={option.value}>
+                                                                                            {option.value}
+                                                                                        </SelectItem>
+                                                                                    ))}
+                                                                                </SelectGroup>
+                                                                                {groupIndex < mockDataStore.variationGroups.length - 1 && <SelectSeparator />}
+                                                                            </React.Fragment>
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                </Select>
                                                                 <FormMessage />
                                                             </FormItem>
                                                         )}
