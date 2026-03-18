@@ -118,6 +118,18 @@ export function Container({ id, label, items, columnData, onEditClick, onSchedul
   
   const shouldHighlight = isOverForAnItem || isOverForAColumn;
 
+  const totalDescendants = useMemo(() => {
+    let count = 0;
+    const countItems = (items: Item[]) => {
+      count += items.length;
+      items.forEach(item => {
+        if(item.children) countItems(item.children);
+      });
+    }
+    countItems(items);
+    return count;
+  }, [items]);
+
   return (
     <div ref={setSortableNodeRef} style={style} className="w-80 flex-shrink-0 flex flex-col">
         <Card
@@ -141,9 +153,10 @@ export function Container({ id, label, items, columnData, onEditClick, onSchedul
                         className="h-9 font-semibold text-lg"
                     />
                   ) : (
-                    <CardTitle onDoubleClick={() => setIsEditing(true)} className="cursor-pointer truncate">
-                        {label}
-                    </CardTitle>
+                    <div onDoubleClick={() => setIsEditing(true)} className="cursor-pointer truncate">
+                        <CardTitle>{label}</CardTitle>
+                        {totalDescendants > 0 && <p className="text-xs text-muted-foreground">{totalDescendants} item{totalDescendants > 1 ? 's' : ''} total</p>}
+                    </div>
                   )}
                 </div>
 

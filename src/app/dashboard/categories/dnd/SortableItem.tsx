@@ -71,6 +71,7 @@ export function SortableItem({ item, onEditClick, onScheduleClick, onAddItem, on
                 isOver={isOverForNesting}
                 attributes={attributes}
                 listeners={listeners}
+                childCount={item.children?.length}
             />
         </div>
 

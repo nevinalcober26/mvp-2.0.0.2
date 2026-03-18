@@ -1,4 +1,3 @@
-
 'use client';
 import React from 'react';
 import { Card } from '@/components/ui/card';
@@ -22,10 +21,11 @@ type ItemProps = {
   isOver?: boolean;
   attributes: any;
   listeners: any;
+  childCount?: number;
 };
 
 export const Item = React.forwardRef<HTMLDivElement, ItemProps>(
-  ({ id, name, onClick, onDelete, onSchedule, isOver, attributes, listeners }, ref) => {
+  ({ id, name, onClick, onDelete, onSchedule, isOver, attributes, listeners, childCount }, ref) => {
     return (
       <Card
         ref={ref}
@@ -44,6 +44,9 @@ export const Item = React.forwardRef<HTMLDivElement, ItemProps>(
           </div>
           <div className="cursor-pointer" onClick={onClick}>
             <p className="font-medium text-sm">{name}</p>
+            {childCount !== undefined && childCount > 0 && (
+              <p className="text-xs text-muted-foreground">{childCount} sub-categor{childCount > 1 ? 'ies' : 'y'}</p>
+            )}
           </div>
         </div>
         <DropdownMenu>
