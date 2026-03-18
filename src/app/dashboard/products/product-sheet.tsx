@@ -302,23 +302,38 @@ export function ProductSheet({
     }
   };
 
-  const onSubmit = (data: ProductFormValues) => {
+  const onSubmit = (data: ProductFormValues, statusOverride?: Product['status']) => {
     let discountedPrice: number | undefined;
     if (data.discountType === 'percentage' && data.discountValue) {
-        discountedPrice = data.price * (1 - data.discountValue / 100);
+      discountedPrice = data.price * (1 - data.discountValue / 100);
     } else if (data.discountType === 'fixed' && data.discountValue) {
-        discountedPrice = data.price - data.discountValue;
+      discountedPrice = data.price - data.discountValue;
     }
 
     const { discountType: dt, discountValue: dv, ...restOfData } = data;
+
+    let finalStatus: Product['status'];
+    if (product) { // Editing
+        finalStatus = product.status;
+        if (data.hidden) {
+            finalStatus = 'Archived';
+        } else if (data.outOfStock) {
+            finalStatus = 'Out of Stock';
+        } else if (finalStatus === 'Archived' || finalStatus === 'Out of Stock') {
+            finalStatus = 'Active'; 
+        }
+    } else { // Creating
+        finalStatus = statusOverride || 'Active';
+    }
+
 
     const fullProductData: Product = {
       ...(product || {
         id: `new_${Date.now()}`,
         stock: 0,
-        status: 'Active',
       }),
       ...restOfData,
+      status: finalStatus,
       branch: 'Ras Al Khaimah',
       discountedPrice,
       smallDescription: data.smallDescription || '',
@@ -375,7 +390,7 @@ export function ProductSheet({
           <TooltipProvider>
             <Form {...form}>
               <form
-                onSubmit={form.handleSubmit(onSubmit, onInvalid)}
+                onSubmit={form.handleSubmit((data) => onSubmit(data, 'Active'), onInvalid)}
                 className="flex flex-col h-full"
               >
                 <SheetHeader className="p-6 border-b">
@@ -1175,30 +1190,51 @@ export function ProductSheet({
                   </Tabs>
                 </div>
                 <SheetFooter className="p-6 border-t bg-background flex-row justify-between w-full">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleAttemptClose}
-                  >
-                    Cancel
-                  </Button>
-                  <Tooltip
-                    delayDuration={100}
-                    open={!isValid ? undefined : false}
-                  >
-                    <TooltipTrigger asChild>
-                      <div tabIndex={0}>
-                        <Button type="submit" disabled={!isValid}>
-                          {product ? 'Update Product' : 'Save Product'}
-                        </Button>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>
-                        Please complete all required fields in each tab.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={handleAttemptClose}
+                    >
+                        Cancel
+                    </Button>
+                    <div className="flex items-center gap-2">
+                        {product ? (
+                            <Tooltip delayDuration={100} open={!isValid ? undefined : false}>
+                                <TooltipTrigger asChild>
+                                    <div tabIndex={0}>
+                                        <Button type="submit" disabled={!isValid}>
+                                            Update Product
+                                        </Button>
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Please complete all required fields.</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        ) : (
+                            <>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={form.handleSubmit((data) => onSubmit(data, 'Draft'), onInvalid)}
+                                >
+                                    Save as Draft
+                                </Button>
+                                <Tooltip delayDuration={100} open={!isValid ? undefined : false}>
+                                    <TooltipTrigger asChild>
+                                        <div tabIndex={0}>
+                                            <Button type="submit" disabled={!isValid}>
+                                                Publish
+                                            </Button>
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Please complete all required fields to publish.</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </>
+                        )}
+                    </div>
                 </SheetFooter>
               </form>
             </Form>
