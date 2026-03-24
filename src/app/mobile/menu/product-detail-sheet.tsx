@@ -74,6 +74,10 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
 
   const handleAddToCart = () => {
     if (isAdding) return;
+    if (product.isCustomisable && product.options?.required && !selectedOption) {
+      // This should not happen if button is disabled, but as a safeguard.
+      return;
+    }
     setIsAdding(true);
     
     const cartIcon = document.getElementById('floating-cart-icon');
@@ -82,12 +86,12 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
     if (cartIcon && sheetElement) {
         gsap.to(sheetElement, {
             duration: 0.2,
-            scale: 0.1,
+            scale: 0.05,
             opacity: 0,
             borderRadius: '50%',
             x: cartIcon.getBoundingClientRect().left - sheetElement.getBoundingClientRect().left + (cartIcon.offsetWidth / 2) - (sheetElement.offsetWidth / 2),
             y: cartIcon.getBoundingClientRect().top - sheetElement.getBoundingClientRect().top + (cartIcon.offsetHeight / 2) - (sheetElement.offsetHeight / 2),
-            ease: 'power2.in',
+            ease: 'power1.in',
             onComplete: () => {
                 gsap.fromTo(cartIcon, 
                     { scale: 1.2, rotate: -10 }, 
@@ -97,6 +101,7 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
             }
         });
     } else {
+        // Fallback if animation targets aren't ready
         setTimeout(() => {
             onOpenChange(false);
         }, 500);
@@ -118,8 +123,8 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
         className="w-full max-w-md mx-auto p-0 rounded-t-3xl border-0 bg-white overflow-hidden flex flex-col max-h-[90vh]"
       >
         <SheetHeader className="sr-only">
-            <SheetTitle>{product.name}</SheetTitle>
-            <SheetDescription>{product.description}</SheetDescription>
+          <SheetTitle>{product.name}</SheetTitle>
+          <SheetDescription>{product.description}</SheetDescription>
         </SheetHeader>
 
         {/* --- Sticky Shrinkable Header --- */}
