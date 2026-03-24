@@ -7,7 +7,20 @@ import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-const Sheet = SheetPrimitive.Root
+const Sheet = ({ onOpenChange, ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) => {
+  const handleOpenChange = React.useCallback((open: boolean) => {
+    onOpenChange?.(open);
+    if (!open) {
+      // Radix sometimes leaves pointer-events: none on <body> after closing.
+      // Force cleanup after the closing animation finishes.
+      setTimeout(() => {
+        document.body.style.pointerEvents = '';
+      }, 300);
+    }
+  }, [onOpenChange]);
+
+  return <SheetPrimitive.Root onOpenChange={handleOpenChange} {...props} />;
+};
 
 const SheetTrigger = SheetPrimitive.Trigger
 

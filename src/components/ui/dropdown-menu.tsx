@@ -6,7 +6,18 @@ import { Check, ChevronRight, Circle } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-const DropdownMenu = DropdownMenuPrimitive.Root
+const DropdownMenu = ({ onOpenChange, ...props }: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) => {
+  const handleOpenChange = React.useCallback((open: boolean) => {
+    onOpenChange?.(open);
+    if (!open) {
+      setTimeout(() => {
+        document.body.style.pointerEvents = '';
+      }, 300);
+    }
+  }, [onOpenChange]);
+
+  return <DropdownMenuPrimitive.Root onOpenChange={handleOpenChange} {...props} />;
+};
 
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger
 

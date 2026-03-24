@@ -3,6 +3,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fix Radix UI pointer-events bug: prevents body from being locked as unclickable */
+body {
+  pointer-events: auto !important;
+}
+
 @layer base {
   :root {
     --background: 220 43% 97%;

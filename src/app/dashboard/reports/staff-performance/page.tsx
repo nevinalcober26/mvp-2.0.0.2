@@ -177,7 +177,7 @@ function getAdjustedTransactions(orders: Order[]): Transaction[] {
 }
 
 export default function AnalyticsPage() {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [timeRange, setTimeRange] = useState('7d');
   const [branchFilter, setBranchFilter] = useState("Bloomsbury's - Ras Al Khaimah");
@@ -185,11 +185,11 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     setIsLoading(true);
-    setTimeout(() => {
+    
         const mockTransactions = getAdjustedTransactions(mockDataStore.orders);
         setTransactions(mockTransactions);
         setIsLoading(false);
-    }, 1000);
+    
   }, []);
   
   const { filteredTransactions, previousPeriodFilteredTransactions } = useMemo(() => {

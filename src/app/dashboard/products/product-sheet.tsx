@@ -39,6 +39,12 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -87,7 +93,7 @@ const productSchema = z
   .object({
     name: z.string().min(1, 'Product name is required'),
     category: z.string().min(1, 'Category is required'),
-    properties: z.string().optional(),
+    properties: z.array(z.string()).default([]),
     price: z.coerce.number().min(0.01, 'Price must be greater than 0'),
     smallDescription: z.string().optional(),
     description: z.string().optional(),
@@ -182,7 +188,7 @@ export function ProductSheet({
     return {
       name: product?.name || '',
       category: product?.category || '',
-      properties: product?.properties || '',
+      properties: product?.properties ? product.properties.split(',').map(s => s.trim()).filter(Boolean) : [],
       price: product?.price || 0,
       smallDescription: product?.smallDescription || '',
       description: product?.description || '',
@@ -342,7 +348,7 @@ export function ProductSheet({
       discountedPrice = data.price - data.discountValue;
     }
 
-    const { discountType: dt, discountValue: dv, ...restOfData } = data;
+    const { discountType: dt, discountValue: dv, properties: formProperties, ...restOfData } = data;
 
     let finalStatus: Product['status'];
     if (product) { // Editing
@@ -365,6 +371,7 @@ export function ProductSheet({
         stock: 0,
       }),
       ...restOfData,
+      properties: formProperties?.length ? formProperties.join(', ') : undefined,
       status: finalStatus,
       branch: 'Ras Al Khaimah',
       discountedPrice,
@@ -548,23 +555,43 @@ export function ProductSheet({
                                             control={form.control}
                                             name="properties"
                                             render={({ field }) => (
-                                            <FormItem>
+                                            <FormItem className="flex flex-col gap-2 mt-1.5">
                                                 <FormLabel>Properties</FormLabel>
-                                                <Select
-                                                onValueChange={field.onChange}
-                                                defaultValue={field.value}
-                                                >
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                    <SelectValue placeholder="Select properties" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {mockProperties.map((prop) => (
-                                                        <SelectItem key={prop} value={prop}>{prop}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                                </Select>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <FormControl>
+                                                            <Button
+                                                                variant="outline"
+                                                                role="combobox"
+                                                                className={cn(
+                                                                    "w-full justify-between font-normal",
+                                                                    !field.value?.length && "text-muted-foreground"
+                                                                )}
+                                                            >
+                                                                {field.value?.length > 0
+                                                                    ? field.value.join(', ')
+                                                                    : "Select properties"}
+                                                                <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+                                                            </Button>
+                                                        </FormControl>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent className="w-[200px]" align="start">
+                                                        {mockProperties.map((prop) => (
+                                                            <DropdownMenuCheckboxItem
+                                                                key={prop}
+                                                                checked={field.value?.includes(prop)}
+                                                                onSelect={(e) => e.preventDefault()}
+                                                                onCheckedChange={(checked) => {
+                                                                    return checked
+                                                                        ? field.onChange([...(field.value || []), prop])
+                                                                        : field.onChange((field.value || []).filter((value) => value !== prop))
+                                                                }}
+                                                            >
+                                                                {prop}
+                                                            </DropdownMenuCheckboxItem>
+                                                        ))}
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
                                                 <FormMessage />
                                             </FormItem>
                                             )}
@@ -1113,36 +1140,24 @@ export function ProductSheet({
                                                             <FormItem className="w-full">
                                                                 <FormLabel>Variation Value*</FormLabel>
                                                                 <Select
-                                                                  onValueChange={(optionId) => {
-                                                                      const allOptions = mockDataStore.variationGroups.flatMap(g => g.options);
-                                                                      const selectedOption = allOptions.find(o => o.id === optionId);
-                                                                      if (selectedOption) {
-                                                                          field.onChange(selectedOption.value);
-                                                                          const priceToSet = selectedOption.salePrice ?? selectedOption.regularPrice ?? 0;
-                                                                          form.setValue(`variations.${index}.priceValue`, priceToSet);
-                                                                          form.setValue(`variations.${index}.priceMode`, 'override');
+                                                                  onValueChange={(groupId) => {
+                                                                      const selectedGroup = mockDataStore.variationGroups.find(g => g.id === groupId);
+                                                                      if (selectedGroup) {
+                                                                          field.onChange(selectedGroup.name);
                                                                       }
                                                                   }}
-                                                                  value={mockDataStore.variationGroups.flatMap(g => g.options).find(o => o.value === field.value)?.id}
+                                                                  value={mockDataStore.variationGroups.find(g => g.name === field.value)?.id}
                                                                 >
                                                                     <FormControl>
                                                                         <SelectTrigger>
-                                                                            <SelectValue placeholder="Select a variation value" />
+                                                                            <SelectValue placeholder="Select a variation" />
                                                                         </SelectTrigger>
                                                                     </FormControl>
                                                                     <SelectContent>
-                                                                        {mockDataStore.variationGroups.map((group, groupIndex) => (
-                                                                            <React.Fragment key={group.id}>
-                                                                                <SelectGroup>
-                                                                                    <SelectLabel>{group.name}</SelectLabel>
-                                                                                    {group.options.map((option) => (
-                                                                                        <SelectItem key={option.id} value={option.id}>
-                                                                                            {option.value}
-                                                                                        </SelectItem>
-                                                                                    ))}
-                                                                                </SelectGroup>
-                                                                                {groupIndex < mockDataStore.variationGroups.length - 1 && <SelectSeparator />}
-                                                                            </React.Fragment>
+                                                                        {mockDataStore.variationGroups.map((group) => (
+                                                                            <SelectItem key={group.id} value={group.id}>
+                                                                                {group.name}
+                                                                            </SelectItem>
                                                                         ))}
                                                                     </SelectContent>
                                                                 </Select>
@@ -1306,6 +1321,7 @@ export function ProductSheet({
                     </Button>
                     <div className="flex items-center gap-2">
                         {product ? (
+                            // Edit mode: keep original single button
                             <Tooltip delayDuration={100} open={!isValid ? undefined : false}>
                                 <TooltipTrigger asChild>
                                     <div tabIndex={0}>
@@ -1318,29 +1334,50 @@ export function ProductSheet({
                                     <p>Please complete all required fields.</p>
                                 </TooltipContent>
                             </Tooltip>
-                        ) : (
-                            <>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={form.handleSubmit((data) => onSubmit(data, 'Draft'), onInvalid)}
-                                >
-                                    Save as Draft
-                                </Button>
-                                <Tooltip delayDuration={100} open={!isValid ? undefined : false}>
-                                    <TooltipTrigger asChild>
-                                        <div tabIndex={0}>
-                                            <Button type="submit" disabled={!isValid}>
-                                                Publish
+                        ) : (() => {
+                            const currentIndex = tabsConfig.findIndex(t => t.value === activeTab);
+                            const isFirst = currentIndex === 0;
+                            const isLast = currentIndex === tabsConfig.length - 1;
+                            const goNext = () => setActiveTab(tabsConfig[currentIndex + 1].value);
+                            const goBack = () => setActiveTab(tabsConfig[currentIndex - 1].value);
+
+                            return (
+                                <>
+                                    {!isFirst && (
+                                        <Button type="button" variant="outline" onClick={goBack}>
+                                            Back
+                                        </Button>
+                                    )}
+                                    {!isLast ? (
+                                        <Button type="button" onClick={goNext}>
+                                            Next
+                                        </Button>
+                                    ) : (
+                                        <>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                onClick={form.handleSubmit((data) => onSubmit(data, 'Draft'), onInvalid)}
+                                            >
+                                                Save as Draft
                                             </Button>
-                                        </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>Please complete all required fields to publish.</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </>
-                        )}
+                                            <Tooltip delayDuration={100} open={!isValid ? undefined : false}>
+                                                <TooltipTrigger asChild>
+                                                    <div tabIndex={0}>
+                                                        <Button type="submit" disabled={!isValid}>
+                                                            Publish
+                                                        </Button>
+                                                    </div>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Please complete all required fields to publish.</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </>
+                                    )}
+                                </>
+                            );
+                        })()}
                     </div>
                 </SheetFooter>
               </form>

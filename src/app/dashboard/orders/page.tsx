@@ -159,7 +159,7 @@ const getAvatarColorClass = (name: string) => {
 
 export default function OrdersPage() {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -188,11 +188,10 @@ export default function OrdersPage() {
   });
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    
       setAllOrders(mockDataStore.orders);
       setIsLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
+    
   }, []);
 
   useEffect(() => {

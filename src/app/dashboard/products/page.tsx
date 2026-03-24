@@ -176,7 +176,7 @@ const SortableProductRow = ({
 
 export default function ProductsPage() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isInfoSheetOpen, setIsInfoSheetOpen] = useState(false);
@@ -200,10 +200,10 @@ export default function ProductsPage() {
 
   useEffect(() => {
     // Simulate fetching data
-    setTimeout(() => {
+    
       setAllProducts(mockDataStore.products);
       setIsLoading(false);
-    }, 1000);
+    
   }, []);
 
   const sensors = useSensors(
@@ -353,9 +353,9 @@ export default function ProductsPage() {
 
   const handleEditFromInfoSheet = (product: Product) => {
     setIsInfoSheetOpen(false);
-    setTimeout(() => {
+    
       handleEditProduct(product);
-    }, 150);
+    
   };
 
   const SortableHeader = ({

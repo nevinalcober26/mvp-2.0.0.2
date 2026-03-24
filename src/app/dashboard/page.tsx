@@ -78,7 +78,7 @@ export default function DashboardPage() {
 
     const handleBranchChange = () => {
       setIsLoading(true);
-      setTimeout(() => setIsLoading(false), 1000);
+      setIsLoading(false);
     };
 
     window.addEventListener('branch-changed', handleBranchChange);

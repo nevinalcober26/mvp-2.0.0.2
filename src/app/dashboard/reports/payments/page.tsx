@@ -227,7 +227,7 @@ const ExportDialog = ({ open, onOpenChange, onExport, dateRange }: { open: boole
 export default function OrderReportPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [allOrders, setAllOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   const [filters, setFilters] = useState(initialFilterState);
@@ -238,14 +238,13 @@ export default function OrderReportPage() {
 
   useEffect(() => {
     setIsLoading(true);
-    const timer = setTimeout(() => {
+    
       const mockOrders = mockDataStore.orders;
       const mockTransactions = generateTransactionsFromOrders(mockOrders);
       setTransactions(mockTransactions);
       setAllOrders(mockOrders);
       setIsLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
+    
   }, [filters.dateRange]);
   
   const handleViewDetails = (transaction: Transaction) => {

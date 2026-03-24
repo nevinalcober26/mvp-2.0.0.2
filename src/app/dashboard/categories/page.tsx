@@ -181,7 +181,7 @@ const RestaurantCard = ({
 export default function ManageRestaurantPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
   const [isQuickSettingsOpen, setIsQuickSettingsOpen] = useState(false);
@@ -198,9 +198,9 @@ export default function ManageRestaurantPage() {
       }
     }
     
-    const timer = setTimeout(() => {
+    const timer = 
       setIsLoading(false);
-    }, 1000);
+    
 
     const handleBranchChange = () => {
       // Sync local ID state
@@ -213,7 +213,7 @@ export default function ManageRestaurantPage() {
       }
       
       setIsLoading(true);
-      setTimeout(() => setIsLoading(false), 1000);
+      setIsLoading(false);
     };
 
     window.addEventListener('branch-changed', handleBranchChange);

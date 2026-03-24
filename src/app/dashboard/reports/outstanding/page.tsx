@@ -258,7 +258,7 @@ const ExportDialog = ({ open, onOpenChange, onExport, dateRange }: { open: boole
 export default function OutstandingReportPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [allOrders, setAllOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [filters, setFilters] = useState(initialFilterState);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -267,14 +267,13 @@ export default function OutstandingReportPage() {
 
   useEffect(() => {
     setIsLoading(true);
-    const timer = setTimeout(() => {
+    
       const mockOrders = mockDataStore.orders;
       const mockTransactions = generateTransactionsFromOrders(mockOrders);
       setTransactions(mockTransactions);
       setAllOrders(mockOrders);
       setIsLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
+    
   }, [filters.dateRange]);
   
   const handleViewDetails = (transaction: Transaction) => {

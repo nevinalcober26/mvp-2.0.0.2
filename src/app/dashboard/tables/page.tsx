@@ -118,12 +118,12 @@ export default function TablesPage() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [activeFloor, setActiveFloor] = useState('All');
   const [tables, setTables] = useState<Table[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    
       const allOrders = mockDataStore.orders;
       const uniqueTableIds = [
         ...new Set(allOrders.map((order) => order.table)),
@@ -179,9 +179,7 @@ export default function TablesPage() {
 
       setTables(tableData);
       setIsLoading(false);
-    }, 1500);
-
-    return () => clearTimeout(timer);
+    
   }, []);
 
   const handleTableClick = (table: Table) => {

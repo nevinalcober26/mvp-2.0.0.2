@@ -134,37 +134,11 @@ const SortableOptionItem = ({
               render={({ field }) => (
                 <FormItem className="flex-grow">
                    <FormControl>
-                      <Select
-                        onValueChange={(optionId) => {
-                            const allOptions = mockDataStore.variationGroups.flatMap(g => g.options);
-                            const selectedOption = allOptions.find(o => o.id === optionId);
-                            if (selectedOption) {
-                                field.onChange(selectedOption.value);
-                                const priceToSet = selectedOption.salePrice ?? selectedOption.regularPrice ?? 0;
-                                form.setValue(`options.${index}.regularPrice`, priceToSet);
-                            }
-                        }}
-                        value={mockDataStore.variationGroups.flatMap(g => g.options).find(o => o.value === field.value)?.id}
-                      >
-                          <SelectTrigger className="font-semibold bg-transparent border-0 shadow-none px-1 focus-visible:ring-0">
-                            <SelectValue placeholder={`Option ${index + 1}`} />
-                          </SelectTrigger>
-                          <SelectContent>
-                              {mockDataStore.variationGroups.map((group, groupIndex) => (
-                                  <React.Fragment key={group.id}>
-                                      <SelectGroup>
-                                          <SelectLabel>{group.name}</SelectLabel>
-                                          {group.options.map((option) => (
-                                              <SelectItem key={option.id} value={option.id}>
-                                                  {option.value}
-                                              </SelectItem>
-                                          ))}
-                                      </SelectGroup>
-                                      {groupIndex < mockDataStore.variationGroups.length - 1 && <SelectSeparator />}
-                                  </React.Fragment>
-                              ))}
-                          </SelectContent>
-                      </Select>
+                      <Input
+                        {...field}
+                        placeholder={`e.g., Option ${index + 1}`}
+                        className="font-semibold text-base bg-transparent border-transparent shadow-none hover:bg-muted/50 focus-visible:bg-background focus-visible:border-input focus-visible:ring-1 group-hover:bg-muted/50 transition-colors"
+                      />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

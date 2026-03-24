@@ -211,7 +211,7 @@ export default function SplitBillsReportPage() {
     []
   );
   const [allOrders, setAllOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [filters, setFilters] = useState(initialFilterState);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
@@ -222,14 +222,13 @@ export default function SplitBillsReportPage() {
 
   useEffect(() => {
     setIsLoading(true);
-    const timer = setTimeout(() => {
+    
       const mockOrders = mockDataStore.orders;
       const logs = generateSettlementLogs(mockOrders);
       setSettlementLogs(logs);
       setAllOrders(mockOrders);
       setIsLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
+    
   }, []);
 
   const handleViewDetails = (log: SplitSettlementLog) => {

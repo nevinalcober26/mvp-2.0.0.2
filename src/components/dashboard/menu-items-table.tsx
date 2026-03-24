@@ -63,8 +63,19 @@ const menuItems = [
   },
 ];
 
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
+
+// ... (keep the same imports and menuItems array)
+
 export function MenuItemsTable() {
   const [isClient, setIsClient] = useState(false);
+  const [activeCategory, setActiveCategory] = useState('All');
+
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -72,6 +83,12 @@ export function MenuItemsTable() {
   if (!isClient) {
     return null;
   }
+
+  const categories = ['All', ...Array.from(new Set(menuItems.map(item => item.category)))];
+
+  const filteredItems = activeCategory === 'All' 
+    ? menuItems 
+    : menuItems.filter(item => item.category === activeCategory);
 
   return (
     <Card>
@@ -86,6 +103,13 @@ export function MenuItemsTable() {
         </Button>
       </CardHeader>
       <CardContent>
+        <Tabs defaultValue="All" value={activeCategory} onValueChange={setActiveCategory} className="w-full mb-4">
+          <TabsList className="flex flex-wrap h-auto mb-4 bg-muted/50 p-1">
+            {categories.map(cat => (
+              <TabsTrigger key={cat} value={cat} className="flex-1 min-w-[100px]">{cat}</TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
         <div className="relative w-full overflow-auto">
           <Table>
             <TableHeader>
@@ -101,7 +125,7 @@ export function MenuItemsTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {menuItems.map((item) => (
+              {filteredItems.map((item) => (
                 <TableRow key={item.name}>
                   <TableCell className="font-medium">{item.name}</TableCell>
                   <TableCell>{item.category}</TableCell>

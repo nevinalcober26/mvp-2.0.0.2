@@ -36,7 +36,7 @@ import { AiSummary } from '@/components/dashboard/ai-summary';
 
 export default function CustomerListPage() {
   const [allCustomers, setAllCustomers] = useState<Customer[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -49,10 +49,10 @@ export default function CustomerListPage() {
 
   useEffect(() => {
     // Simulate fetching data
-    setTimeout(() => {
+    
       setAllCustomers(mockDataStore.customers);
       setIsLoading(false);
-    }, 1000);
+    
   }, []);
 
   const filteredAndSortedCustomers = useMemo(() => {
