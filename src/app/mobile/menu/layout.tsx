@@ -1,4 +1,6 @@
-import { Menu, ShoppingBag, ShoppingCart } from 'lucide-react';
+'use client';
+
+import { Home, Receipt, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,11 +35,11 @@ export default function MobileMenuLayout({
       <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-[#F7F9FB] border-t border-gray-200/80">
         <div className="flex justify-around items-center h-20">
           <Link href="/mobile/menu" className="flex flex-col items-center gap-1 text-primary">
-            <Menu className="h-6 w-6" />
+            <Home className="h-6 w-6" />
             <span className="text-xs font-bold">Menu</span>
           </Link>
           <Link href="#" className="flex flex-col items-center gap-1 text-gray-500">
-            <ShoppingBag className="h-6 w-6" />
+            <Receipt className="h-6 w-6" />
             <span className="text-xs font-bold">Orders</span>
           </Link>
         </div>
