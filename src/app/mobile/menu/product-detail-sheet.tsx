@@ -85,13 +85,13 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
 
     if (cartIcon && sheetElement) {
         gsap.to(sheetElement, {
-            duration: 0.2,
-            scale: 0.05,
+            duration: 0.3, // Super fast
+            scale: 0.05, // Shrink to a dot
             opacity: 0,
             borderRadius: '50%',
             x: cartIcon.getBoundingClientRect().left - sheetElement.getBoundingClientRect().left + (cartIcon.offsetWidth / 2) - (sheetElement.offsetWidth / 2),
             y: cartIcon.getBoundingClientRect().top - sheetElement.getBoundingClientRect().top + (cartIcon.offsetHeight / 2) - (sheetElement.offsetHeight / 2),
-            ease: 'power1.in',
+            ease: 'none', // Use a linear ease for a straight path
             onComplete: () => {
                 gsap.fromTo(cartIcon, 
                     { scale: 1.2, rotate: -10 }, 
