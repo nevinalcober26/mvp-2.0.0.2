@@ -28,15 +28,15 @@ const MenuItemCard = ({ item }: { item: typeof menuData.items[0] }) => {
   const [quantity, setQuantity] = useState(item.id === 'item-1' ? 1 : 0);
 
   return (
-    <Card className="flex items-center p-3 overflow-hidden rounded-2xl shadow-sm border border-gray-100/80 bg-white">
-      <div className="flex-1 pr-3">
-        <h3 className="font-bold text-gray-800">{item.name}</h3>
-        <p className="text-sm text-gray-500 truncate">{item.description}</p>
-        <p className="mt-2 text-lg font-bold text-gray-900">
+    <Card className="flex items-start p-3 overflow-hidden rounded-2xl shadow-sm border border-gray-100/80 bg-white">
+      <div className="flex-1 pr-4">
+        <h3 className="font-bold text-gray-800 leading-snug">{item.name}</h3>
+        <p className="text-sm text-gray-500 mt-1">{item.description}</p>
+        <p className="mt-3 text-lg font-bold text-gray-900">
           AED {item.price.toFixed(2)}
         </p>
       </div>
-      <div className="relative w-32 h-32 flex-shrink-0">
+      <div className="relative w-28 h-28 flex-shrink-0">
         <Image src={item.image} alt={item.name} fill className="object-cover rounded-xl" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent rounded-xl" />
         <div className="absolute bottom-2 right-2 left-2">

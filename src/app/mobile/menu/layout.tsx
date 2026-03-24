@@ -13,7 +13,7 @@ export default function MobileMenuLayout({
       <div className="pb-28">{children}</div>
 
       {/* Floating Cart Button */}
-      <div className="absolute bottom-20 right-6 z-20">
+      <div className="fixed bottom-24 right-6 z-20">
         <Link href="#">
             <div className="relative">
                 <Button
