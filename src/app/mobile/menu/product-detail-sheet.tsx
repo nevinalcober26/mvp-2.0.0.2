@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Sheet, SheetContent, SheetClose } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetClose, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { X, Edit, Minus, Plus } from 'lucide-react';
@@ -41,6 +41,12 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="w-full max-w-md mx-auto p-0 rounded-t-3xl border-0">
+        <SheetHeader className="sr-only">
+            <SheetTitle>Product: {product.name}</SheetTitle>
+            <SheetDescription>
+                Add special requests and select quantity for {product.name}.
+            </SheetDescription>
+        </SheetHeader>
         <div className="relative">
           <div className="relative h-56 w-full">
             <Image
