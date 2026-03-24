@@ -83,19 +83,13 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
     const sheetElement = sheetContentRef.current;
 
     if (cartIcon && sheetElement) {
-        const cartRect = cartIcon.getBoundingClientRect();
-        
         gsap.to(sheetElement, {
-            left: cartRect.left + cartRect.width / 2,
-            top: cartRect.top + cartRect.height / 2,
-            width: '50px',
-            height: '50px',
-            borderRadius: '50%',
-            scale: 0.1,
-            xPercent: -50,
-            yPercent: -50,
-            opacity: 0.5,
             duration: 0.25,
+            scale: 0.1,
+            opacity: 0,
+            borderRadius: '50%',
+            x: cartIcon.getBoundingClientRect().left - sheetElement.getBoundingClientRect().left + (cartIcon.offsetWidth / 2) - (sheetElement.offsetWidth / 2),
+            y: cartIcon.getBoundingClientRect().top - sheetElement.getBoundingClientRect().top + (cartIcon.offsetHeight / 2) - (sheetElement.offsetHeight / 2),
             ease: 'power2.in',
             onComplete: () => {
                 gsap.fromTo(cartIcon, 
@@ -113,16 +107,16 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
   }
 
   const totalPrice = product.price * quantity;
-  const isAddToCartDisabled = isAdding || (product.isCustomisable && !selectedOption);
+  const isAddToCartDisabled = isAdding || (product.isCustomisable && product.options?.required && !selectedOption);
   const addToCartText = isAdding 
     ? <Check className="h-5 w-5" /> 
-    : isAddToCartDisabled 
+    : isAddToCartDisabled && product.isCustomisable
     ? `Make 1 required selection - Add AED ${totalPrice.toFixed(2)}`
     : `Add • AED ${totalPrice.toFixed(2)}`;
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent ref={sheetContentRef} side="bottom" className="w-full max-w-md mx-auto p-0 rounded-t-3xl border-0 bg-white overflow-hidden flex flex-col">
+      <SheetContent ref={sheetContentRef} side="bottom" className="w-full max-w-md mx-auto p-0 rounded-t-3xl border-0 bg-white overflow-hidden flex flex-col max-h-[90vh]">
         <SheetHeader className="sr-only">
             <SheetTitle>Product: {product.name}</SheetTitle>
             <SheetDescription>
@@ -170,64 +164,115 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
           </div>
 
           <div className={cn("bg-white transition-transform duration-300", isHeaderShrunk ? "-translate-y-16" : "translate-y-0")}>
-            <div className="p-6 pt-4 space-y-2">
-                <h2 className="text-2xl font-bold text-gray-800">{product.name}</h2>
-                <p className="text-gray-500">{product.isCustomisable ? "Choose your favorite flavor." : product.description}</p>
-                <p className="text-2xl font-bold text-gray-900">
-                    AED {product.price.toFixed(2)}
-                    {product.isCustomisable && <span className="text-base text-gray-500 font-normal ml-1">(Base Price)</span>}
-                </p>
-            </div>
             
-            <div className="bg-gray-50/70 px-6 py-4 space-y-4 border-t">
-              {product.isCustomisable && product.options && (
-                  <Card className="shadow-sm bg-white rounded-2xl">
-                      <CardHeader className="pb-4">
-                          <div className="flex items-center justify-between">
-                              <h3 className="font-bold text-lg text-gray-800">{product.options.title}</h3>
-                          </div>
-                          <p className="text-sm text-gray-500">Select one option <span className="text-red-500 font-semibold">(Required)</span></p>
-                      </CardHeader>
-                      <CardContent>
-                          <RadioGroup value={selectedOption ?? ''} onValueChange={setSelectedOption}>
-                              <div className="space-y-4">
-                                  {product.options.items.map((item) => (
-                                  <div key={item} className="flex items-center justify-between border-b last:border-b-0 border-dashed pb-4 last:pb-0">
-                                      <Label htmlFor={`opt-${item}`} className="text-base font-medium text-gray-700 flex-1 cursor-pointer">{item}</Label>
-                                      <RadioGroupItem value={item} id={`opt-${item}`} className="h-5 w-5 text-teal-500 border-gray-300 data-[state=checked]:border-teal-500" />
-                                  </div>
-                                  ))}
-                              </div>
-                          </RadioGroup>
-                      </CardContent>
-                  </Card>
-              )}
-               <Card className="shadow-sm bg-white rounded-2xl">
-                  <CardHeader className="pb-3">
-                      <div className="flex items-center gap-2">
-                          <Edit className="h-4 w-4 text-gray-500" />
-                          <h3 className="font-semibold text-gray-800">Special requests</h3>
-                      </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                       <p className="text-xs text-gray-500">
-                          We&apos;ll pass your special request to the restaurant, and they&apos;ll do their best to follow it. However, a refund isn&apos;t available if they can&apos;t.
-                      </p>
-                      <div className="relative">
-                          <Textarea
-                              placeholder="For example: less spicy, no sugar, etc."
-                              className="bg-gray-50"
-                              maxLength={150}
-                              value={specialRequest}
-                              onChange={(e) => setSpecialRequest(e.target.value)}
-                          />
-                          <span className="absolute bottom-2 right-2 text-xs text-gray-400">
-                              {specialRequest.length}/150
-                          </span>
-                      </div>
-                  </CardContent>
-               </Card>
-            </div>
+            {product.isCustomisable ? (
+                // Layout for customizable items
+                <div className="space-y-4">
+                    <div className="p-6 pb-2 space-y-2">
+                        <div className="flex justify-between items-start">
+                             <div className='flex-1'>
+                                <h2 className="text-2xl font-bold text-gray-800">{product.name}</h2>
+                                <p className="text-gray-500 mt-1">{product.description}</p>
+                            </div>
+                            <div className="w-20 h-20 relative flex-shrink-0 ml-4">
+                                <Image src={product.image} alt={product.name} fill className="object-cover rounded-xl" />
+                            </div>
+                        </div>
+                        <p className="text-xl font-bold text-gray-900 pt-2">
+                            AED {product.price.toFixed(2)}
+                            <span className="text-base text-gray-500 font-normal ml-1">(Base Price)</span>
+                        </p>
+                    </div>
+
+                    <div className="bg-gray-50/70 px-6 py-4 space-y-4 border-y">
+                        {product.options && (
+                             <Card className="shadow-sm bg-white rounded-2xl">
+                                <CardHeader className="pb-4">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="font-bold text-lg text-gray-800">{product.options.title}</h3>
+                                    </div>
+                                    <p className="text-sm text-gray-500">Select one option <span className="text-red-500 font-semibold">(Required)</span></p>
+                                </CardHeader>
+                                <CardContent>
+                                    <RadioGroup value={selectedOption ?? ''} onValueChange={setSelectedOption}>
+                                        <div className="space-y-4">
+                                            {product.options.items.map((item) => (
+                                            <div key={item} className="flex items-center justify-between border-b last:border-b-0 border-dashed pb-4 last:pb-0">
+                                                <Label htmlFor={`opt-${item}`} className="text-base font-medium text-gray-700 flex-1 cursor-pointer">{item}</Label>
+                                                <RadioGroupItem value={item} id={`opt-${item}`} className="h-5 w-5 text-teal-500 border-gray-300 data-[state=checked]:border-teal-500" />
+                                            </div>
+                                            ))}
+                                        </div>
+                                    </RadioGroup>
+                                </CardContent>
+                            </Card>
+                        )}
+                        <Card className="shadow-sm bg-white rounded-2xl">
+                           <CardHeader className="pb-3">
+                               <div className="flex items-center gap-2">
+                                   <Edit className="h-4 w-4 text-gray-500" />
+                                   <h3 className="font-semibold text-gray-800">Special requests</h3>
+                               </div>
+                           </CardHeader>
+                           <CardContent className="space-y-3">
+                                <p className="text-xs text-gray-500">
+                                   We&apos;ll pass your special request to the restaurant, and they&apos;ll do their best to follow it. However, a refund isn&apos;t available if they can&apos;t.
+                               </p>
+                               <div className="relative">
+                                   <Textarea
+                                       placeholder="For example: less spicy, no sugar, etc."
+                                       className="bg-gray-50"
+                                       maxLength={150}
+                                       value={specialRequest}
+                                       onChange={(e) => setSpecialRequest(e.target.value)}
+                                   />
+                                   <span className="absolute bottom-2 right-2 text-xs text-gray-400">
+                                       {specialRequest.length}/150
+                                   </span>
+                               </div>
+                           </CardContent>
+                        </Card>
+                    </div>
+
+                </div>
+            ) : (
+                // Layout for standard items
+                <div className="p-6 pt-4 space-y-6">
+                    <div>
+                        <h2 className="text-2xl font-bold text-gray-800">{product.name}</h2>
+                        <p className="text-gray-500 mt-1">{product.description}</p>
+                        <p className="text-2xl font-bold text-gray-900 mt-2">
+                            AED {product.price.toFixed(2)}
+                        </p>
+                    </div>
+
+                     <Card className="shadow-sm bg-white rounded-2xl">
+                       <CardHeader className="pb-3">
+                           <div className="flex items-center gap-2">
+                               <Edit className="h-4 w-4 text-gray-500" />
+                               <h3 className="font-semibold text-gray-800">Special requests</h3>
+                           </div>
+                       </CardHeader>
+                       <CardContent className="space-y-3">
+                            <p className="text-xs text-gray-500">
+                               We&apos;ll pass your special request to the restaurant, and they&apos;ll do their best to follow it. However, a refund isn&apos;t available if they can&apos;t.
+                           </p>
+                           <div className="relative">
+                               <Textarea
+                                   placeholder="For example: less spicy, no sugar, etc."
+                                   className="bg-gray-50"
+                                   maxLength={150}
+                                   value={specialRequest}
+                                   onChange={(e) => setSpecialRequest(e.target.value)}
+                               />
+                               <span className="absolute bottom-2 right-2 text-xs text-gray-400">
+                                   {specialRequest.length}/150
+                               </span>
+                           </div>
+                       </CardContent>
+                    </Card>
+                </div>
+            )}
           </div>
         </div>
         
