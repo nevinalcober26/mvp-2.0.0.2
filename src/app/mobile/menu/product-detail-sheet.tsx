@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { Sheet, SheetContent, SheetClose, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -27,85 +27,75 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
   const [quantity, setQuantity] = useState(1);
   const [specialRequest, setSpecialRequest] = useState('');
   const [isAdding, setIsAdding] = useState(false);
-  const addToCartButtonRef = useRef<HTMLButtonElement>(null);
+  const sheetContentRef = useRef<HTMLDivElement>(null);
+
+  // Reset state when the sheet is opened
+  useEffect(() => {
+    if (isOpen) {
+      setIsAdding(false);
+      setQuantity(1);
+      setSpecialRequest('');
+      // Reset GSAP styles in case they were left from a previous animation
+      if (sheetContentRef.current) {
+        gsap.set(sheetContentRef.current, { clearProps: "all" });
+        const sheetChildren = Array.from(sheetContentRef.current.children);
+        gsap.set(sheetChildren, { clearProps: "all" });
+      }
+    }
+  }, [isOpen]);
   
   if (!product) return null;
 
   const handleAddToCart = () => {
-    if (!addToCartButtonRef.current || isAdding) return;
+    if (isAdding) return;
 
     setIsAdding(true);
     
     const cartIcon = document.getElementById('floating-cart-icon');
-    const button = addToCartButtonRef.current;
+    const sheetElement = sheetContentRef.current;
 
-    if (cartIcon) {
-        const buttonRect = button.getBoundingClientRect();
+    if (cartIcon && sheetElement) {
         const cartRect = cartIcon.getBoundingClientRect();
+        
+        // Hide the sheet's content to make the container animation cleaner
+        const sheetChildren = Array.from(sheetElement.children);
+        gsap.to(sheetChildren, { opacity: 0, duration: 0.2 });
 
-        // Create a clone of the button to animate
-        const clone = button.cloneNode(true) as HTMLElement;
-        clone.style.position = 'fixed';
-        clone.style.left = `${buttonRect.left}px`;
-        clone.style.top = `${buttonRect.top}px`;
-        clone.style.width = `${buttonRect.width}px`;
-        clone.style.height = `${buttonRect.height}px`;
-        clone.style.margin = '0';
-        clone.style.zIndex = '51'; // Above sheet overlay
-        document.body.appendChild(clone);
-
-        // Animate the clone
-        gsap.to(clone, {
-            left: cartRect.left + (cartRect.width / 2) - (buttonRect.height / 2), // Center on cart
-            top: cartRect.top + (cartRect.height / 2) - (buttonRect.height / 2),
-            width: buttonRect.height, // Make it square
-            height: buttonRect.height,
+        gsap.to(sheetElement, {
+            left: cartRect.left + cartRect.width / 2,
+            top: cartRect.top + cartRect.height / 2,
+            width: '50px',
+            height: '50px',
             borderRadius: '50%',
-            scale: 0.5,
-            opacity: 0.8,
+            scale: 0.1,
+            xPercent: -50,
+            yPercent: -50,
+            opacity: 0.5,
             duration: 0.7,
             ease: 'power2.in',
             onComplete: () => {
-                document.body.removeChild(clone);
-
                 // Shake the cart icon
                 gsap.fromTo(cartIcon, 
-                    { scale: 1.1, rotate: -5 }, 
-                    { scale: 1, rotate: 0, duration: 0.5, ease: 'elastic.out(1, 0.3)' }
+                    { scale: 1.2, rotate: -10 }, 
+                    { scale: 1, rotate: 0, duration: 0.6, ease: 'elastic.out(1, 0.3)' }
                 );
                 
-                // Close sheet and reset state after a short delay
-                setTimeout(() => {
-                    onOpenChange(false);
-                    setIsAdding(false);
-                    setQuantity(1);
-                    setSpecialRequest('');
-                }, 100);
+                // Programmatically close the sheet
+                onOpenChange(false);
             }
         });
 
     } else {
-        // Fallback if cart icon not found
+        // Fallback if elements not found
         setTimeout(() => {
             onOpenChange(false);
-            setIsAdding(false);
-            setQuantity(1);
-            setSpecialRequest('');
         }, 500);
     }
   }
 
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => {
-        if (!open) {
-             // Reset state when closing manually
-             setIsAdding(false);
-             setQuantity(1);
-             setSpecialRequest('');
-        }
-        onOpenChange(open);
-    }}>
-      <SheetContent side="bottom" className="w-full max-w-md mx-auto p-0 rounded-t-3xl border-0">
+    <Sheet open={isOpen} onOpenChange={onOpenChange}>
+      <SheetContent ref={sheetContentRef} side="bottom" className="w-full max-w-md mx-auto p-0 rounded-t-3xl border-0">
         <SheetHeader className="sr-only">
             <SheetTitle>Product: {product.name}</SheetTitle>
             <SheetDescription>
@@ -173,7 +163,6 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
                     </Button>
                 </div>
                 <Button 
-                    ref={addToCartButtonRef}
                     className="flex-1 h-12 bg-teal-500 hover:bg-teal-600 text-white font-bold text-base" 
                     onClick={handleAddToCart}
                     disabled={isAdding}
