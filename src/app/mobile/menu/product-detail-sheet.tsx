@@ -85,7 +85,7 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
             xPercent: -50,
             yPercent: -50,
             opacity: 0.5,
-            duration: 0.35, // Faster animation
+            duration: 0.25, // Faster animation
             ease: 'power2.in',
             onComplete: () => {
                 gsap.fromTo(cartIcon, 
@@ -110,7 +110,7 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
               src={product.image}
               alt={product.name}
               fill
-              className="object-cover rounded-t-3xl"
+              className="object-cover"
             />
           </div>
           <SheetClose asChild>
@@ -157,23 +157,20 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
 
         <div className="bg-gray-50/70 px-6 py-4 space-y-4 border-t">
             {product.options && (
-                <Card className="shadow-sm bg-white">
+                <Card className="shadow-sm bg-white rounded-2xl">
                     <CardHeader className="pb-4">
                         <div className="flex items-center justify-between">
                             <h3 className="font-bold text-lg text-gray-800">{product.options.title}</h3>
-                            {product.options.required && (
-                                <span className="text-sm font-semibold text-red-500">(Required)</span>
-                            )}
                         </div>
-                        <p className="text-sm text-gray-500">Select one option</p>
+                        <p className="text-sm text-gray-500">Select one option <span className="text-red-500 font-semibold">(Required)</span></p>
                     </CardHeader>
                     <CardContent>
                         <RadioGroup value={selectedOption ?? ''} onValueChange={setSelectedOption}>
                             <div className="space-y-4">
                                 {product.options.items.map((item) => (
-                                <div key={item} className="flex items-center justify-between border-b pb-4 last:border-b-0 last:pb-0">
+                                <div key={item} className="flex items-center justify-between border-b last:border-b-0 border-dashed pb-4 last:pb-0">
                                     <Label htmlFor={`opt-${item}`} className="text-base font-medium text-gray-700 flex-1 cursor-pointer">{item}</Label>
-                                    <RadioGroupItem value={item} id={`opt-${item}`} />
+                                    <RadioGroupItem value={item} id={`opt-${item}`} className="h-5 w-5 text-teal-500 border-gray-300 data-[state=checked]:border-teal-500" />
                                 </div>
                                 ))}
                             </div>
@@ -181,6 +178,31 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
                     </CardContent>
                 </Card>
             )}
+             <Card className="shadow-sm bg-white rounded-2xl">
+                <CardHeader className="pb-3">
+                    <div className="flex items-center gap-2">
+                        <Edit className="h-4 w-4 text-gray-500" />
+                        <h3 className="font-semibold text-gray-800">Special requests</h3>
+                    </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                     <p className="text-xs text-gray-500">
+                        We&apos;ll pass your special request to the restaurant, and they&apos;ll do their best to follow it. However, a refund isn&apos;t available if they can&apos;t.
+                    </p>
+                    <div className="relative">
+                        <Textarea
+                            placeholder="For example: less spicy, no sugar, etc."
+                            className="bg-gray-50"
+                            maxLength={150}
+                            value={specialRequest}
+                            onChange={(e) => setSpecialRequest(e.target.value)}
+                        />
+                        <span className="absolute bottom-2 right-2 text-xs text-gray-400">
+                            {specialRequest.length}/150
+                        </span>
+                    </div>
+                </CardContent>
+             </Card>
         </div>
     </>
   );
@@ -197,30 +219,6 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
         
         <div className="flex-1 overflow-y-auto">
             {product.isCustomisable ? renderCustomizable() : renderNonCustomizable()}
-            
-            <div className="p-6 bg-gray-50/70 border-t">
-                 <div className="p-4 bg-white rounded-xl border">
-                    <div className="flex items-center gap-2 mb-2">
-                    <Edit className="h-4 w-4 text-gray-500" />
-                    <h3 className="font-semibold text-gray-800">Special requests</h3>
-                    </div>
-                    <p className="text-xs text-gray-500 mb-3">
-                    We&apos;ll pass your special request to the restaurant, and they&apos;ll do their best to follow it. However, a refund isn&apos;t available if they can&apos;t.
-                    </p>
-                    <div className="relative">
-                        <Textarea
-                            placeholder="For example: less spicy, no sugar, etc."
-                            className="bg-gray-50"
-                            maxLength={150}
-                            value={specialRequest}
-                            onChange={(e) => setSpecialRequest(e.target.value)}
-                        />
-                        <span className="absolute bottom-2 right-2 text-xs text-gray-400">
-                            {specialRequest.length}/150
-                        </span>
-                    </div>
-                </div>
-            </div>
         </div>
         
         <div className="sticky bottom-0 bg-white p-4 border-t shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
