@@ -7,17 +7,24 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ArrowLeft, Search, Flame, Minus, Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+
+// Helper to find image URL by ID
+const getImageUrl = (id: string) => {
+  const image = PlaceHolderImages.find(img => img.id === id);
+  return image?.imageUrl || 'https://picsum.photos/seed/placeholder/400/400';
+};
 
 // Mock Data - Adjusted to match design
 const menuData = {
   categories: ['Bestsellers', 'Pizza', 'Sides', 'Desserts', 'Drinks'],
   items: [
-    { id: 'item-1', name: 'Pizza Margherita - 12 inches', description: 'Homemade dough, homemade pizza sauce,...', price: 36.00, category: 'Bestsellers', image: 'https://picsum.photos/seed/margherita/400/400', isCustomisable: false },
-    { id: 'item-2', name: 'Chicken Alfredo Pizza - 12 inches', description: 'Homemade dough, white sauce base, marinated...', price: 48.00, category: 'Bestsellers', image: 'https://picsum.photos/seed/alfredo/400/400', isCustomisable: true },
-    { id: 'item-3', name: 'Pizza Margherita - 10 inches', description: 'Homemade dough, homemade pizza sauce,...', price: 27.00, category: 'Pizza', image: 'https://picsum.photos/seed/margherita2/400/400', isCustomisable: false },
-    { id: 'item-4', name: 'Hawaiian Pizza - 10 inches', description: 'Homemade dough, pizza sauce, mozzarella, ham,...', price: 32.00, category: 'Pizza', image: 'https://picsum.photos/seed/hawaiian/400/400', isCustomisable: true },
-    { id: 'item-5', name: 'Soft Drink', description: 'Choose your favorite flavor.', price: 3.00, category: 'Drinks', image: 'https://i.ibb.co/3sccc8B/coke-can.png', isCustomisable: true },
-    { id: 'item-6', name: 'Bottled Water', description: 'Still or sparkling water.', price: 2.50, category: 'Drinks', image: 'https://i.ibb.co/6r0M7vj/water-bottle.png', isCustomisable: false },
+    { id: 'item-1', name: 'Pizza Margherita - 12 inches', description: 'Homemade dough, homemade pizza sauce,...', price: 36.00, category: 'Bestsellers', image: getImageUrl('pizza-margherita'), isCustomisable: false },
+    { id: 'item-2', name: 'Chicken Alfredo Pizza - 12 inches', description: 'Homemade dough, white sauce base, marinated...', price: 48.00, category: 'Bestsellers', image: getImageUrl('pizza-alfredo'), isCustomisable: true },
+    { id: 'item-3', name: 'Pizza Margherita - 10 inches', description: 'Homemade dough, homemade pizza sauce,...', price: 27.00, category: 'Pizza', image: getImageUrl('pizza-margherita'), isCustomisable: false },
+    { id: 'item-4', name: 'Hawaiian Pizza - 10 inches', description: 'Homemade dough, pizza sauce, mozzarella, ham,...', price: 32.00, category: 'Pizza', image: getImageUrl('pizza-hawaiian'), isCustomisable: true },
+    { id: 'item-5', name: 'Soft Drink', description: 'Choose your favorite flavor.', price: 3.00, category: 'Drinks', image: getImageUrl('soft-drink'), isCustomisable: true },
+    { id: 'item-6', name: 'Bottled Water', description: 'Still or sparkling water.', price: 2.50, category: 'Drinks', image: getImageUrl('bottled-water'), isCustomisable: false },
   ]
 };
 
@@ -66,7 +73,7 @@ const MenuItemCard = ({ item }: { item: typeof menuData.items[0] }) => {
 
 
 export default function MobileMenuPage() {
-  const [activeTab, setActiveTab] = useState('Drinks');
+  const [activeTab, setActiveTab] = useState('Bestsellers');
   
   const sections = ['Bestsellers', 'Pizza', 'Drinks'];
 

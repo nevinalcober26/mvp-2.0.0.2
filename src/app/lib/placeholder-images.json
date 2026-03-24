@@ -1,4 +1,3 @@
-
 {
   "placeholderImages": [
     {
@@ -9,45 +8,99 @@
     },
     {
       "id": "restaurant-logo",
-      "description": "Restaurant food dish",
+      "description": "Bloomsbury's logo reference",
       "imageUrl": "https://images.unsplash.com/photo-1550367363-ea12860cc124?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyZXN0YXVyYW50JTIwZm9vZHxlbnwwfHx8fDE3Njk5NzU0NzJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "restaurant food"
     },
     {
       "id": "restaurant-1",
-      "description": "The Elegant Table",
-      "imageUrl": "https://picsum.photos/seed/res1/600/400",
+      "description": "Bloomsbury's Ras Al Khaimah",
+      "imageUrl": "https://images.unsplash.com/photo-1643879397174-4f10ac503566?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxmaW5lJTIwZGluaW5nfGVufDB8fHx8MTc3MDgwODUwMnww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "fine dining"
     },
     {
       "id": "restaurant-2",
-      "description": "Urban Bites",
-      "imageUrl": "https://picsum.photos/seed/res2/600/400",
+      "description": "Bloomsbury's Dubai Mall",
+      "imageUrl": "https://images.unsplash.com/photo-1648808694138-6706c5efc80a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxtb2Rlcm4lMjBjYWZlfGVufDB8fHx8MTc3MDgwODUwMnww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "modern cafe"
     },
     {
       "id": "restaurant-3",
-      "description": "Morning Brew",
-      "imageUrl": "https://picsum.photos/seed/res3/600/400",
+      "description": "Bloomsbury's Al Ain",
+      "imageUrl": "https://images.unsplash.com/photo-1511920170033-f8396924c348?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxjb2ZmZWUlMjBzaG9wfGVufDB8fHx8MTc3MDcyOTY5MXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "coffee shop"
     },
     {
       "id": "restaurant-4",
-      "description": "Bella Italia",
-      "imageUrl": "https://picsum.photos/seed/res4/600/400",
+      "description": "Bloomsbury's Abu Dhabi",
+      "imageUrl": "https://images.unsplash.com/photo-1579926545913-448d525562db?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxpdGFsaWFuJTIwcmVzdGF1cmFudHxlbnwwfHx8fDE3NzA3NTE2MDZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "italian restaurant"
     },
     {
       "id": "restaurant-5",
-      "description": "Sakura Sushi",
-      "imageUrl": "https://picsum.photos/seed/res5/600/400",
+      "description": "Bloomsbury's Sharjah",
+      "imageUrl": "https://images.unsplash.com/photo-1634714434666-ef41b76b9cc9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxzdXNoaSUyMHJlc3RhdXJhbnR8ZW58MHx8fHwxNzcwNzUxNjA2fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "sushi restaurant"
     },
     {
       "id": "restaurant-6",
-      "description": "Burger Haven",
-      "imageUrl": "https://picsum.photos/seed/res6/600/400",
+      "description": "Bloomsbury's Ajman",
+      "imageUrl": "https://images.unsplash.com/photo-1695606392868-b9ed053e1c0c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxidXJnZXIlMjBqb2ludHxlbnwwfHx8fDE3NzA4MDg1MDJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "burger joint"
+    },
+    {
+      "id": "classic-cheese-burger",
+      "description": "Classic Cheese Burger",
+      "imageUrl": "https://images.unsplash.com/photo-1508736793122-f516e3ba5569?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjaGVlc2UlMjBidXJnZXJ8ZW58MHx8fHwxNzcwOTIxNTA4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cheese burger"
+    },
+    {
+      "id": "caesar-salad",
+      "description": "Caesar Salad",
+      "imageUrl": "https://images.unsplash.com/photo-1669283714145-f97867f6c238?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjYWVzYXIlMjBzYWxhZHxlbnwwfHx8fDE3NzA4NTYxMjN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "caesar salad"
+    },
+    {
+      "id": "red-velvet-cupcake",
+      "description": "Red Velvet Cupcake",
+      "imageUrl": "https://images.unsplash.com/photo-1645366188121-2a19e02fcbd5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxyZWQlMjB2ZWx2ZXR8ZW58MHx8fHwxNzcwOTIxNTA4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "red velvet"
+    },
+    {
+      "id": "red-velvet-cupcake-2",
+      "description": "Red Velvet Cupcake Duplicate",
+      "imageUrl": "https://images.unsplash.com/photo-1760124056888-8ae3ec14b978?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxkZXNzZXJ0JTIwZGlzcGxheXxlbnwwfHx8fDE3NzA5MjE1MDh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dessert display"
+    },
+    {
+      "id": "pizza-margherita",
+      "description": "Pizza margherita",
+      "imageUrl": "https://picsum.photos/seed/margherita/400/400",
+      "imageHint": "margherita pizza"
+    },
+    {
+      "id": "pizza-alfredo",
+      "description": "Chicken alfredo pizza",
+      "imageUrl": "https://picsum.photos/seed/alfredo/400/400",
+      "imageHint": "alfredo pizza"
+    },
+    {
+      "id": "pizza-hawaiian",
+      "description": "Hawaiian pizza",
+      "imageUrl": "https://picsum.photos/seed/hawaiian/400/400",
+      "imageHint": "hawaiian pizza"
+    },
+    {
+      "id": "soft-drink",
+      "description": "Soft drink can",
+      "imageUrl": "https://picsum.photos/seed/soda/400/400",
+      "imageHint": "soda can"
+    },
+    {
+      "id": "bottled-water",
+      "description": "Bottled water",
+      "imageUrl": "https://picsum.photos/seed/water/400/400",
+      "imageHint": "water bottle"
     }
   ]
 }
