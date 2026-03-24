@@ -31,11 +31,52 @@ const menuData = {
 
 type MenuItem = typeof menuData.items[0];
 
-const MenuItemCard = ({ item, onAdd }: { item: MenuItem; onAdd: (item: MenuItem) => void; }) => {
+const MenuItemCard = ({ 
+  item, 
+  onAdd,
+  quantity,
+  onIncrement,
+  onDecrement,
+}: { 
+  item: MenuItem; 
+  onAdd: (item: MenuItem) => void; 
+  quantity: number;
+  onIncrement: (itemId: string) => void;
+  onDecrement: (itemId: string) => void;
+}) => {
 
   const handleAddClick = () => {
     onAdd(item);
   };
+
+  if (quantity > 0) {
+    return (
+      <div className="flex items-start p-3 bg-white rounded-2xl shadow-sm border border-gray-100/80">
+        <div className="flex-1 pr-3">
+          <h3 className="font-bold text-gray-800 leading-snug">{item.name}</h3>
+          <p className="text-sm text-gray-500 mt-1 line-clamp-2">{item.description}</p>
+          <div className="flex items-center mt-3">
+            <span className="font-extrabold text-gray-900 text-lg">AED {(item.price * quantity).toFixed(2)}</span>
+          </div>
+        </div>
+        <div className="relative w-28 h-28 flex-shrink-0">
+          <Image src={item.image} alt={item.name} fill className="object-cover rounded-xl" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-xl" />
+          <div className="absolute bottom-2 right-2 left-2 flex flex-col items-center">
+            <div className="flex items-center justify-around w-full h-9 rounded-lg bg-white font-bold text-sm shadow-md">
+              <Button size="icon" variant="ghost" className="h-full rounded-l-lg text-red-500" onClick={() => onDecrement(item.id)}>
+                {quantity === 1 ? <Trash2 className="h-5 w-5" /> : <Minus className="h-5 w-5" />}
+              </Button>
+              <span className="font-bold text-lg text-gray-800">{quantity}</span>
+              <Button size="icon" variant="ghost" className="h-full rounded-r-lg text-teal-500" onClick={() => onIncrement(item.id)}>
+                <Plus className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-start p-3 bg-white rounded-2xl shadow-sm border border-gray-100/80">
@@ -70,12 +111,45 @@ export default function MobileMenuPage() {
   const [activeTab, setActiveTab] = useState('Bestsellers');
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [cart, setCart] = useState<Record<string, number>>({});
   
   const sections = ['Bestsellers', 'Pizza', 'Drinks'];
 
-  const handleAddItem = (item: MenuItem) => {
-    setSelectedItem(item);
-    setIsSheetOpen(true);
+  const handleAddToCart = (item: MenuItem, quantity: number) => {
+    setCart(prevCart => ({
+      ...prevCart,
+      [item.id]: (prevCart[item.id] || 0) + quantity
+    }));
+  };
+
+  const handleIncrement = (itemId: string) => {
+    setCart(prevCart => ({
+      ...prevCart,
+      [itemId]: (prevCart[itemId] || 0) + 1
+    }));
+  };
+  
+  const handleDecrement = (itemId: string) => {
+    setCart(prevCart => {
+      const newQuantity = (prevCart[itemId] || 0) - 1;
+      if (newQuantity <= 0) {
+        const { [itemId]: _, ...rest } = prevCart;
+        return rest;
+      }
+      return {
+        ...prevCart,
+        [itemId]: newQuantity
+      };
+    });
+  };
+
+  const handleAddClick = (item: MenuItem) => {
+    if (item.isCustomisable) {
+      setSelectedItem(item);
+      setIsSheetOpen(true);
+    } else {
+      handleIncrement(item.id);
+    }
   };
 
   return (
@@ -127,7 +201,14 @@ export default function MobileMenuPage() {
                   <h2 className="text-2xl font-bold text-gray-900 mb-4">{section}</h2>
                   <div className="space-y-4">
                       {menuData.items.filter(item => item.category === section).map(item => (
-                          <MenuItemCard key={item.id} item={item} onAdd={handleAddItem} />
+                          <MenuItemCard 
+                            key={item.id} 
+                            item={item} 
+                            onAdd={handleAddClick}
+                            quantity={cart[item.id] || 0}
+                            onIncrement={handleIncrement}
+                            onDecrement={handleDecrement}
+                          />
                       ))}
                   </div>
               </div>
@@ -138,6 +219,7 @@ export default function MobileMenuPage() {
         product={selectedItem}
         isOpen={isSheetOpen}
         onOpenChange={setIsSheetOpen}
+        onAddToCart={(quantity) => selectedItem && handleAddToCart(selectedItem, quantity)}
       />
     </>
   );

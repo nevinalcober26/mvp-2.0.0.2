@@ -32,9 +32,10 @@ interface ProductDetailSheetProps {
   product: Product | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  onAddToCart: (quantity: number) => void;
 }
 
-export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDetailSheetProps) {
+export function ProductDetailSheet({ product, isOpen, onOpenChange, onAddToCart }: ProductDetailSheetProps) {
   const [quantity, setQuantity] = useState(1);
   const [specialRequest, setSpecialRequest] = useState('');
   const [isAdding, setIsAdding] = useState(false);
@@ -79,6 +80,8 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
     }
     setIsAdding(true);
     
+    onAddToCart(quantity);
+
     const cartIcon = document.getElementById('floating-cart-icon');
     const sheetElement = sheetContentRef.current;
 
@@ -87,11 +90,8 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
             duration: 0.2, // Extremely fast
             scale: 0,
             opacity: 0,
-            // This is the key: it makes the element shrink towards its right-center point.
-            transformOrigin: "right 50%", 
-            x: (cartIcon.getBoundingClientRect().left + cartIcon.offsetWidth / 2) - sheetElement.getBoundingClientRect().right,
-            y: (cartIcon.getBoundingClientRect().top + cartIcon.offsetHeight / 2) - (sheetElement.getBoundingClientRect().top + sheetElement.offsetHeight / 2),
-            ease: 'power1.in',
+            transformOrigin: "right center", 
+            ease: 'power2.in',
             onComplete: () => {
                 gsap.fromTo(cartIcon, 
                     { scale: 1.4, rotate: -10 }, 
