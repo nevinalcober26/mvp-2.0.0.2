@@ -51,11 +51,8 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
       setQuantity(1);
       setSpecialRequest('');
       setIsHeaderShrunk(false);
-      if (product?.isCustomisable && product.options?.items.length) {
-        setSelectedOption(product.options.items[0]);
-      } else {
-        setSelectedOption(null);
-      }
+      // Reset selected option, forcing a choice for required options
+      setSelectedOption(null);
       // Reset GSAP styles
       if (sheetContentRef.current) {
         gsap.set(sheetContentRef.current, { clearProps: "all" });
@@ -84,7 +81,7 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
 
     if (cartIcon && sheetElement) {
         gsap.to(sheetElement, {
-            duration: 0.25,
+            duration: 0.2,
             scale: 0.1,
             opacity: 0,
             borderRadius: '50%',
@@ -107,11 +104,11 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
   }
 
   const totalPrice = product.price * quantity;
-  const isAddToCartDisabled = isAdding || (product.isCustomisable && product.options?.required && !selectedOption);
+  const isOptionSelectionRequired = product.isCustomisable && product.options?.required && !selectedOption;
+
   const addToCartText = isAdding 
     ? <Check className="h-5 w-5" /> 
-    : `Add${isAddToCartDisabled ? '' : ` • AED ${totalPrice.toFixed(2)}`}`;
-
+    : `Add • AED ${totalPrice.toFixed(2)}`;
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
@@ -124,6 +121,7 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
             <SheetTitle>{product.name}</SheetTitle>
             <SheetDescription>{product.description}</SheetDescription>
         </SheetHeader>
+
         {/* --- Sticky Shrinkable Header --- */}
         <div className={cn(
             "absolute top-0 left-0 right-0 z-20 flex items-start justify-between p-4 bg-white border-b shadow-sm transition-all duration-300",
@@ -221,27 +219,36 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange }: ProductDet
         
         {/* --- Footer with Stepper and Add to Cart --- */}
         <div className="sticky bottom-0 bg-white p-4 border-t shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
-            <div className="flex items-center gap-4">
-                <div className="flex items-center justify-between rounded-lg p-1 border w-32">
-                    <Button size="icon" variant="ghost" className="h-9 w-9 text-gray-700" onClick={() => setQuantity(q => Math.max(1, q - 1))} disabled={isAdding}>
-                        <Minus className="h-5 w-5" />
-                    </Button>
-                    <span className="font-bold text-lg text-gray-800">{quantity}</span>
-                    <Button size="icon" variant="ghost" className="h-9 w-9 text-gray-700" onClick={() => setQuantity(q => q + 1)} disabled={isAdding}>
-                        <Plus className="h-5 w-5" />
-                    </Button>
-                </div>
-                <Button 
-                    className={cn(
-                        "flex-1 h-12 text-white font-bold text-base transition-colors",
-                        isAddToCartDisabled ? "bg-gray-300" : "bg-teal-500 hover:bg-teal-600"
-                    )}
-                    onClick={handleAddToCart}
-                    disabled={isAddToCartDisabled}
-                >
-                    {addToCartText}
-                </Button>
-            </div>
+            {isOptionSelectionRequired ? (
+              <Button
+                  disabled
+                  className="w-full h-12 text-base font-bold bg-gray-200 text-gray-500 hover:bg-gray-200"
+              >
+                  Make 1 required selection - Add AED {product.price.toFixed(2)}
+              </Button>
+            ) : (
+              <div className="flex items-center gap-4">
+                  <div className="flex items-center justify-between rounded-lg p-1 border w-32">
+                      <Button size="icon" variant="ghost" className="h-9 w-9 text-gray-700" onClick={() => setQuantity(q => Math.max(1, q - 1))} disabled={isAdding}>
+                          <Minus className="h-5 w-5" />
+                      </Button>
+                      <span className="font-bold text-lg text-gray-800">{quantity}</span>
+                      <Button size="icon" variant="ghost" className="h-9 w-9 text-gray-700" onClick={() => setQuantity(q => q + 1)} disabled={isAdding}>
+                          <Plus className="h-5 w-5" />
+                      </Button>
+                  </div>
+                  <Button 
+                      className={cn(
+                          "flex-1 h-12 text-white font-bold text-base transition-colors",
+                          isAdding ? "bg-gray-300" : "bg-teal-500 hover:bg-teal-600"
+                      )}
+                      onClick={handleAddToCart}
+                      disabled={isAdding}
+                  >
+                      {addToCartText}
+                  </Button>
+              </div>
+            )}
         </div>
       </SheetContent>
     </Sheet>
