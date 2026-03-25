@@ -49,7 +49,7 @@ export function CartSheet({ isOpen, onOpenChange, cartItems, onIncrement, onDecr
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="w-full max-w-md mx-auto p-0 rounded-t-3xl border-0 bg-white flex flex-col max-h-[90vh]">
+      <SheetContent side="bottom" className="w-full max-w-md mx-auto p-0 rounded-t-3xl border-0 bg-[#F7F9FB] flex flex-col max-h-[90vh]">
         <SheetHeader className="p-4 pt-5 border-b border-gray-200/80 bg-white rounded-t-3xl sticky top-0 z-10 shrink-0">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -72,7 +72,7 @@ export function CartSheet({ isOpen, onOpenChange, cartItems, onIncrement, onDecr
             </div>
         </SheetHeader>
         
-        <div className="flex-1 overflow-y-auto bg-[#F7F9FB]">
+        <div className="flex-1 overflow-y-auto">
             <div className="p-4 space-y-6">
                 {/* Cart Items */}
                 <div className="space-y-4">
@@ -133,25 +133,27 @@ export function CartSheet({ isOpen, onOpenChange, cartItems, onIncrement, onDecr
                 </div>
             </div>
         </div>
-        
-        <SheetFooter className="p-4 bg-white border-t border-gray-200/80 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] space-y-4 flex-col items-stretch w-full shrink-0">
-            <div className="flex items-center justify-between p-3 bg-gradient-to-r from-yellow-100 to-amber-200 rounded-2xl border border-yellow-300/50">
-                <div className="flex items-center gap-3">
-                    <div className="relative">
-                        <Gift className="h-10 w-10 text-yellow-600 opacity-20"/>
-                        {giftIcon && <Image src={giftIcon.imageUrl} alt={giftIcon.description} width={24} height={24} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" data-ai-hint={giftIcon.imageHint} />}
-                    </div>
-                    <div>
-                        <p className="font-extrabold text-yellow-900 uppercase">Unlock VIP Perks</p>
-                        <p className="text-xs text-yellow-800 font-medium">Join VIP for extra perks</p>
-                    </div>
-                </div>
-                <Button className="rounded-full h-8 px-4 bg-yellow-400 text-yellow-900 font-bold text-xs hover:bg-yellow-500 shadow-md">Become a VIP</Button>
-                <button className="self-start -mt-1 -mr-1">
-                    <X className="h-4 w-4 text-yellow-900/50"/>
-                </button>
-            </div>
 
+        <div className="p-4 pt-2 shrink-0 bg-transparent">
+          <div className="flex items-center justify-between p-3 bg-gradient-to-r from-yellow-100 to-amber-200 rounded-2xl border border-yellow-300/50">
+              <div className="flex items-center gap-3">
+                  <div className="relative">
+                      <Gift className="h-10 w-10 text-yellow-600 opacity-20"/>
+                      {giftIcon && <Image src={giftIcon.imageUrl} alt={giftIcon.description} width={24} height={24} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" data-ai-hint={giftIcon.imageHint} />}
+                  </div>
+                  <div>
+                      <p className="font-extrabold text-yellow-900 uppercase">Unlock VIP Perks</p>
+                      <p className="text-xs text-yellow-800 font-medium">Join VIP for extra perks</p>
+                  </div>
+              </div>
+              <Button className="rounded-full h-8 px-4 bg-yellow-400 text-yellow-900 font-bold text-xs hover:bg-yellow-500 shadow-md">Become a VIP</Button>
+              <button className="self-start -mt-1 -mr-1">
+                  <X className="h-4 w-4 text-yellow-900/50"/>
+              </button>
+          </div>
+        </div>
+        
+        <SheetFooter className="p-4 pt-0 bg-white border-t border-gray-200/80 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] w-full shrink-0">
             <Button className="w-full h-14 rounded-2xl text-lg font-bold bg-teal-500 hover:bg-teal-600 shadow-lg shadow-teal-500/20">
                 Proceed to Checkout
             </Button>
