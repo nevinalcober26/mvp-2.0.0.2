@@ -52,9 +52,8 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange, onAddToCart 
       setQuantity(1);
       setSpecialRequest('');
       setIsHeaderShrunk(false);
-      // Reset selected option, forcing a choice for required options
       setSelectedOption(null);
-      // Reset GSAP styles
+      // Reset GSAP styles in case they were left over from a previous animation
       if (sheetContentRef.current) {
         gsap.set(sheetContentRef.current, { clearProps: "all" });
       }
@@ -74,28 +73,40 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange, onAddToCart 
   if (!product) return null;
 
   const handleAddToCartAnimation = () => {
-    if (isAdding) return;
-    if (isOptionSelectionRequired) {
+    if (isAdding || !product) return;
+    if (product.isCustomisable && product.options?.required && !selectedOption) {
       return;
     }
     setIsAdding(true);
-    
     onAddToCart(quantity);
 
     const cartIcon = document.getElementById('floating-cart-icon');
     const sheetElement = sheetContentRef.current;
 
     if (cartIcon && sheetElement) {
+        const cartRect = cartIcon.getBoundingClientRect();
+        const sheetRect = sheetElement.getBoundingClientRect();
+
+        // Calculate destination coordinates (center of the cart icon)
+        const targetX = cartRect.left + cartRect.width / 2;
+        const targetY = cartRect.top + cartRect.height / 2;
+
+        // Calculate the distance the sheet needs to travel
+        const travelX = targetX - (sheetRect.left + sheetRect.width / 2);
+        const travelY = targetY - (sheetRect.top + sheetRect.height / 2);
+
         gsap.to(sheetElement, {
-            duration: 0.4,
+            duration: 0.5, // "superfast"
+            x: travelX,
+            y: travelY,
             scale: 0.1,
             opacity: 0,
-            x: '150%',
-            y: '50%',
-            transformOrigin: "right center", 
+            transformOrigin: "center center",
             ease: 'power2.in',
             onComplete: () => {
                 onOpenChange(false);
+                 // IMPORTANT: Reset GSAP's inline styles after animation
+                gsap.set(sheetElement, { clearProps: "all" });
             }
         });
     } else {
@@ -104,7 +115,7 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange, onAddToCart 
             onOpenChange(false);
         }, 500);
     }
-  }
+  };
 
   const totalPrice = product.price * quantity;
   const isOptionSelectionRequired = product.isCustomisable && product.options?.required && !selectedOption;
