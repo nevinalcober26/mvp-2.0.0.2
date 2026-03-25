@@ -67,7 +67,7 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange, onAddToCart 
   const handleScroll = () => {
     if (scrollContainerRef.current) {
       const { scrollTop } = scrollContainerRef.current;
-      setIsHeaderShrunk(scrollTop > 50); 
+      setIsHeaderShrunk(scrollTop > 180); 
     }
   };
 
@@ -87,9 +87,11 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange, onAddToCart 
 
     if (cartIcon && sheetElement) {
         gsap.to(sheetElement, {
-            duration: 0.2, // Extremely fast
-            scale: 0,
+            duration: 0.3,
+            scale: 0.1,
             opacity: 0,
+            x: '150%',
+            y: '50%',
             transformOrigin: "right center", 
             ease: 'power2.in',
             onComplete: () => {
@@ -122,22 +124,23 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange, onAddToCart 
         side="bottom"
         className="w-full max-w-md mx-auto p-0 rounded-t-3xl border-0 bg-white overflow-hidden flex flex-col max-h-[90vh]"
       >
-        <SheetHeader className="sr-only">
+        <SheetHeader className="p-6 border-b sr-only">
           <SheetTitle>{product.name}</SheetTitle>
           <SheetDescription>{product.description}</SheetDescription>
         </SheetHeader>
 
         {/* --- Sticky Shrinkable Header --- */}
         <div className={cn(
-            "absolute top-0 left-0 right-0 z-20 flex items-start justify-between p-4 bg-white border-b shadow-sm transition-all duration-300",
+            "absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-3 bg-white/90 backdrop-blur-md border-b shadow-sm transition-all duration-300",
             isHeaderShrunk ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
         )}>
-            <div className="flex-1 pr-4">
-                <h2 className="font-bold text-lg leading-tight">{product.name}</h2>
-                <p className="text-base font-bold text-gray-800 mt-1">AED {product.price.toFixed(2)}</p>
+            <div className="flex-1 pr-3 overflow-hidden">
+                <h2 className="font-bold text-base leading-tight truncate">{product.name}</h2>
+                <p className="text-xs text-gray-500 truncate mt-0.5">{product.description}</p>
+                <p className="text-sm font-bold text-gray-800 mt-1">AED {product.price.toFixed(2)}</p>
             </div>
-            <div className="relative w-20 h-20 flex-shrink-0 -mt-2 -mr-1">
-                 <Image src={product.image} alt={product.name} fill className="object-cover rounded-xl" />
+            <div className="relative w-16 h-16 flex-shrink-0">
+                 <Image src={product.image} alt={product.name} fill className="object-cover rounded-lg" />
             </div>
         </div>
         
