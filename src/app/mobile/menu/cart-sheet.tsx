@@ -45,10 +45,11 @@ export function CartSheet({ isOpen, onOpenChange, cartItems, onIncrement, onDecr
   const serviceCharge = subtotal * 0.10;
   
   const totalItemCount = cartItems.reduce((sum, { quantity }) => sum + quantity, 0);
+  const giftIcon = PlaceHolderImages.find(img => img.id === 'gift-icon');
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="w-full max-w-md mx-auto p-0 rounded-t-3xl border-0 bg-[#F7F9FB] flex flex-col h-[95vh]">
+      <SheetContent side="bottom" className="w-full max-w-md mx-auto p-0 rounded-t-3xl border-0 bg-[#F7F9FB] max-h-[95vh] overflow-y-auto">
         <SheetHeader className="p-4 pt-5 border-b border-gray-200/80 bg-white rounded-t-3xl sticky top-0 z-10">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -71,7 +72,7 @@ export function CartSheet({ isOpen, onOpenChange, cartItems, onIncrement, onDecr
             </div>
         </SheetHeader>
         
-        <div className="flex-1 overflow-y-auto bg-white">
+        <div className="bg-white">
             <div className="p-4 space-y-6">
                 {/* Cart Items */}
                 <div className="space-y-4">
@@ -153,7 +154,7 @@ export function CartSheet({ isOpen, onOpenChange, cartItems, onIncrement, onDecr
                 <div className="flex items-center gap-3">
                     <div className="relative">
                         <Gift className="h-10 w-10 text-yellow-600 opacity-20"/>
-                        <Image src="https://emojipedia-us.s3.amazonaws.com/source/skype/289/wrapped-gift_1f381.png" alt="Gift" width={24} height={24} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"/>
+                        {giftIcon && <Image src={giftIcon.imageUrl} alt={giftIcon.description} width={24} height={24} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" data-ai-hint={giftIcon.imageHint} />}
                     </div>
                     <div>
                         <p className="font-extrabold text-yellow-900 uppercase">Unlock VIP Perks</p>
