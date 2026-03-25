@@ -27,6 +27,8 @@ const menuData = {
     { id: 'item-4', name: 'Hawaiian Pizza - 10 inches', description: 'Homemade dough, pizza sauce, mozzarella, ham,...', price: 32.00, category: 'Pizza', image: getImageUrl('pizza-hawaiian'), isCustomisable: true, options: { title: 'Crust', required: true, items: ['Regular', 'Thin', 'Stuffed'] } },
     { id: 'item-5', name: 'Soft Drink', description: 'Choose your favorite flavor.', price: 3.00, category: 'Drinks', image: getImageUrl('soft-drink'), isCustomisable: true, options: { title: 'Flavor', required: true, items: ['Coke', 'Diet Coke', 'Sprite', 'Fanta'] } },
     { id: 'item-6', name: 'Bottled Water', description: 'Still or sparkling water.', price: 2.50, category: 'Drinks', image: getImageUrl('bottled-water'), isCustomisable: false },
+    { id: 'item-7', name: 'Red Velvet Cupcake', description: 'A rich and moist cupcake with a hint of cocoa, topped with cream cheese frosting.', price: 15.00, category: 'Desserts', image: getImageUrl('red-velvet-cupcake'), isCustomisable: false },
+    { id: 'item-8', name: 'French Fries', description: 'Crispy golden french fries.', price: 10.00, category: 'Sides', image: getImageUrl('french-fries'), isCustomisable: false },
   ]
 };
 
@@ -110,7 +112,9 @@ const MenuItemCard = ({
 
 export default function MobileMenuPage() {
   const sections = useMemo(() => {
-    return menuData.categories;
+    return menuData.categories.filter(category =>
+      menuData.items.some(item => item.category === category)
+    );
   }, []);
   
   const [activeTab, setActiveTab] = useState(sections[0] || '');
@@ -235,7 +239,7 @@ export default function MobileMenuPage() {
           {/* Category Tabs */}
           <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex items-center space-x-1 border-b">
-              {sections.map((cat) => (
+              {menuData.categories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => handleTabClick(cat)}
@@ -258,7 +262,7 @@ export default function MobileMenuPage() {
         
         {/* Menu Items */}
         <main className="p-4 space-y-8">
-          {sections.map(section => {
+          {menuData.categories.map(section => {
               const itemsForSection = menuData.items.filter(item => item.category === section);
               return (
                   <div 
