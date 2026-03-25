@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, X, UtensilsCrossed, ShoppingBag, Bike, Users, Pencil } from 'lucide-react';
@@ -15,6 +15,9 @@ interface PaymentSheetProps {
   tax: number;
   serviceCharge: number;
   onBack: () => void;
+  onPayNow: () => void;
+  selectedTip: number | 'custom' | null;
+  onTipChange: (tip: number | 'custom' | null) => void;
 }
 
 const OrderTypeButton = ({ icon: Icon, label, selected, onClick }: { icon: React.ElementType, label: string, selected: boolean, onClick: () => void }) => (
@@ -43,10 +46,9 @@ const TipButton = ({ emoji, label, popular, selected, onClick }: { emoji?: strin
     </button>
 );
 
-export function PaymentSheet({ isOpen, onOpenChange, subtotal, tax, serviceCharge, onBack }: PaymentSheetProps) {
-    const [orderType, setOrderType] = useState<'dine-in' | 'take-out' | 'delivery'>('dine-in');
-    const [selectedTip, setSelectedTip] = useState<number | 'custom' | null>(4);
-
+export function PaymentSheet({ isOpen, onOpenChange, subtotal, tax, serviceCharge, onBack, onPayNow, selectedTip, onTipChange }: PaymentSheetProps) {
+    const [orderType, setOrderType] = React.useState<'dine-in' | 'take-out' | 'delivery'>('dine-in');
+    
     const tipAmount = typeof selectedTip === 'number' ? selectedTip : 0;
     const total = subtotal + tax + serviceCharge + tipAmount;
 
@@ -99,12 +101,12 @@ export function PaymentSheet({ isOpen, onOpenChange, subtotal, tax, serviceCharg
                         <h3 className="text-xl font-bold text-gray-800">Thank your server?</h3>
                         <p className="text-sm text-gray-600 max-w-xs mx-auto">Your small act of kindness goes a long way. 100% of tips go to the staff.</p>
                         <div className="flex items-stretch gap-3 justify-center">
-                            <TipButton emoji="☕" label="AED 2" selected={selectedTip === 2} onClick={() => setSelectedTip(2)} />
-                            <TipButton emoji="🍕" label="AED 4" popular selected={selectedTip === 4} onClick={() => setSelectedTip(4)} />
-                            <TipButton emoji="🍔" label="AED 8" selected={selectedTip === 8} onClick={() => setSelectedTip(8)} />
-                             <TipButton label="Custom" selected={selectedTip === 'custom'} onClick={() => setSelectedTip('custom')} />
+                            <TipButton emoji="☕" label="AED 2" selected={selectedTip === 2} onClick={() => onTipChange(2)} />
+                            <TipButton emoji="🍕" label="AED 4" popular selected={selectedTip === 4} onClick={() => onTipChange(4)} />
+                            <TipButton emoji="🍔" label="AED 8" selected={selectedTip === 8} onClick={() => onTipChange(8)} />
+                             <TipButton label="Custom" selected={selectedTip === 'custom'} onClick={() => onTipChange('custom')} />
                         </div>
-                        <Button variant="outline" className="w-full max-w-xs mx-auto h-12 bg-white rounded-xl border-gray-300" onClick={() => setSelectedTip(null)}>
+                        <Button variant="outline" className="w-full max-w-xs mx-auto h-12 bg-white rounded-xl border-gray-300" onClick={() => onTipChange(null)}>
                             <X className="h-4 w-4 mr-2 text-red-500"/>
                             <span className="font-bold text-gray-700">No Tip</span>
                         </Button>
@@ -116,7 +118,7 @@ export function PaymentSheet({ isOpen, onOpenChange, subtotal, tax, serviceCharg
                         <Users className="h-5 w-5 mr-2" />
                         Split Bill
                     </Button>
-                    <Button className="h-14 rounded-2xl flex-1 text-base font-bold bg-teal-500 hover:bg-teal-600 shadow-lg shadow-teal-500/20">
+                    <Button className="h-14 rounded-2xl flex-1 text-base font-bold bg-teal-500 hover:bg-teal-600 shadow-lg shadow-teal-500/20" onClick={onPayNow}>
                         Pay AED {total.toFixed(2)}
                     </Button>
                 </SheetFooter>

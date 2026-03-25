@@ -13,6 +13,7 @@ import { ProductDetailSheet } from './product-detail-sheet';
 import { CartSheet } from './cart-sheet';
 import { Card } from '@/components/ui/card';
 import { PaymentSheet } from './payment-sheet';
+import { PaymentRedirectSheet } from './payment-redirect-sheet';
 
 // Helper to find image URL by ID
 const getImageUrl = (id: string) => {
@@ -125,6 +126,8 @@ export default function MobileMenuPage() {
   const [isCartAnimating, setIsCartAnimating] = useState(false);
   const [isCartSheetOpen, setIsCartSheetOpen] = useState(false);
   const [isPaymentSheetOpen, setIsPaymentSheetOpen] = useState(false);
+  const [isRedirectingSheetOpen, setIsRedirectingSheetOpen] = useState(false);
+  const [selectedTip, setSelectedTip] = useState<number | 'custom' | null>(4);
 
   
   const sectionRefs = useRef<{[key: string]: HTMLElement | null}>({});
@@ -145,6 +148,8 @@ export default function MobileMenuPage() {
   const subtotal = useMemo(() => cartItemsForSheet.reduce((sum, { item, quantity }) => sum + item.price * quantity, 0), [cartItemsForSheet]);
   const tax = useMemo(() => subtotal * 0.05, [subtotal]);
   const serviceCharge = useMemo(() => subtotal * 0.10, [subtotal]);
+  const tipAmount = typeof selectedTip === 'number' ? selectedTip : 0;
+  const total = subtotal + tax + serviceCharge + tipAmount;
   
   const totalItemsInCart = useMemo(() => {
     return Object.values(cart).reduce((sum, quantity) => sum + quantity, 0);
@@ -282,6 +287,13 @@ export default function MobileMenuPage() {
     setIsCartSheetOpen(true);
   };
 
+  const handlePayNow = () => {
+    setIsPaymentSheetOpen(false);
+    setTimeout(() => {
+        setIsRedirectingSheetOpen(true);
+    }, 300);
+  };
+
   return (
     <>
       <div className="bg-[#F7F9FB] min-h-screen">
@@ -402,6 +414,14 @@ export default function MobileMenuPage() {
         tax={tax}
         serviceCharge={serviceCharge}
         onBack={handleBackToCart}
+        onPayNow={handlePayNow}
+        selectedTip={selectedTip}
+        onTipChange={setSelectedTip}
+      />
+       <PaymentRedirectSheet
+        isOpen={isRedirectingSheetOpen}
+        onOpenChange={setIsRedirectingSheetOpen}
+        total={total}
       />
     </>
   );
