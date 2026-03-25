@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Sheet, SheetContent, SheetFooter } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, X, UtensilsCrossed, ShoppingBag, Bike, Users, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -53,11 +53,12 @@ export function PaymentSheet({ isOpen, onOpenChange, subtotal, tax, serviceCharg
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
             <SheetContent side="bottom" className="w-full max-w-md mx-auto p-0 rounded-t-3xl border-0 bg-[#F7F9FB] flex flex-col h-full">
                 {/* Header */}
-                <div className="p-4 flex items-center justify-between border-b border-gray-200 bg-white rounded-t-3xl shrink-0">
+                <SheetHeader className="p-4 flex flex-row items-center justify-between border-b border-gray-200 bg-white rounded-t-3xl shrink-0">
                     <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => onOpenChange(false)}><ArrowLeft className="h-5 w-5" /></Button>
-                    <h2 className="text-lg font-bold">Payment</h2>
+                    <SheetTitle className="text-lg font-bold">Payment</SheetTitle>
+                    <SheetDescription className="sr-only">Complete your order payment.</SheetDescription>
                     <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => onOpenChange(false)}><X className="h-5 w-5" /></Button>
-                </div>
+                </SheetHeader>
                 
                 <div className="flex-1 overflow-y-auto p-4 space-y-6">
                     {/* Order Type */}
