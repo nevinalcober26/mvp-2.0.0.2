@@ -37,9 +37,10 @@ interface CartSheetProps {
   onIncrement: (itemId: string) => void;
   onDecrement: (itemId: string) => void;
   onRemove: (itemId: string) => void;
+  onCheckout: () => void;
 }
 
-export function CartSheet({ isOpen, onOpenChange, cartItems, onIncrement, onDecrement, onRemove }: CartSheetProps) {
+export function CartSheet({ isOpen, onOpenChange, cartItems, onIncrement, onDecrement, onRemove, onCheckout }: CartSheetProps) {
   const subtotal = cartItems.reduce((sum, { item, quantity }) => sum + item.price * quantity, 0);
   const tax = subtotal * 0.05;
   const serviceCharge = subtotal * 0.10;
@@ -83,7 +84,7 @@ export function CartSheet({ isOpen, onOpenChange, cartItems, onIncrement, onDecr
                             <p className="font-semibold text-teal-600 text-sm mt-1">AED {item.price.toFixed(2)}</p>
                         </div>
                         <div className="flex items-center justify-between rounded-lg border border-gray-200 w-24 h-9">
-                            <Button size="icon" variant="ghost" className="h-full rounded-l-lg text-red-500" onClick={() => onDecrement(item.id)}>
+                             <Button size="icon" variant="ghost" className="h-full rounded-l-lg text-red-500" onClick={() => onDecrement(item.id)}>
                                 <Trash2 className="h-4 w-4" />
                             </Button>
                             <span className="font-bold text-sm text-gray-800">{quantity}</span>
@@ -152,7 +153,7 @@ export function CartSheet({ isOpen, onOpenChange, cartItems, onIncrement, onDecr
         </div>
         
         <SheetFooter className="p-4 pt-[15px] bg-white border-t border-gray-200/80 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] w-full shrink-0">
-            <Button className="w-full h-14 rounded-2xl text-lg font-bold bg-teal-500 hover:bg-teal-600 shadow-lg shadow-teal-500/20">
+            <Button className="w-full h-14 rounded-2xl text-lg font-bold bg-teal-500 hover:bg-teal-600 shadow-lg shadow-teal-500/20" onClick={onCheckout}>
                 Proceed to Checkout
             </Button>
         </SheetFooter>

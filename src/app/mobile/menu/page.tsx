@@ -12,6 +12,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ProductDetailSheet } from './product-detail-sheet';
 import { CartSheet } from './cart-sheet';
 import { Card } from '@/components/ui/card';
+import { PaymentSheet } from './payment-sheet';
 
 // Helper to find image URL by ID
 const getImageUrl = (id: string) => {
@@ -123,6 +124,7 @@ export default function MobileMenuPage() {
   const [cart, setCart] = useState<Record<string, number>>({});
   const [isCartAnimating, setIsCartAnimating] = useState(false);
   const [isCartSheetOpen, setIsCartSheetOpen] = useState(false);
+  const [isPaymentSheetOpen, setIsPaymentSheetOpen] = useState(false);
 
   
   const sectionRefs = useRef<{[key: string]: HTMLElement | null}>({});
@@ -130,6 +132,20 @@ export default function MobileMenuPage() {
   const isTabClickScrolling = useRef(false);
   
   const prevCartTotalRef = useRef(0);
+  
+  const cartItemsForSheet = useMemo(() => {
+    return Object.entries(cart)
+      .map(([id, quantity]) => {
+        const item = menuData.items.find(i => i.id === id);
+        return item ? { item, quantity } : null;
+      })
+      .filter((i): i is { item: MenuItem; quantity: number } => i !== null);
+  }, [cart]);
+
+  const subtotal = useMemo(() => cartItemsForSheet.reduce((sum, { item, quantity }) => sum + item.price * quantity, 0), [cartItemsForSheet]);
+  const tax = useMemo(() => subtotal * 0.05, [subtotal]);
+  const serviceCharge = useMemo(() => subtotal * 0.10, [subtotal]);
+  
   const totalItemsInCart = useMemo(() => {
     return Object.values(cart).reduce((sum, quantity) => sum + quantity, 0);
   }, [cart]);
@@ -253,14 +269,13 @@ export default function MobileMenuPage() {
     setIsSheetOpen(true);
   };
 
-  const cartItemsForSheet = useMemo(() => {
-    return Object.entries(cart)
-      .map(([id, quantity]) => {
-        const item = menuData.items.find(i => i.id === id);
-        return item ? { item, quantity } : null;
-      })
-      .filter((i): i is { item: MenuItem; quantity: number } => i !== null);
-  }, [cart]);
+  const handleCheckout = () => {
+    setIsCartSheetOpen(false);
+    // Add a small delay to allow the cart sheet to animate out before the payment sheet animates in
+    setTimeout(() => {
+        setIsPaymentSheetOpen(true);
+    }, 300);
+  };
 
   return (
     <>
@@ -373,6 +388,14 @@ export default function MobileMenuPage() {
         onIncrement={handleIncrement}
         onDecrement={handleDecrement}
         onRemove={handleDecrement}
+        onCheckout={handleCheckout}
+      />
+      <PaymentSheet
+        isOpen={isPaymentSheetOpen}
+        onOpenChange={setIsPaymentSheetOpen}
+        subtotal={subtotal}
+        tax={tax}
+        serviceCharge={serviceCharge}
       />
     </>
   );
