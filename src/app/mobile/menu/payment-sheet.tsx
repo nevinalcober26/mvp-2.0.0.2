@@ -14,6 +14,7 @@ interface PaymentSheetProps {
   subtotal: number;
   tax: number;
   serviceCharge: number;
+  onBack: () => void;
 }
 
 const OrderTypeButton = ({ icon: Icon, label, selected, onClick }: { icon: React.ElementType, label: string, selected: boolean, onClick: () => void }) => (
@@ -42,7 +43,7 @@ const TipButton = ({ emoji, label, popular, selected, onClick }: { emoji?: strin
     </button>
 );
 
-export function PaymentSheet({ isOpen, onOpenChange, subtotal, tax, serviceCharge }: PaymentSheetProps) {
+export function PaymentSheet({ isOpen, onOpenChange, subtotal, tax, serviceCharge, onBack }: PaymentSheetProps) {
     const [orderType, setOrderType] = useState<'dine-in' | 'take-out' | 'delivery'>('dine-in');
     const [selectedTip, setSelectedTip] = useState<number | 'custom' | null>(4);
 
@@ -54,7 +55,7 @@ export function PaymentSheet({ isOpen, onOpenChange, subtotal, tax, serviceCharg
             <SheetContent side="bottom" className="w-full max-w-md mx-auto p-0 rounded-t-3xl border-0 bg-[#F7F9FB] flex flex-col h-full">
                 {/* Header */}
                 <SheetHeader className="p-4 flex flex-row items-center justify-between border-b border-gray-200 bg-white rounded-t-3xl shrink-0">
-                    <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => onOpenChange(false)}><ArrowLeft className="h-5 w-5" /></Button>
+                    <Button variant="ghost" size="icon" className="h-9 w-9" onClick={onBack}><ArrowLeft className="h-5 w-5" /></Button>
                     <SheetTitle className="text-lg font-bold">Payment</SheetTitle>
                     <SheetDescription className="sr-only">Complete your order payment.</SheetDescription>
                     <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => onOpenChange(false)}><X className="h-5 w-5" /></Button>

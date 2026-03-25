@@ -277,6 +277,11 @@ export default function MobileMenuPage() {
     }, 300);
   };
 
+  const handleBackToCart = () => {
+    setIsPaymentSheetOpen(false);
+    setIsCartSheetOpen(true);
+  };
+
   return (
     <>
       <div className="bg-[#F7F9FB] min-h-screen">
@@ -396,6 +401,7 @@ export default function MobileMenuPage() {
         subtotal={subtotal}
         tax={tax}
         serviceCharge={serviceCharge}
+        onBack={handleBackToCart}
       />
     </>
   );
