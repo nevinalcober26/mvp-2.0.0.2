@@ -239,27 +239,27 @@ export function OrderDetailsSheet({
                                             </Badge>
                                         </div>
                                         {order.splitType === 'byItem' && payment.items && payment.items.length > 0 && (
-                                            <div className="mt-2 text-xs p-3 bg-muted/50 rounded-md border space-y-2">
-                                                <div>
-                                                    <p className="font-semibold text-foreground mb-1">Items Paid For:</p>
-                                                    <ul className="list-disc pl-4 space-y-1 text-muted-foreground">
-                                                    {payment.items.map((item, idx) => (
+                                            <div className="mt-3 p-4 bg-card rounded-lg border">
+                                                <div className="space-y-2">
+                                                    <p className="text-sm font-semibold text-foreground">Items Paid For:</p>
+                                                    <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
+                                                        {payment.items.map((item, idx) => (
                                                         <li key={idx}>{item.quantity}x {item.name}</li>
-                                                    ))}
+                                                        ))}
                                                     </ul>
                                                 </div>
                                                 {payment.tip && payment.tip > 0 && (
                                                     <>
-                                                        <Separator className="bg-border/60"/>
-                                                        <div className="flex justify-between font-medium">
-                                                            <span className="text-foreground">Tip Amount:</span>
-                                                            <span className="text-foreground font-mono">${payment.tip.toFixed(2)}</span>
+                                                        <Separator className="my-3"/>
+                                                        <div className="flex justify-between items-center text-sm">
+                                                            <span className="font-medium text-muted-foreground">Tip Amount:</span>
+                                                            <span className="font-mono font-semibold text-foreground">${payment.tip.toFixed(2)}</span>
                                                         </div>
                                                     </>
                                                 )}
                                             </div>
                                         )}
-                                        <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+                                        <div className="mt-4 space-y-1 text-sm text-muted-foreground">
                                             <p>Transaction ID: {payment.transactionId}</p>
                                             {order.staffReference?.employee_reference_code && (
                                                 <p>Terminal ID: {order.staffReference.employee_reference_code}</p>
