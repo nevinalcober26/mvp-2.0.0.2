@@ -285,8 +285,16 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
         const randomDate = new Date(orderTimestamp);
         
         const customerPayments: CustomerPayment[] = [];
-        const isSplit = paidAmount > 0.01 && paymentState === 'Fully Paid' && i % 3 === 0 && currentItems.length >= 2;
-        const splitType = isSplit ? (i % 6 === 0 ? 'byItem' : 'equally') : undefined;
+        const isSplit = paidAmount > 0.01 && paymentState === 'Fully Paid' && i % 4 === 0 && currentItems.length >= 2;
+        
+        let splitType: 'byItem' | 'equally' | undefined = undefined;
+        if (isSplit) {
+            if (i % 8 === 0) { // Make it a simple 50/50 split for split orders
+                splitType = 'byItem';
+            } else {
+                splitType = 'equally';
+            }
+        }
 
         if (isSplit) {
             orderStatus = 'Completed';
