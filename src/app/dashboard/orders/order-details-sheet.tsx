@@ -106,10 +106,12 @@ export function OrderDetailsSheet({
                     <div className="space-y-4">
                       {order.items.map((item, index) => (
                         <React.Fragment key={item.id}>
-                          <div className="grid grid-cols-[1fr_auto_auto] items-center gap-4">
-                            <p className="font-medium">{item.name}</p>
-                            <p className="text-sm text-muted-foreground">x{item.quantity}</p>
-                            <p className="font-mono text-right">
+                          <div className="grid grid-cols-[1fr_auto_auto] items-center gap-4 text-sm">
+                            <div>
+                                <p className="font-semibold">{item.name}</p>
+                            </div>
+                            <p className="text-muted-foreground font-medium">x{item.quantity}</p>
+                            <p className="font-mono font-semibold text-right">
                               ${(item.price * item.quantity).toFixed(2)}
                             </p>
                           </div>
@@ -131,32 +133,32 @@ export function OrderDetailsSheet({
                   </CardHeader>
                   <CardContent className="p-8 pt-0">
                     <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Subtotal</span>
-                        <span className="font-mono">${subtotal.toFixed(2)}</span>
+                      <div className="flex justify-between font-mono">
+                        <span className="text-muted-foreground font-sans">Subtotal</span>
+                        <span>${subtotal.toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Tax (5%)</span>
-                        <span className="font-mono">${taxAmount.toFixed(2)}</span>
+                      <div className="flex justify-between font-mono">
+                        <span className="text-muted-foreground font-sans">Tax (5%)</span>
+                        <span>${taxAmount.toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
+                      <div className="flex justify-between font-mono">
+                        <span className="text-muted-foreground font-sans">
                           Discount
                         </span>
-                        <span className="font-mono">$0.00</span>
+                        <span>$0.00</span>
                       </div>
                       <Separator className="my-2" />
-                      <div className="flex justify-between font-bold text-base">
+                      <div className="flex justify-between font-bold text-base font-mono">
                         <span>Total</span>
-                        <span className="font-mono">${totalWithTax.toFixed(2)}</span>
+                        <span>${totalWithTax.toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between font-semibold text-green-600">
+                      <div className="flex justify-between font-semibold text-green-600 font-mono">
                         <span>Paid</span>
-                        <span className="font-mono">${order.paidAmount.toFixed(2)}</span>
+                        <span>${order.paidAmount.toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between font-semibold text-red-600">
+                      <div className="flex justify-between font-semibold text-red-600 font-mono">
                         <span>Pending</span>
-                        <span className="font-mono">
+                        <span>
                           $
                           {pendingAmount > 0.01 ? pendingAmount.toFixed(2) : '0.00'}
                         </span>
@@ -218,57 +220,67 @@ export function OrderDetailsSheet({
                                         </span>
                                       </div>
                                       <div className="min-w-0 flex-1">
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <p className="font-medium text-sm">
-                                                    Payment of ${payment.amount} via {payment.method}
-                                                </p>
-                                                <p className="mt-1 text-sm text-muted-foreground">
-                                                    by {payment.guestName} on {payment.date}
-                                                </p>
-                                            </div>
-                                            <Badge
-                                            variant="outline"
-                                            className="bg-green-100 text-green-700 border-transparent shrink-0"
-                                            >
-                                            Success
-                                            </Badge>
-                                        </div>
-                                        {order.splitType === 'byItem' && payment.items && payment.items.length > 0 && (
-                                            <Card className="mt-3 bg-card border">
-                                              <CardContent className="p-4 space-y-3">
-                                                <div>
-                                                  <p className="text-sm font-semibold text-foreground mb-2">Items Paid For:</p>
-                                                  <ul className="space-y-2 text-sm text-muted-foreground">
-                                                      {payment.items.map((item, idx) => (
-                                                      <li key={idx} className="flex justify-between items-center">
-                                                          <span>{item.quantity}x {item.name}</span>
-                                                      </li>
-                                                      ))}
-                                                  </ul>
-                                                </div>
-                                                {(payment.tip && payment.tip > 0) && (
-                                                  <>
-                                                    <Separator/>
-                                                    <div className="flex justify-between items-center text-sm font-medium">
-                                                      <span className="text-muted-foreground">Tip Amount:</span>
-                                                      <span className="font-mono text-foreground">${payment.tip.toFixed(2)}</span>
-                                                    </div>
-                                                  </>
-                                                )}
-                                                <Separator/>
-                                                <div className="space-y-1 text-xs text-muted-foreground">
-                                                    <p>Transaction ID: {payment.transactionId}</p>
-                                                    {order.staffReference?.employee_reference_code && (
-                                                        <p>Terminal ID: {order.staffReference.employee_reference_code}</p>
-                                                    )}
-                                                    {order.source && (
-                                                        <p>Source: {order.source === 'POS' ? 'POS Machine' : order.source}</p>
-                                                    )}
-                                                </div>
-                                              </CardContent>
-                                            </Card>
-                                        )}
+                                          <div className="flex justify-between items-start">
+                                              <div>
+                                                  <p className="font-medium text-sm">
+                                                      Payment of ${payment.amount} via {payment.method}
+                                                  </p>
+                                                  <p className="mt-1 text-sm text-muted-foreground">
+                                                      by {payment.guestName} on {payment.date}
+                                                  </p>
+                                              </div>
+                                              <Badge
+                                              variant="outline"
+                                              className="bg-green-100 text-green-700 border-transparent shrink-0"
+                                              >
+                                              Success
+                                              </Badge>
+                                          </div>
+                                          {order.splitType && (() => {
+                                              const hasItems = order.splitType === 'byItem' && payment.items && payment.items.length > 0;
+                                              const hasTip = payment.tip && payment.tip > 0;
+
+                                              return (
+                                                  <Card className="mt-3 bg-card border">
+                                                      <CardContent className="p-4 space-y-3">
+                                                          {hasItems && (
+                                                              <div>
+                                                                  <p className="text-sm font-semibold text-foreground mb-2">Items Paid For:</p>
+                                                                  <ul className="space-y-2 text-sm text-muted-foreground">
+                                                                      {payment.items!.map((item, idx) => (
+                                                                          <li key={idx} className="flex justify-between items-center">
+                                                                              <span>{item.quantity}x {item.name}</span>
+                                                                          </li>
+                                                                      ))}
+                                                                  </ul>
+                                                              </div>
+                                                          )}
+
+                                                          {hasTip && (
+                                                              <>
+                                                                  {hasItems && <Separator />}
+                                                                  <div className="flex justify-between items-center text-sm font-medium">
+                                                                      <span className="text-muted-foreground">Tip Amount:</span>
+                                                                      <span className="font-mono text-foreground">${payment.tip!.toFixed(2)}</span>
+                                                                  </div>
+                                                              </>
+                                                          )}
+
+                                                          {(hasItems || hasTip) && <Separator />}
+
+                                                          <div className="space-y-1 text-xs text-muted-foreground">
+                                                              <p>Transaction ID: {payment.transactionId}</p>
+                                                              {order.staffReference?.employee_reference_code && (
+                                                                  <p>Terminal ID: {order.staffReference.employee_reference_code}</p>
+                                                              )}
+                                                              {order.source && (
+                                                                  <p>Source: {order.source === 'POS' ? 'POS Machine' : order.source}</p>
+                                                              )}
+                                                          </div>
+                                                      </CardContent>
+                                                  </Card>
+                                              );
+                                          })()}
                                       </div>
                                     </div>
                                   </div>
