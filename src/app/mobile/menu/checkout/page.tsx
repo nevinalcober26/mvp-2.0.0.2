@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -44,6 +44,11 @@ function CheckoutContent() {
     const { toast } = useToast();
     const searchParams = useSearchParams();
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     const total = searchParams.get('total');
     const totalAmount = total ? parseFloat(total) : 0;
@@ -91,10 +96,12 @@ function CheckoutContent() {
                             <Label htmlFor="card-number">Card Number</Label>
                             <div className="relative">
                                 <Input id="card-number" placeholder="1234 5678 9012 3456" className="h-12 rounded-lg bg-gray-100 border-gray-200 pr-20" />
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                                    <VisaIcon />
-                                    <MastercardIcon />
-                                </div>
+                                {isMounted && (
+                                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                                      <VisaIcon />
+                                      <MastercardIcon />
+                                  </div>
+                                )}
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
