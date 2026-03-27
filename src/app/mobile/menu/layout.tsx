@@ -10,7 +10,7 @@ export default function MobileMenuLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const showNav = !pathname.startsWith('/mobile/menu/checkout');
+  const showNav = !pathname.startsWith('/mobile/menu/checkout') && !pathname.startsWith('/mobile/menu/payment-successful');
 
   return (
     <div className="relative min-h-screen w-full max-w-md mx-auto bg-white font-sans">
