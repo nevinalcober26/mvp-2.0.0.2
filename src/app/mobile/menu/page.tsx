@@ -364,6 +364,13 @@ export default function MobileMenuPage() {
     }, 3000);
   };
 
+  const handleBecomeVip = () => {
+    setIsCartSheetOpen(false);
+    setTimeout(() => {
+      setIsVipSheetOpen(true);
+    }, 300);
+  };
+
   return (
     <>
       <div className="bg-[#F7F9FB] min-h-screen">
@@ -477,6 +484,7 @@ export default function MobileMenuPage() {
         onDecrement={handleDecrement}
         onRemove={handleDecrement}
         onCheckout={handleCheckout}
+        onBecomeVip={handleBecomeVip}
       />
       <PaymentSheet
         isOpen={isPaymentSheetOpen}

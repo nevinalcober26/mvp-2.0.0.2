@@ -128,6 +128,10 @@ export default {
         sm: 'calc(var(--radius) - 4px)',
       },
       keyframes: {
+        'shine-loop': {
+          '0%': { transform: 'translateX(-100%) skewX(-30deg)' },
+          '100%': { transform: 'translateX(200%) skewX(-30deg)' },
+        },
         'accordion-down': {
           from: {
             height: '0',
@@ -162,6 +166,7 @@ export default {
         },
       },
       animation: {
+        'shine-loop': 'shine-loop 3s ease-in-out infinite',
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'collapsible-down': 'collapsible-down 0.2s ease-out',

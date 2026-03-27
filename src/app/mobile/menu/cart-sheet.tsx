@@ -38,9 +38,10 @@ interface CartSheetProps {
   onDecrement: (itemId: string) => void;
   onRemove: (itemId: string) => void;
   onCheckout: () => void;
+  onBecomeVip: () => void;
 }
 
-export function CartSheet({ isOpen, onOpenChange, cartItems, onIncrement, onDecrement, onRemove, onCheckout }: CartSheetProps) {
+export function CartSheet({ isOpen, onOpenChange, cartItems, onIncrement, onDecrement, onRemove, onCheckout, onBecomeVip }: CartSheetProps) {
   const [isVip, setIsVip] = useState(false);
 
   useEffect(() => {
@@ -128,23 +129,24 @@ export function CartSheet({ isOpen, onOpenChange, cartItems, onIncrement, onDecr
             <div className="p-4 bg-white rounded-2xl border space-y-3">
                 <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-600">Subtotal</span>
-                    <span className="font-semibold text-gray-800">AED {subtotal.toFixed(2)}</span>
+                    <span className="font-semibold text-gray-800 font-mono">AED {subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-600">Tax (5%)</span>
-                    <span className="font-semibold text-gray-800">AED {tax.toFixed(2)}</span>
+                    <span className="font-semibold text-gray-800 font-mono">AED {tax.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-600">Service Charge (10%)</span>
-                    <span className="font-semibold text-gray-800">AED {serviceCharge.toFixed(2)}</span>
+                    <span className="font-semibold text-gray-800 font-mono">AED {serviceCharge.toFixed(2)}</span>
                 </div>
             </div>
         </div>
 
         {!isVip && (
           <div className="p-4 pt-2 pb-0 shrink-0 bg-transparent">
-            <div className="flex items-center justify-between p-3 bg-gradient-to-r from-yellow-100 to-amber-200 rounded-2xl border border-yellow-300/50">
-                <div className="flex items-center gap-3">
+            <div className="relative overflow-hidden flex items-center justify-between p-3 bg-gradient-to-r from-yellow-100 to-amber-200 rounded-2xl border border-yellow-300/50">
+                <div className="absolute top-0 -left-full h-full w-1/2 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shine-loop z-10" />
+                <div className="flex items-center gap-3 z-20">
                     <div className="relative">
                         <Gift className="h-10 w-10 text-yellow-600 opacity-20"/>
                         {giftIcon && <Image src={giftIcon.imageUrl} alt={giftIcon.description} width={24} height={24} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" data-ai-hint={giftIcon.imageHint} />}
@@ -154,8 +156,8 @@ export function CartSheet({ isOpen, onOpenChange, cartItems, onIncrement, onDecr
                         <p className="text-xs text-yellow-800 font-medium">Join VIP for extra perks</p>
                     </div>
                 </div>
-                <Button className="rounded-full h-8 px-4 bg-yellow-400 text-yellow-900 font-bold text-xs hover:bg-yellow-500 shadow-md">Become a VIP</Button>
-                <button className="self-start -mt-1 -mr-1">
+                <Button className="rounded-full h-8 px-4 bg-yellow-400 text-yellow-900 font-bold text-xs hover:bg-yellow-500 shadow-md z-20" onClick={onBecomeVip}>Become a VIP</Button>
+                <button className="self-start -mt-1 -mr-1 z-20">
                     <X className="h-4 w-4 text-yellow-900/50"/>
                 </button>
             </div>
