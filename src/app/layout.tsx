@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
-import { FirebaseClientProvider } from '@/firebase';
+import { FirebaseClientProvider, CartProvider } from '@/firebase';
 
 export const metadata: Metadata = {
   title: 'eMenu Digital Hub',
@@ -29,8 +29,10 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <FirebaseClientProvider>
-          {children}
-          <Toaster />
+          <CartProvider>
+            {children}
+            <Toaster />
+          </CartProvider>
         </FirebaseClientProvider>
       </body>
     </html>

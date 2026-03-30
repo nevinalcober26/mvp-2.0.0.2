@@ -18,6 +18,7 @@ import { VipClubSheet } from './vip-club-sheet';
 import { useToast } from '@/hooks/use-toast';
 import gsap from 'gsap';
 import { SearchSheet } from './search-sheet';
+import { useCart } from '@/firebase';
 
 // Helper to find image URL by ID
 const getImageUrl = (id: string) => {
@@ -158,6 +159,8 @@ const PaymentRedirectContent = ({ totalAmount }: { totalAmount: number }) => (
 export default function MobileMenuPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { cart, addToCart, incrementItem, decrementItem } = useCart();
+  
   const sections = useMemo(() => {
     return menuData.categories;
   }, []);
@@ -165,7 +168,6 @@ export default function MobileMenuPage() {
   const [activeTab, setActiveTab] = useState(sections[0] || '');
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [cart, setCart] = useState<Record<string, number>>({});
   const [isCartAnimating, setIsCartAnimating] = useState(false);
   const [isCartSheetOpen, setIsCartSheetOpen] = useState(false);
   const [isPaymentSheetOpen, setIsPaymentSheetOpen] = useState(false);
@@ -298,31 +300,15 @@ export default function MobileMenuPage() {
         void cartIcon.offsetWidth; // Trigger reflow
         cartIcon.classList.add('animate-in', 'zoom-in-95');
     }
-    setCart(prevCart => ({
-      ...prevCart,
-      [item.id]: (prevCart[item.id] || 0) + quantity
-    }));
+    addToCart(item.id, quantity);
   };
 
   const handleIncrement = (itemId: string) => {
-    setCart(prevCart => ({
-      ...prevCart,
-      [itemId]: (prevCart[itemId] || 0) + 1
-    }));
+    incrementItem(itemId);
   };
   
   const handleDecrement = (itemId: string) => {
-    setCart(prevCart => {
-      const newQuantity = (prevCart[itemId] || 0) - 1;
-      if (newQuantity <= 0) {
-        const { [itemId]: _, ...rest } = prevCart;
-        return rest;
-      }
-      return {
-        ...prevCart,
-        [itemId]: newQuantity
-      };
-    });
+    decrementItem(itemId);
   };
 
   const handleAddClick = (item: MenuItem) => {

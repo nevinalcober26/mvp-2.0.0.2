@@ -174,3 +174,73 @@ export const useUser = (): UserHookResult => { // Renamed from useAuthUser
   const { user, isUserLoading, userError } = useFirebase(); // Leverages the main hook
   return { user, isUserLoading, userError };
 };
+
+// --- CART CONTEXT ---
+
+interface CartContextType {
+  cart: Record<string, number>;
+  addToCart: (itemId: string, quantity: number) => void;
+  incrementItem: (itemId: string) => void;
+  decrementItem: (itemId: string) => void;
+  clearCart: () => void;
+}
+
+const CartContext = createContext<CartContextType | undefined>(undefined);
+
+export function CartProvider({ children }: { children: ReactNode }) {
+  const [cart, setCart] = useState<Record<string, number>>({});
+
+  const addToCart = (itemId: string, quantity: number) => {
+    setCart(prevCart => ({
+      ...prevCart,
+      [itemId]: (prevCart[itemId] || 0) + quantity,
+    }));
+  };
+
+  const incrementItem = (itemId: string) => {
+    setCart(prevCart => ({
+      ...prevCart,
+      [itemId]: (prevCart[itemId] || 0) + 1,
+    }));
+  };
+
+  const decrementItem = (itemId: string) => {
+    setCart(prevCart => {
+      const newQuantity = (prevCart[itemId] || 0) - 1;
+      if (newQuantity <= 0) {
+        const { [itemId]: _, ...rest } = prevCart;
+        return rest;
+      }
+      return {
+        ...prevCart,
+        [itemId]: newQuantity,
+      };
+    });
+  };
+  
+  const clearCart = () => {
+    setCart({});
+  };
+
+  const value = useMemo(() => ({
+    cart,
+    addToCart,
+    incrementItem,
+    decrementItem,
+    clearCart
+  }), [cart]);
+
+  return (
+    <CartContext.Provider value={value}>
+      {children}
+    </CartContext.Provider>
+  );
+}
+
+export function useCart() {
+  const context = useContext(CartContext);
+  if (context === undefined) {
+    throw new Error('useCart must be used within a CartProvider');
+  }
+  return context;
+}
