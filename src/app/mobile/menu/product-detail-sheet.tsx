@@ -78,7 +78,6 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange, onAddToCart 
       return;
     }
     setIsAdding(true);
-    onAddToCart(quantity);
 
     const cartIcon = document.getElementById('floating-cart-icon');
     const sheetElement = sheetContentRef.current;
@@ -104,6 +103,7 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange, onAddToCart 
             transformOrigin: "center center",
             ease: 'power2.in',
             onComplete: () => {
+                onAddToCart(quantity);
                 onOpenChange(false);
                  // IMPORTANT: Reset GSAP's inline styles after animation
                 gsap.set(sheetElement, { clearProps: "all" });
@@ -111,9 +111,8 @@ export function ProductDetailSheet({ product, isOpen, onOpenChange, onAddToCart 
         });
     } else {
         // Fallback if animation targets aren't ready
-        setTimeout(() => {
-            onOpenChange(false);
-        }, 500);
+        onAddToCart(quantity);
+        onOpenChange(false);
     }
   };
 
