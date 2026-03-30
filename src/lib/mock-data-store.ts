@@ -166,7 +166,7 @@ export const mockBranches: Branch[] = [
 const productNames = [
     'Classic Cheeseburger', 'Truffle Fries', 'Seasonal Berry Crumble', 'Artisanal Pizza',
     'Fresh Garden Salad', 'Spicy Chicken Wings', 'Avocado Toast', 'Margherita Pizza',
-    'Ribeye Steak', 'Chocolate Lava Cake', 'Classic Pancakes', 'Orange Juice',
+    'Ribeye Steak', 'Lava Cake', 'Classic Pancakes', 'Orange Juice',
     'Espresso', 'Latte', 'Cheesecake'
 ];
 const categories = ['Burgers', 'Sides', 'Desserts', 'Mains', 'Salads', 'Breakfast', 'Beverages'];
