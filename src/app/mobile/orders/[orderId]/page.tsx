@@ -89,7 +89,7 @@ function OrderDetails() {
     <div className="flex flex-col min-h-screen w-full max-w-md mx-auto bg-[#F7F9FB] font-sans">
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-lg p-4">
         <div className="flex items-center">
-          <Button variant="ghost" size="icon" className="-ml-2" onClick={() => router.push('/mobile/orders')}>
+          <Button variant="ghost" size="icon" className="-ml-2" onClick={() => router.back()}>
             <ArrowLeft className="h-6 w-6 text-gray-800" />
           </Button>
           <h1 className="text-xl font-bold text-gray-900 text-center flex-1 -ml-10">
