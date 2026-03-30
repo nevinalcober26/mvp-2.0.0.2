@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { useOrders } from '@/firebase';
 import type { Order } from '@/app/dashboard/orders/types';
 import { mockDataStore } from '@/lib/mock-data-store';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 const getImageUrl = (id: string) => {
   const image = PlaceHolderImages.find(img => img.id === id);
@@ -99,7 +100,8 @@ export default function MobileOrdersPage() {
     <div className="bg-[#F7F9FB] min-h-screen">
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-lg p-4 pb-3">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Orders</h1>
-        <div className="flex items-center space-x-2">
+        <ScrollArea className="w-full whitespace-nowrap">
+          <div className="flex items-center space-x-2 pb-2">
             {filters.map(filter => (
                 <Button 
                     key={filter} 
@@ -115,7 +117,9 @@ export default function MobileOrdersPage() {
                     {filter}
                 </Button>
             ))}
-        </div>
+          </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
       </header>
 
       <main className="p-4 space-y-4">
