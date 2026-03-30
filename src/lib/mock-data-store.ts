@@ -178,7 +178,9 @@ const generateMockProducts = (count: number): Product[] => {
     for (let i = 0; i < count; i++) {
         const name = productNames[i % productNames.length];
         const status = productStatuses[i % productStatuses.length];
-        const price = Math.floor(Math.random() * 30) + 5;
+        const price = parseFloat((10 + (i * 1.75 % 25)).toFixed(2));
+        const stock = status === 'Out of Stock' ? 0 : 10 + (i * 7 % 90);
+
         const variations: Variation[] | undefined = i % 5 === 0 ? [
             { id: `var_${i}_1`, value: 'Small', matrix: `S-${i}`, priceMode: 'override', priceValue: price * 0.8, hidden: false, categoryPage: true, productPage: true },
             { id: `var_${i}_2`, value: 'Large', matrix: `L-${i}`, priceMode: 'override', priceValue: price * 1.2, hidden: false, categoryPage: true, productPage: true }
@@ -190,16 +192,24 @@ const generateMockProducts = (count: number): Product[] => {
             category: categories[i % categories.length],
             branch: branchNames[i % branchNames.length],
             price,
-            stock: status === 'Out of Stock' ? 0 : Math.floor(Math.random() * 100),
+            stock,
             status,
             mainImage: i % 3 !== 0 ? `https://picsum.photos/seed/prod${i}/100/100` : undefined,
             description: 'A detailed description of the product goes here, including ingredients and preparation methods.',
             smallDescription: 'A short and catchy description for the product.',
-            discountedPrice: status === 'Active' && i % 4 === 0 ? price * 0.8 : undefined,
+            discountedPrice: status === 'Active' && i % 4 === 0 ? parseFloat((price * 0.8).toFixed(2)) : undefined,
             variations
         });
     }
     return products;
+};
+
+// A simple pseudo-random generator for deterministic "randomness"
+const createSeededRandom = (seed: number) => () => {
+    let t = seed += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
 };
 
 // --- Customer and Order Generation (interlinked) ---
@@ -212,6 +222,10 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
     const customers: Customer[] = [];
     const orders: Order[] = [];
     const branchNames = mockBranches.map(b => b.name);
+    
+    const seed = 12345;
+    const random = createSeededRandom(seed);
+    const baseDate = new Date(2024, 5, 20, 14, 0, 0);
 
     // Generate Customers
     for (let i = 0; i < customerCount; i++) {
@@ -234,13 +248,13 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
         const hasCustomer = i % 4 !== 0;
         const customer = hasCustomer ? customers[i % customers.length] : undefined;
 
-        const orderItemsCount = Math.floor(Math.random() * 4) + 2; // 2-5 items
+        const orderItemsCount = Math.floor(random() * 4) + 2; // 2-5 items
         const currentItems: OrderItem[] = Array.from({ length: orderItemsCount }, (_, k) => {
-            const item = products[Math.floor(Math.random() * products.length)];
+            const item = products[Math.floor(random() * products.length)];
             return {
                 id: `${item.id}-${i}-${k}`,
                 name: item.name,
-                quantity: Math.floor(Math.random() * 2) + 1,
+                quantity: Math.floor(random() * 2) + 1,
                 price: item.price,
                 category: item.category,
             };
@@ -251,26 +265,26 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
         let orderTimestamp: number, paymentState: Order['paymentState'], orderStatus: Order['orderStatus'];
         let paidAmount = 0;
         
-        const isRecentOutstanding = i % 5 === 0 && Math.random() > 0.5; // ~10% of orders are recent and outstanding
+        const isRecentOutstanding = i % 5 === 0 && random() > 0.5;
         
         if (isRecentOutstanding) {
-            orderTimestamp = subMinutes(new Date(), Math.floor(Math.random() * 180) + 5).getTime();
+            orderTimestamp = subMinutes(baseDate, Math.floor(random() * 180) + 5).getTime();
             orderStatus = 'Open';
-            if (Math.random() > 0.4) {
+            if (random() > 0.4) {
                 paymentState = 'Partial';
-                paidAmount = totalAmount * (Math.random() * 0.6 + 0.1);
+                paidAmount = totalAmount * (random() * 0.6 + 0.1);
             } else {
                 paymentState = 'Unpaid';
                 paidAmount = 0;
             }
         } else {
-            orderTimestamp = subDays(endOfDay(new Date()), Math.floor(Math.random() * 30) + 1).getTime();
+            orderTimestamp = subDays(endOfDay(baseDate), Math.floor(random() * 30) + 1).getTime();
             paidAmount = totalAmount;
 
             const finalStatuses: Order['orderStatus'][] = ['Completed', 'Paid'];
             if (i % 10 === 0) finalStatuses.push('Cancelled');
             if (i % 15 === 0) finalStatuses.push('Refunded');
-            orderStatus = finalStatuses[Math.floor(Math.random() * finalStatuses.length)];
+            orderStatus = finalStatuses[Math.floor(random() * finalStatuses.length)];
 
             if (orderStatus === 'Cancelled') {
                 paymentState = 'Voided';
@@ -289,11 +303,7 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
         
         let splitType: 'byItem' | 'equally' | undefined = undefined;
         if (isSplit) {
-            if (i % 8 === 0) { // Make it a simple 50/50 split for split orders
-                splitType = 'byItem';
-            } else {
-                splitType = 'equally';
-            }
+            splitType = i % 8 === 0 ? 'byItem' : 'equally';
         }
 
         if (isSplit) {
@@ -304,16 +314,10 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
             if (splitType === 'byItem') {
                 const itemsToPay = [...currentItems];
                 let guestIndex = 0;
-                let payersCount = Math.floor(Math.random() * 5) + 2; // 2, 3, 4, 5, or 6 payers
+                let payersCount = Math.floor(random() * 5) + 2; 
                 
-                if (itemsToPay.length < payersCount) {
-                    payersCount = itemsToPay.length;
-                }
-                
-                if (payersCount < 2 && itemsToPay.length > 1) {
-                    payersCount = 2;
-                }
-
+                if (itemsToPay.length < payersCount) payersCount = itemsToPay.length;
+                if (payersCount < 2 && itemsToPay.length > 1) payersCount = 2;
 
                 while(itemsToPay.length > 0 && guestIndex < payersCount) {
                     const isLastPayer = guestIndex === payersCount - 1;
@@ -323,14 +327,14 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
                         itemsForThisPayer = [...itemsToPay];
                         itemsToPay.length = 0;
                     } else {
-                        const itemsCountForPayer = Math.max(1, Math.floor(Math.random() * (itemsToPay.length - (payersCount - guestIndex -1) ) ));
+                        const itemsCountForPayer = Math.max(1, Math.floor(random() * (itemsToPay.length - (payersCount - guestIndex -1) ) ));
                         itemsForThisPayer = itemsToPay.splice(0, itemsCountForPayer);
                     }
 
                     if(itemsForThisPayer.length === 0) continue;
 
                     const paymentAmount = itemsForThisPayer.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                    const tip = paymentAmount * (Math.random() * 0.1 + 0.05);
+                    const tip = paymentAmount * (random() * 0.1 + 0.05);
 
                     customerPayments.push({
                         id: `txn_${12345 + i}_${guestIndex}`,
@@ -338,15 +342,15 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
                         tip: parseFloat(tip.toFixed(2)),
                         method: 'Credit Card',
                         status: 'Paid',
-                        date: format(subMinutes(randomDate, Math.random() * 5), 'PPpp'),
+                        date: format(subMinutes(randomDate, random() * 5), 'PPpp'),
                         items: itemsForThisPayer.map(it => ({ name: it.name, quantity: it.quantity })),
                     });
                     guestIndex++;
                 }
 
             } else { // 'equally'
-                const numPayers = Math.floor(Math.random() * 5) + 2; // 2-6 payers
-                const totalTip = parseFloat((totalAmount * (Math.random() * 0.1 + 0.1)).toFixed(2));
+                const numPayers = Math.floor(random() * 5) + 2;
+                const totalTip = parseFloat((totalAmount * (random() * 0.1 + 0.1)).toFixed(2));
                 let remainingAmount = totalAmount;
                 let remainingTip = totalTip;
                 
@@ -370,19 +374,19 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
                         tip: tipAmount,
                         method: j % 2 === 0 ? 'Credit Card' : 'Online',
                         status: 'Paid',
-                        date: format(subMinutes(randomDate, Math.random() * 5), 'PPpp'),
+                        date: format(subMinutes(randomDate, random() * 5), 'PPpp'),
                     });
                 }
             }
         } else if (paidAmount > 0) {
-            const tip = paymentState === 'Fully Paid' ? paidAmount * (Math.random() > 0.5 ? 0.1 : 0.15) : 0;
+            const tip = paymentState === 'Fully Paid' ? paidAmount * (random() > 0.5 ? 0.1 : 0.15) : 0;
             customerPayments.push({
                 id: `txn_${12345 + i}`,
                 amount: paidAmount,
                 tip: tip,
                 method: i % 3 === 0 ? 'Cash' : 'Credit Card',
                 status: 'Paid',
-                date: format(subHours(randomDate, Math.random() > 0.5 ? 0 : 1), 'PPpp'),
+                date: format(subHours(randomDate, random() > 0.5 ? 0 : 1), 'PPpp'),
             });
         }
         
@@ -416,12 +420,12 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
             source: i % 3 === 0 ? 'POS' : 'App to App',
             staffReference: {
                 employee_reference_code: `EMP-${staffNames[i % staffNames.length].replace(/[^A-Z]/g, '')}${100 + i}`,
-                total_sale_amount: Math.random() * 5000 + 1000,
-                order_count: Math.floor(Math.random() * 50) + 10,
-                total_tip_amount: Math.random() * 500,
+                total_sale_amount: random() * 5000 + 1000,
+                order_count: Math.floor(random() * 50) + 10,
+                total_tip_amount: random() * 500,
                 currency: 'AED',
-                start_date: format(subDays(new Date(), 7), 'yyyy-MM-dd'),
-                end_date: format(new Date(), 'yyyy-MM-dd'),
+                start_date: format(subDays(baseDate, 7), 'yyyy-MM-dd'),
+                end_date: format(baseDate, 'yyyy-MM-dd'),
             },
         };
         orders.push(order);
