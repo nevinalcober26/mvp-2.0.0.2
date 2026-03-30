@@ -37,7 +37,7 @@ export type Order = {
   branch: string;
   table: string;
   orderType: 'Post-Paid' | 'Prepaid';
-  orderStatus: 'Draft' | 'Open' | 'Paid' | 'Cancelled' | 'Refunded' | 'Completed' | 'Preparing' | 'Served';
+  orderStatus: 'Draft' | 'Open' | 'Paid' | 'Cancelled' | 'Refunded' | 'Completed' | 'Preparing' | 'Served' | 'Placed';
   paymentState: 'Unpaid' | 'Partial' | 'Fully Paid' | 'Voided' | 'Returned';
   totalAmount: number;
   paidAmount: number;

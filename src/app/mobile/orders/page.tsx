@@ -31,55 +31,57 @@ const OrderCard = ({ order }: { order: Order }) => {
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <Card className={cn('w-full rounded-2xl shadow-lg shadow-gray-200/50 border overflow-hidden', style?.border)}>
-      <CardContent className="p-4 space-y-4">
-        <div className="flex justify-between items-start">
-          <div>
-            <h3 className="font-bold text-lg text-gray-900">Order {orderId}</h3>
-            <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
-              <span className="flex items-center gap-1.5"><Armchair className="h-4 w-4" /> Table {table}</span>
-              <span className="flex items-center gap-1.5"><CalendarDays className="h-4 w-4" /> {orderDate}</span>
-            </div>
-          </div>
-          {style && <Badge className={cn('font-bold', style.badge)}>{orderStatus}</Badge>}
-        </div>
-        
-        {items.length > 0 && (
-            <div className="flex items-center gap-2">
-                <div className="flex -space-x-4">
-                    {items.slice(0,2).map(item => {
-                        const product = mockDataStore.products.find(p => p.id === item.id);
-                        const image = product?.mainImage || getImageUrl(item.id);
-                        return <Image key={item.id} src={image} alt={item.name} width={40} height={40} className="rounded-full border-2 border-white object-cover" />
-                    })}
-                </div>
-                {items.length > 2 && (
-                    <div className="flex items-center justify-center h-10 w-10 rounded-full bg-gray-100 border-2 border-white text-xs font-bold text-gray-600">
-                        +{items.length - 2}
-                    </div>
-                )}
-                <span className="text-sm text-gray-600 ml-2">{itemCount} items</span>
-            </div>
-        )}
-
-        <div className="flex justify-between items-end">
-          {orderStatus === 'Completed' ? (
-              <div className="w-full flex justify-between items-end">
-                <span className="text-2xl font-bold text-gray-900">${totalAmount.toFixed(2)}</span>
-                <Button variant="link" className="text-teal-600 font-bold p-0 border-b-2 border-dotted border-teal-600 rounded-none h-auto leading-none">Reorder</Button>
+    <Link href={`/mobile/orders/${orderId.replace('#', '')}`} passHref>
+      <Card className={cn('w-full rounded-2xl shadow-lg shadow-gray-200/50 border overflow-hidden cursor-pointer active:scale-[0.98] transition-transform', style?.border)}>
+        <CardContent className="p-4 space-y-4">
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="font-bold text-lg text-gray-900">Order {orderId}</h3>
+              <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                <span className="flex items-center gap-1.5"><Armchair className="h-4 w-4" /> Table {table}</span>
+                <span className="flex items-center gap-1.5"><CalendarDays className="h-4 w-4" /> {orderDate}</span>
               </div>
-          ) : (
-              <div className="w-full flex justify-between items-end">
-                <div>
-                    <p className="text-xs font-bold text-gray-400">TOTAL</p>
-                    <span className="text-2xl font-bold text-gray-900">${totalAmount.toFixed(2)}</span>
-                </div>
-                <Button variant="outline" className="rounded-full font-bold text-teal-600 border-teal-500/50 bg-white">View Details &gt;</Button>
+            </div>
+            {style && <Badge className={cn('font-bold', style.badge)}>{orderStatus}</Badge>}
+          </div>
+          
+          {items.length > 0 && (
+              <div className="flex items-center gap-2">
+                  <div className="flex -space-x-4">
+                      {items.slice(0,2).map(item => {
+                          const product = mockDataStore.products.find(p => p.id === item.id);
+                          const image = product?.mainImage || getImageUrl(item.id);
+                          return <Image key={item.id} src={image} alt={item.name} width={40} height={40} className="rounded-full border-2 border-white object-cover" />
+                      })}
+                  </div>
+                  {items.length > 2 && (
+                      <div className="flex items-center justify-center h-10 w-10 rounded-full bg-gray-100 border-2 border-white text-xs font-bold text-gray-600">
+                          +{items.length - 2}
+                      </div>
+                  )}
+                  <span className="text-sm text-gray-600 ml-2">{itemCount} items</span>
               </div>
           )}
-        </div>
-      </CardContent>
-    </Card>
+
+          <div className="flex justify-between items-end">
+            {orderStatus === 'Completed' ? (
+                <div className="w-full flex justify-between items-end">
+                  <span className="text-2xl font-bold text-gray-900">${totalAmount.toFixed(2)}</span>
+                  <Button variant="link" className="text-teal-600 font-bold p-0 border-b-2 border-dotted border-teal-600 rounded-none h-auto leading-none">Reorder</Button>
+                </div>
+            ) : (
+                <div className="w-full flex justify-between items-end">
+                  <div>
+                      <p className="text-xs font-bold text-gray-400">TOTAL</p>
+                      <span className="text-2xl font-bold text-gray-900">${totalAmount.toFixed(2)}</span>
+                  </div>
+                  <Button variant="outline" className="rounded-full font-bold text-teal-600 border-teal-500/50 bg-white">View Details &gt;</Button>
+                </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   );
 };
 
