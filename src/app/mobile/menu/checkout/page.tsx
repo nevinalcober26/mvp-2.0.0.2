@@ -174,7 +174,7 @@ function CheckoutContent() {
                             <div className="space-y-2">
                                 <Label htmlFor="card-number">Card Number</Label>
                                 <div className="relative" suppressHydrationWarning>
-                                    <Input id="card-number" defaultValue="4242 4242 4242 4242" placeholder="1234 5678 9012 3456" className="h-12 rounded-lg bg-gray-100 border-gray-200 pr-20" />
+                                    <Input id="card-number" defaultValue={isMounted ? "4242 4242 4242 4242" : ""} placeholder="1234 5678 9012 3456" className="h-12 rounded-lg bg-gray-100 border-gray-200 pr-20" />
                                     {isMounted && (
                                       <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
                                           <VisaIcon />
@@ -186,16 +186,16 @@ function CheckoutContent() {
                             <div className="grid grid-cols-2 gap-4">
                                  <div className="space-y-2">
                                     <Label htmlFor="expiry-date">Expiry Date</Label>
-                                    <Input id="expiry-date" defaultValue="12/26" placeholder="MM/YY" className="h-12 rounded-lg bg-gray-100 border-gray-200" />
+                                    <Input id="expiry-date" defaultValue={isMounted ? "12/26" : ""} placeholder="MM/YY" className="h-12 rounded-lg bg-gray-100 border-gray-200" />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="cvv">CVV</Label>
-                                    <Input id="cvv" defaultValue="123" placeholder="123" className="h-12 rounded-lg bg-gray-100 border-gray-200" />
+                                    <Input id="cvv" defaultValue={isMounted ? "123" : ""} placeholder="123" className="h-12 rounded-lg bg-gray-100 border-gray-200" />
                                 </div>
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="cardholder-name">Cardholder Name</Label>
-                                <Input id="cardholder-name" defaultValue="John Smith" placeholder="John Smith" className="h-12 rounded-lg bg-gray-100 border-gray-200" />
+                                <Input id="cardholder-name" defaultValue={isMounted ? "John Smith" : ""} placeholder="John Smith" className="h-12 rounded-lg bg-gray-100 border-gray-200" />
                             </div>
                         </CardContent>
                     </Card>
@@ -205,7 +205,7 @@ function CheckoutContent() {
                             <h3 className="font-bold text-gray-800">Billing Address</h3>
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email Address</Label>
-                                <Input id="email" type="email" defaultValue="john@example.com" placeholder="john@example.com" className="h-12 rounded-lg bg-gray-100 border-gray-200"/>
+                                <Input id="email" type="email" defaultValue={isMounted ? "john@example.com" : ""} placeholder="john@example.com" className="h-12 rounded-lg bg-gray-100 border-gray-200"/>
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="country">Country</Label>
