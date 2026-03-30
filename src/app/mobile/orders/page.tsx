@@ -8,26 +8,14 @@ import { Armchair, CalendarDays, Receipt } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Link from 'next/link';
+import { useOrders } from '@/firebase';
+import type { Order } from '@/app/dashboard/orders/types';
+import { mockDataStore } from '@/lib/mock-data-store';
 
 const getImageUrl = (id: string) => {
   const image = PlaceHolderImages.find(img => img.id === id);
   return image?.imageUrl || 'https://picsum.photos/seed/placeholder/100/100';
 };
-
-type Order = {
-    id: string;
-    table: string;
-    date: string;
-    items: {
-        id: string;
-        image: string;
-    }[];
-    itemCount: number;
-    total: number;
-    status: 'Preparing' | 'Served' | 'Completed';
-};
-
-const mockOrders: Order[] = [];
 
 type OrderStatus = 'Preparing' | 'Served' | 'Completed' | 'All Orders';
 
@@ -38,33 +26,36 @@ const statusStyles: Record<string, { badge: string; border: string }> = {
 };
 
 const OrderCard = ({ order }: { order: Order }) => {
-  const { id, table, date, items, itemCount, total, status } = order;
-  const style = statusStyles[status];
+  const { orderId, table, orderDate, items, totalAmount, orderStatus } = order;
+  const style = statusStyles[orderStatus as string];
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <Card className={cn('w-full rounded-2xl shadow-lg shadow-gray-200/50 border overflow-hidden', style?.border)}>
       <CardContent className="p-4 space-y-4">
         <div className="flex justify-between items-start">
           <div>
-            <h3 className="font-bold text-lg text-gray-900">Order {id}</h3>
+            <h3 className="font-bold text-lg text-gray-900">Order {orderId}</h3>
             <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
               <span className="flex items-center gap-1.5"><Armchair className="h-4 w-4" /> Table {table}</span>
-              <span className="flex items-center gap-1.5"><CalendarDays className="h-4 w-4" /> {date}</span>
+              <span className="flex items-center gap-1.5"><CalendarDays className="h-4 w-4" /> {orderDate}</span>
             </div>
           </div>
-          {style && <Badge className={cn('font-bold', style.badge)}>{status}</Badge>}
+          {style && <Badge className={cn('font-bold', style.badge)}>{orderStatus}</Badge>}
         </div>
         
         {items.length > 0 && (
             <div className="flex items-center gap-2">
                 <div className="flex -space-x-4">
-                    {items.slice(0,2).map(item => (
-                        <Image key={item.id} src={item.image} alt="item" width={40} height={40} className="rounded-full border-2 border-white object-cover" />
-                    ))}
+                    {items.slice(0,2).map(item => {
+                        const product = mockDataStore.products.find(p => p.id === item.id);
+                        const image = product?.mainImage || getImageUrl(item.id);
+                        return <Image key={item.id} src={image} alt={item.name} width={40} height={40} className="rounded-full border-2 border-white object-cover" />
+                    })}
                 </div>
-                {itemCount > 2 && (
+                {items.length > 2 && (
                     <div className="flex items-center justify-center h-10 w-10 rounded-full bg-gray-100 border-2 border-white text-xs font-bold text-gray-600">
-                        +{itemCount - 2}
+                        +{items.length - 2}
                     </div>
                 )}
                 <span className="text-sm text-gray-600 ml-2">{itemCount} items</span>
@@ -72,16 +63,16 @@ const OrderCard = ({ order }: { order: Order }) => {
         )}
 
         <div className="flex justify-between items-end">
-          {status === 'Completed' ? (
+          {orderStatus === 'Completed' ? (
               <div className="w-full flex justify-between items-end">
-                <span className="text-2xl font-bold text-gray-900">${total.toFixed(2)}</span>
+                <span className="text-2xl font-bold text-gray-900">${totalAmount.toFixed(2)}</span>
                 <Button variant="link" className="text-teal-600 font-bold p-0 border-b-2 border-dotted border-teal-600 rounded-none h-auto leading-none">Reorder</Button>
               </div>
           ) : (
               <div className="w-full flex justify-between items-end">
                 <div>
                     <p className="text-xs font-bold text-gray-400">TOTAL</p>
-                    <span className="text-2xl font-bold text-gray-900">${total.toFixed(2)}</span>
+                    <span className="text-2xl font-bold text-gray-900">${totalAmount.toFixed(2)}</span>
                 </div>
                 <Button variant="outline" className="rounded-full font-bold text-teal-600 border-teal-500/50 bg-white">View Details &gt;</Button>
               </div>
@@ -95,11 +86,12 @@ const OrderCard = ({ order }: { order: Order }) => {
 
 export default function MobileOrdersPage() {
   const [activeFilter, setActiveFilter] = useState<OrderStatus>('All Orders');
+  const { orders } = useOrders();
   const filters: OrderStatus[] = ['All Orders', 'Preparing', 'Served', 'Completed'];
 
   const filteredOrders = activeFilter === 'All Orders' 
-    ? mockOrders 
-    : mockOrders.filter(order => order.status === activeFilter);
+    ? orders 
+    : orders.filter(order => order.orderStatus === activeFilter);
 
   return (
     <div className="bg-[#F7F9FB] min-h-screen">
@@ -127,7 +119,7 @@ export default function MobileOrdersPage() {
       <main className="p-4 space-y-4">
         {filteredOrders.length > 0 ? (
           filteredOrders.map(order => (
-            <OrderCard key={order.id} order={order} />
+            <OrderCard key={order.orderId} order={order} />
           ))
         ) : (
             <div className="text-center pt-20 flex flex-col items-center">

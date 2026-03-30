@@ -5,6 +5,7 @@ import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
+import type { Order } from '@/app/dashboard/orders/types';
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -241,6 +242,42 @@ export function useCart() {
   const context = useContext(CartContext);
   if (context === undefined) {
     throw new Error('useCart must be used within a CartProvider');
+  }
+  return context;
+}
+
+// --- ORDER CONTEXT ---
+
+interface OrderContextType {
+  orders: Order[];
+  addOrder: (order: Order) => void;
+}
+
+const OrderContext = createContext<OrderContextType | undefined>(undefined);
+
+export function OrderProvider({ children }: { children: ReactNode }) {
+  const [orders, setOrders] = useState<Order[]>([]);
+
+  const addOrder = (newOrder: Order) => {
+    setOrders(prevOrders => [newOrder, ...prevOrders]);
+  };
+
+  const value = useMemo(() => ({
+    orders,
+    addOrder,
+  }), [orders]);
+
+  return (
+    <OrderContext.Provider value={value}>
+      {children}
+    </OrderContext.Provider>
+  );
+}
+
+export function useOrders() {
+  const context = useContext(OrderContext);
+  if (context === undefined) {
+    throw new Error('useOrders must be used within an OrderProvider');
   }
   return context;
 }

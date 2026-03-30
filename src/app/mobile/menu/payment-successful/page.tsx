@@ -9,14 +9,10 @@ import { Check, Mail } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 import { VipClubSheet } from '../vip-club-sheet';
-
-const feedbackOptions = [
-  { level: 'Poor', emoji: '😔' },
-  { level: 'Fair', emoji: '😐' },
-  { level: 'Good', emoji: '😊' },
-  { level: 'Great', emoji: '😄' },
-  { level: 'Excellent', emoji: '🤩' },
-];
+import { useCart, useOrders } from '@/firebase';
+import type { Order } from '@/app/dashboard/orders/types';
+import { mockDataStore } from '@/lib/mock-data-store';
+import { Product } from '@/app/dashboard/products/types';
 
 export default function PaymentSuccessfulPage() {
   const router = useRouter();
@@ -25,8 +21,56 @@ export default function PaymentSuccessfulPage() {
   const [isVip, setIsVip] = useState(false);
   const giftIcon = PlaceHolderImages.find(img => img.id === 'gift-icon');
 
+  const { cart, clearCart } = useCart();
+  const { addOrder } = useOrders();
+
   useEffect(() => {
     setIsVip(localStorage.getItem('isVip') === 'true');
+
+    if (Object.keys(cart).length > 0) {
+      const menuItems: Product[] = mockDataStore.products;
+
+      const cartItems = Object.entries(cart).map(([id, quantity]) => {
+          const item = menuItems.find(i => i.id === id);
+          return item ? { ...item, quantity } : null;
+      }).filter((i): i is NonNullable<typeof i> => i !== null);
+      
+      if (cartItems.length === 0) return;
+
+      const totalAmount = cartItems.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
+      
+      const newOrder: Order = {
+        orderId: `#${Math.floor(1000 + Math.random() * 9000)}`,
+        branch: "Bloomsbury's - Ras Al Khaimah", // Assuming a default for now
+        table: 'T' + (Math.floor(Math.random() * 24) + 1),
+        orderType: 'Prepaid',
+        orderStatus: 'Preparing',
+        paymentState: 'Fully Paid',
+        totalAmount: totalAmount,
+        paidAmount: totalAmount,
+        items: cartItems.map(cartItem => ({
+            id: cartItem.id,
+            name: cartItem.name,
+            quantity: cartItem.quantity,
+            price: cartItem.price,
+            category: cartItem.category
+        })),
+        orderDate: new Date().toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
+        orderTimestamp: new Date().getTime(),
+        staffName: 'Digital Order',
+        payments: [{
+            amount: totalAmount.toFixed(2),
+            date: new Date().toLocaleString(),
+            guestName: 'Guest',
+            method: 'Credit Card',
+            transactionId: `txn_${Date.now()}`
+        }],
+      };
+      
+      addOrder(newOrder);
+      clearCart();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -49,7 +93,13 @@ export default function PaymentSuccessfulPage() {
               <h2 className="text-lg font-bold text-gray-800">How was your experience?</h2>
               <p className="text-sm text-gray-500">Your feedback helps us improve</p>
               <div className="flex justify-around pt-2">
-                {feedbackOptions.map((opt) => (
+                {[
+                  { level: 'Poor', emoji: '😔' },
+                  { level: 'Fair', emoji: '😐' },
+                  { level: 'Good', emoji: '😊' },
+                  { level: 'Great', emoji: '😄' },
+                  { level: 'Excellent', emoji: '🤩' },
+                ].map((opt) => (
                   <button
                     key={opt.level}
                     onClick={() => setSelectedFeedback(opt.level)}
