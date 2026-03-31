@@ -45,46 +45,19 @@ const MenuItemCard = ({
   quantity,
   onIncrement,
   onDecrement,
+  isPurchasingEnabled
 }: { 
   item: MenuItem; 
   onAdd: (item: MenuItem) => void; 
   quantity: number;
   onIncrement: (itemId: string) => void;
   onDecrement: (itemId: string) => void;
+  isPurchasingEnabled: boolean;
 }) => {
 
   const handleAddClick = () => {
     onAdd(item);
   };
-
-  if (quantity > 0) {
-    return (
-      <div className="flex items-start p-3 bg-white rounded-2xl shadow-sm border border-gray-100/80">
-        <div className="flex-1 pr-3">
-          <h3 className="font-bold text-gray-800 leading-snug">{item.name}</h3>
-          <p className="text-sm text-gray-500 mt-1 line-clamp-2">{item.description}</p>
-          <div className="flex items-center mt-3">
-            <span className="font-extrabold text-gray-900 text-lg">AED {(item.price * quantity).toFixed(2)}</span>
-          </div>
-        </div>
-        <div className="relative w-28 h-28 flex-shrink-0">
-          <Image src={item.image} alt={item.name} fill className="object-cover rounded-xl" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-xl" />
-          <div className="absolute bottom-2 right-2 left-2 flex flex-col items-center">
-            <div className="flex items-center justify-around w-full h-9 rounded-lg bg-white font-bold text-sm shadow-md">
-              <Button size="icon" variant="ghost" className="h-full rounded-l-lg text-red-500" onClick={() => onDecrement(item.id)}>
-                {quantity === 1 ? <Trash2 className="h-5 w-5" /> : <Minus className="h-5 w-5" />}
-              </Button>
-              <span className="font-bold text-lg text-gray-800">{quantity}</span>
-              <Button size="icon" variant="ghost" className="h-full rounded-r-lg text-teal-500" onClick={() => onIncrement(item.id)}>
-                <Plus className="h-5 w-5" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex items-start p-3 bg-white rounded-2xl shadow-sm border border-gray-100/80">
@@ -99,15 +72,39 @@ const MenuItemCard = ({
         <Image src={item.image} alt={item.name} fill className="object-cover rounded-xl" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-xl" />
         <div className="absolute bottom-2 right-2 left-2 flex flex-col items-center">
-            <Button 
-                className="w-full h-9 rounded-lg bg-teal-500 text-white font-bold text-sm shadow-md hover:bg-teal-600"
-                onClick={handleAddClick}
-            >
-                Add
-            </Button>
-           {item.isCustomisable && (
-               <p className="text-center text-white text-[10px] font-semibold mt-1">Customisable</p>
-           )}
+            {isPurchasingEnabled ? (
+              quantity > 0 ? (
+                <div className="flex items-center justify-around w-full h-9 rounded-lg bg-white font-bold text-sm shadow-md">
+                  <Button size="icon" variant="ghost" className="h-full rounded-l-lg text-red-500" onClick={() => onDecrement(item.id)}>
+                    {quantity === 1 ? <Trash2 className="h-5 w-5" /> : <Minus className="h-5 w-5" />}
+                  </Button>
+                  <span className="font-bold text-lg text-gray-800">{quantity}</span>
+                  <Button size="icon" variant="ghost" className="h-full rounded-r-lg text-teal-500" onClick={() => onIncrement(item.id)}>
+                    <Plus className="h-5 w-5" />
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <Button 
+                      className="w-full h-9 rounded-lg bg-teal-500 text-white font-bold text-sm shadow-md hover:bg-teal-600"
+                      onClick={handleAddClick}
+                  >
+                      Add
+                  </Button>
+                  {item.isCustomisable && (
+                      <p className="text-center text-white text-[10px] font-semibold mt-1">Customisable</p>
+                  )}
+                </>
+              )
+            ) : (
+              <Button 
+                  className="w-full h-9 rounded-lg bg-gray-400 text-white font-bold text-sm cursor-not-allowed"
+                  disabled
+              >
+                  <Lock className="h-4 w-4 mr-1.5" />
+                  Ordering Disabled
+              </Button>
+            )}
         </div>
       </div>
     </div>
@@ -156,6 +153,43 @@ export default function MobileMenuPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { cart, addToCart, incrementItem, decrementItem } = useCart();
+
+  const [isPurchasingEnabled, setIsPurchasingEnabled] = useState(true);
+
+  useEffect(() => {
+    const checkPurchasingStatus = () => {
+      let key = 'onlineOrderingEnabled_1'; // Default key
+      const activeBranchData = localStorage.getItem('activeBranch');
+      if (activeBranchData) {
+        try {
+          const activeBranch = JSON.parse(activeBranchData);
+          key = `onlineOrderingEnabled_${activeBranch.id}`;
+        } catch (e) {
+          console.error("Could not parse activeBranch from localStorage", e);
+        }
+      }
+      const purchasingEnabled = localStorage.getItem(key) !== 'false';
+      setIsPurchasingEnabled(purchasingEnabled);
+    };
+
+    checkPurchasingStatus();
+
+    // Listen for changes from other tabs
+    const handleStorageChange = (event: StorageEvent) => {
+        if (event.key && event.key.startsWith('onlineOrderingEnabled_')) {
+            checkPurchasingStatus();
+        }
+    };
+    
+    // Also listen for direct branch changes from the dashboard
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('branch-changed', checkPurchasingStatus);
+
+    return () => {
+        window.removeEventListener('storage', handleStorageChange);
+        window.removeEventListener('branch-changed', checkPurchasingStatus);
+    };
+  }, []);
 
   const menuItems: MenuItem[] = useMemo(() => mockProducts.map((p: SourceProduct) => ({
     id: p.id,
@@ -463,6 +497,7 @@ export default function MobileMenuPage() {
                                 quantity={cart[item.id] || 0}
                                 onIncrement={handleIncrement}
                                 onDecrement={handleDecrement}
+                                isPurchasingEnabled={isPurchasingEnabled}
                               />
                             ))
                           ) : (
@@ -477,7 +512,7 @@ export default function MobileMenuPage() {
           })}
         </main>
 
-        {totalItemsInCart > 0 && (
+        {totalItemsInCart > 0 && isPurchasingEnabled && (
           <div id="floating-cart-icon" className="fixed bottom-24 right-6 z-20 animate-in fade-in zoom-in-95">
             <button onClick={() => setIsCartSheetOpen(true)}>
               <div className="relative">
