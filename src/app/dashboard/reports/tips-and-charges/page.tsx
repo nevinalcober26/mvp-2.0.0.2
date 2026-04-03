@@ -75,7 +75,7 @@ import {
 import { type DateRange } from 'react-day-picker';
 import { DateRangePicker } from '@/components/dashboard/reports/date-range-picker';
 import type { Order } from '@/app/dashboard/orders/types';
-import { mockDataStore } from '@/lib/mock-data-store';
+import { mockOrders, mockBranches } from '@/lib/mock-data-store';
 import { OrderDetailsSheet } from '@/app/dashboard/orders/order-details-sheet';
 import { StatCards, type StatCardData } from '@/components/dashboard/stat-cards';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -239,13 +239,10 @@ export default function TipsAndGratuityReportPage() {
 
   useEffect(() => {
     setIsLoading(true);
-    
-      const mockOrders = mockDataStore.orders;
-      const mockTransactions = generateTransactionsFromOrders(mockOrders);
-      setTransactions(mockTransactions);
-      setAllOrders(mockOrders);
-      setIsLoading(false);
-    
+    const mockTransactions = generateTransactionsFromOrders(mockOrders);
+    setTransactions(mockTransactions);
+    setAllOrders(mockOrders);
+    setIsLoading(false);
   }, []);
   
   const handleViewDetails = (transaction: Transaction) => {
@@ -291,7 +288,7 @@ export default function TipsAndGratuityReportPage() {
   const handleSelectAllBranches = (isChecked: boolean) => {
     setFilters(prev => ({
         ...prev,
-        branches: isChecked ? mockDataStore.branches.map(b => b.name) : []
+        branches: isChecked ? mockBranches.map(b => b.name) : []
     }));
     setCurrentPage(1);
   };
@@ -470,7 +467,7 @@ export default function TipsAndGratuityReportPage() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="w-full justify-between">
                     <span className="truncate">
-                      {filters.branches.length === mockDataStore.branches.length
+                      {filters.branches.length === mockBranches.length
                         ? 'All Branches'
                         : filters.branches.length === 0
                         ? 'Select Branch'
@@ -483,13 +480,13 @@ export default function TipsAndGratuityReportPage() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-[220px]">
                   <DropdownMenuCheckboxItem
-                    checked={filters.branches.length === mockDataStore.branches.length}
+                    checked={filters.branches.length === mockBranches.length}
                     onCheckedChange={handleSelectAllBranches}
                   >
                     All Branches
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuSeparator />
-                  {mockDataStore.branches.map((branch) => (
+                  {mockBranches.map((branch) => (
                     <DropdownMenuCheckboxItem
                       key={branch.id}
                       checked={filters.branches.includes(branch.name)}
