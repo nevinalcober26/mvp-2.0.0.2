@@ -329,7 +329,7 @@ export default function AnalyticsPage() {
     const totalVol = filteredTransactions.length;
     const totalGrossRev = filteredTransactions.reduce((sum, item) => sum + item.totalAmount, 0);
 
-    const seed = filteredTransactions.length + (new Date(filters.dateRange?.from || 0).getTime());
+    const seed = filteredTransactions.length + timeRange.length + branchFilter.length;
     const random = createSeededRandom(seed);
     const generateDistribution = (base: {name: string, color: string}[]) => {
       let remaining = 100;
@@ -356,7 +356,7 @@ export default function AnalyticsPage() {
 
 
     return { paymentPulseData: finalPulseData, successRate: finalSuccessRate, volumeAndRevenueData: finalVolumeAndRevenueData, totalVolume: totalVol, totalGrossRevenue: totalGrossRev, osDistributionData: dynamicOsData, webEntryData: dynamicWebData };
-}, [filteredTransactions, previousPeriodFilteredTransactions, isComparing, timeRange, filters.dateRange]);
+}, [filteredTransactions, previousPeriodFilteredTransactions, isComparing, timeRange, branchFilter]);
 
  const dynamicInfoText = useMemo(() => {
     const branchName = branchFilter === 'all' 

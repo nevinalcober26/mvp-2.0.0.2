@@ -68,6 +68,32 @@ export const mockVariationGroups: VariationGroup[] = [
         { id: 'opt_4_3', value: 'Hot', sortOrder: 2 },
         { id: 'opt_4_4', value: 'Extra Hot', sortOrder: 3 },
     ]
+  },
+  {
+    id: 'group_5',
+    name: 'Burger Toppings',
+    sortOrder: 4,
+    multiple: true,
+    required: false,
+    options: [
+        { id: 'opt_5_1', value: 'Extra Cheese', sortOrder: 0, regularPrice: 2.00 },
+        { id: 'opt_5_2', value: 'Bacon', sortOrder: 1, regularPrice: 3.50 },
+        { id: 'opt_5_3', value: 'Sautéed Mushrooms', sortOrder: 2, regularPrice: 1.50 },
+        { id: 'opt_5_4', value: 'Caramelized Onions', sortOrder: 3, regularPrice: 1.00 },
+    ]
+  },
+  {
+    id: 'group_6',
+    name: 'Salad Dressing',
+    sortOrder: 5,
+    multiple: false,
+    required: true,
+    options: [
+        { id: 'opt_6_1', value: 'Ranch', sortOrder: 0 },
+        { id: 'opt_6_2', value: 'Italian Vinaigrette', sortOrder: 1 },
+        { id: 'opt_6_3', value: 'Caesar', sortOrder: 2 },
+        { id: 'opt_6_4', value: 'Balsamic', sortOrder: 3 },
+    ]
   }
 ];
 
@@ -222,6 +248,66 @@ const productDescriptions: Record<string, { description: string; smallDescriptio
     'Cheesecake': {
         description: 'A rich and creamy New York-style cheesecake with a graham cracker crust, served plain or with a berry coulis.',
         smallDescription: 'Rich, creamy, and decadent.'
+    },
+    'Mushroom Swiss Burger': {
+        description: 'Our signature beef patty topped with sautéed mushrooms, melted Swiss cheese, and a creamy garlic aioli on a brioche bun.',
+        smallDescription: 'Earthy mushrooms & melted Swiss.'
+    },
+    'Onion Rings': {
+        description: 'Thick-cut onion rings, beer-battered and fried to a perfect golden brown. Served with a tangy dipping sauce.',
+        smallDescription: 'Crispy, golden, and delicious.'
+    },
+    'Calamari Fritti': {
+        description: 'Tender calamari, lightly breaded and fried until crisp. Served with marinara and a lemon wedge.',
+        smallDescription: 'Crispy calamari with marinara.'
+    },
+    'Chicken Caesar Salad': {
+        description: 'Crisp romaine lettuce, grilled chicken breast, house-made croutons, and Parmesan cheese, all tossed in our classic Caesar dressing.',
+        smallDescription: 'A classic salad with grilled chicken.'
+    },
+    'Pepperoni Pizza': {
+        description: 'A crowd-pleaser featuring a generous layer of spicy pepperoni and mozzarella cheese over our signature tomato sauce.',
+        smallDescription: 'Spicy pepperoni & mozzarella.'
+    },
+    'Four Cheese Pizza': {
+        description: 'A cheese lover\'s dream with a blend of mozzarella, Parmesan, ricotta, and gorgonzola cheeses.',
+        smallDescription: 'A decadent blend of four cheeses.'
+    },
+    'Fettuccine Alfredo': {
+        description: 'Rich and creamy Parmesan sauce tossed with fettuccine pasta. A timeless classic.',
+        smallDescription: 'Creamy, cheesy pasta perfection.'
+    },
+    'Lobster Ravioli': {
+        description: 'Delicate pasta pillows filled with succulent lobster meat, served in a light, creamy tomato sauce.',
+        smallDescription: 'Luxurious lobster-filled pasta.'
+    },
+    'Grilled Salmon': {
+        description: 'A perfectly grilled salmon fillet seasoned with herbs and lemon, served with asparagus and quinoa.',
+        smallDescription: 'Healthy and delicious grilled salmon.'
+    },
+    'Filet Mignon': {
+        description: 'An 8oz center-cut filet mignon, exceptionally tender and cooked to your preference. Served with a red wine reduction.',
+        smallDescription: 'The most tender cut of beef.'
+    },
+    'Apple Pie': {
+        description: 'A classic American dessert. Flaky crust filled with warm, spiced apples, served a la mode.',
+        smallDescription: 'Warm, spiced apples in a flaky crust.'
+    },
+    'Brownie Sundae': {
+        description: 'A warm, fudgy brownie topped with vanilla ice cream, hot fudge, whipped cream, and a cherry.',
+        smallDescription: 'A warm brownie with all the fixings.'
+    },
+    'Iced Tea': {
+        description: 'Freshly brewed black tea, sweetened and served over ice. A refreshing classic.',
+        smallDescription: 'Cool and refreshing iced tea.'
+    },
+    'Mojito (Non-alcoholic)': {
+        description: 'A refreshing mix of muddled mint, fresh lime juice, and a hint of sweetness, topped with soda water.',
+        smallDescription: 'A minty and refreshing mocktail.'
+    },
+    'Strawberry Smoothie': {
+        description: 'A creamy and delicious smoothie made with fresh strawberries, yogurt, and a touch of honey.',
+        smallDescription: 'Creamy, fruity, and delicious.'
     }
 };
 
@@ -230,9 +316,13 @@ const productNames = [
     'Classic Cheeseburger', 'Truffle Fries', 'Seasonal Berry Crumble', 'Artisanal Pizza',
     'Fresh Garden Salad', 'Spicy Chicken Wings', 'Avocado Toast', 'Margherita Pizza',
     'Ribeye Steak', 'Lava Cake', 'Classic Pancakes', 'Orange Juice',
-    'Espresso', 'Latte', 'Cheesecake'
+    'Espresso', 'Latte', 'Cheesecake',
+    'Mushroom Swiss Burger', 'Onion Rings', 'Calamari Fritti', 'Chicken Caesar Salad',
+    'Pepperoni Pizza', 'Four Cheese Pizza', 'Fettuccine Alfredo', 'Lobster Ravioli',
+    'Grilled Salmon', 'Filet Mignon', 'Apple Pie', 'Brownie Sundae',
+    'Iced Tea', 'Mojito (Non-alcoholic)', 'Strawberry Smoothie'
 ];
-const categories = ['Burgers', 'Sides', 'Desserts', 'Mains', 'Salads', 'Breakfast', 'Beverages'];
+const categories = ['Burgers', 'Sides', 'Desserts', 'Mains', 'Salads', 'Breakfast', 'Beverages', 'Pizza', 'Pasta', 'Steaks'];
 const productStatuses: Product['status'][] = ['Active', 'Draft', 'Archived', 'Out of Stock'];
 
 const generateMockProducts = (count: number): Product[] => {
@@ -275,7 +365,7 @@ const generateMockProducts = (count: number): Product[] => {
     return products;
 };
 
-export const mockProducts: Product[] = generateMockProducts(30);
+export const mockProducts: Product[] = generateMockProducts(50);
 
 // A simple pseudo-random generator for deterministic "randomness"
 const createSeededRandom = (seed: number) => () => {
@@ -288,7 +378,7 @@ const createSeededRandom = (seed: number) => () => {
 // --- Customer and Order Generation (interlinked) ---
 const firstNames = ['John', 'Jane', 'Alex', 'Emily', 'Chris', 'Katie', 'Michael', 'Sarah', 'David', 'Laura'];
 const lastNames = ['Smith', 'Doe', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez'];
-const staffNames = ['Alex', 'Maria', 'John', 'Sarah', 'David', 'Frank M.', 'Emily', 'Jessica', 'Michael', 'Chris'];
+const staffNames = ['Alex', 'Maria', 'John', 'Sarah', 'David', 'Frank M.', 'Emily', 'Jessica', 'Michael', 'Chris', 'Olivia', 'James', 'Sophia', 'Liam', 'Isabella'];
 const comments = ['Customer requested extra napkins.', 'Allergy alert: No nuts.', 'Birthday celebration at the table.', null, 'Guest is in a hurry.'];
 
 const generateRelatedMockData = (customerCount: number, orderCount: number, products: Product[]) => {
@@ -537,7 +627,7 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
     return { customers, orders };
 };
 
-const relatedData = generateRelatedMockData(45, 124, mockProducts);
+const relatedData = generateRelatedMockData(75, 250, mockProducts);
 export const mockCustomers: Customer[] = relatedData.customers;
 export const mockOrders: Order[] = relatedData.orders;
 
@@ -653,5 +743,19 @@ export const mockComboGroups: ComboGroup[] = [
         description: 'Start your day with energy.',
         price: 18.00,
         productIds: ['prod_6', 'prod_10', 'prod_12'],
+    },
+    {
+        id: 'combo_4',
+        name: 'Pizza & Wings Deal',
+        description: 'The perfect pair for game night.',
+        price: 45.00,
+        productIds: ['prod_7', 'prod_5'],
+    },
+    {
+        id: 'combo_5',
+        name: 'Healthy Choice',
+        description: 'A light and refreshing meal.',
+        price: 22.50,
+        productIds: ['prod_4', 'prod_11'],
     },
 ];
