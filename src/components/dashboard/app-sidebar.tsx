@@ -81,6 +81,7 @@ interface SidebarItem {
   path?: string;
   icon: any;
   items?: { label: string; path: string }[];
+  tooltip?: string;
 }
 
 const OVERVIEW: SidebarItem[] = [
@@ -117,6 +118,7 @@ const MANAGEMENT: SidebarItem[] = [
     id: 'menu-builder',
     path: '/dashboard/menu-builder',
     icon: Palette,
+    tooltip: 'Currently under construction',
   },
   {
     label: 'Operations',
@@ -290,7 +292,7 @@ export function AppSidebar() {
           <SidebarMenuButton
             asChild
             isActive={pathname === item.path}
-            tooltip={item.label}
+            tooltip={item.tooltip || item.label}
           >
             <NextLink href={item.path || '#'}>
               <item.icon />
