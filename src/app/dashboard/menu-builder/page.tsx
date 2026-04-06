@@ -122,10 +122,6 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleImageClick = () => {
-        fileInputRef.current?.click();
-    };
-
     if (!item) {
         return (
             <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-8">
@@ -147,15 +143,20 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                     accept="image/*"
                     onChange={(e) => onImageUpload(item.id, e)}
                 />
-                <div className="mt-2 w-full aspect-video rounded-md bg-muted flex items-center justify-center border overflow-hidden cursor-pointer" onClick={handleImageClick}>
-                    {item.image ? (
-                        <Image src={item.image} alt={item.name} width={240} height={135} className="object-cover w-full h-full" />
-                    ) : (
-                        <div className="text-center text-muted-foreground">
-                            <ImageIcon className="h-8 w-8 mx-auto mb-2" />
-                            <p className="text-xs">Click to upload</p>
-                        </div>
-                    )}
+                <div className="relative group mt-2" onClick={() => fileInputRef.current?.click()}>
+                    <div className="w-full aspect-video rounded-md bg-muted flex items-center justify-center border overflow-hidden cursor-pointer">
+                        {item.image ? (
+                            <Image src={item.image} alt={item.name} width={240} height={135} className="object-cover w-full h-full" />
+                        ) : (
+                            <div className="text-center text-muted-foreground">
+                                <ImageIcon className="h-8 w-8 mx-auto mb-2" />
+                                <p className="text-xs">Click to upload</p>
+                            </div>
+                        )}
+                    </div>
+                     <div className="absolute inset-0 bg-black/50 rounded-md opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                        <Edit className="h-8 w-8 text-white" />
+                    </div>
                 </div>
             </div>
              <div>
@@ -544,7 +545,7 @@ const AddSectionSheet = ({
 
     return (
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
-            <SheetContent className="sm:max-w-6xl p-0 flex flex-col">
+            <SheetContent className="w-[90vw] max-w-[90vw] p-0 flex flex-col">
                 <SheetHeader className="p-6 border-b shrink-0">
                     <SheetTitle>Add New Menu Section</SheetTitle>
                     <SheetDescription>Build a new category by selecting items from your library.</SheetDescription>
@@ -724,15 +725,20 @@ const AddSectionSheet = ({
                                             <div>
                                                 <Label>Product Image</Label>
                                                 <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => handleImageUpload(editingProduct.id, e)} />
-                                                <div className="mt-2 w-full aspect-video rounded-md bg-background flex items-center justify-center border overflow-hidden cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                                                    {editingProduct.image ? (
-                                                        <Image src={editingProduct.image} alt={editingProduct.name} width={240} height={135} className="object-cover w-full h-full" />
-                                                    ) : (
-                                                        <div className="text-center text-muted-foreground">
-                                                            <ImageIcon className="h-8 w-8 mx-auto mb-2" />
-                                                            <p className="text-xs">Click to upload</p>
-                                                        </div>
-                                                    )}
+                                                <div className="relative group mt-2" onClick={() => fileInputRef.current?.click()}>
+                                                    <div className="w-full aspect-video rounded-md bg-background flex items-center justify-center border overflow-hidden cursor-pointer">
+                                                        {editingProduct.image ? (
+                                                            <Image src={editingProduct.image} alt={editingProduct.name} width={240} height={135} className="object-cover w-full h-full" />
+                                                        ) : (
+                                                            <div className="text-center text-muted-foreground">
+                                                                <ImageIcon className="h-8 w-8 mx-auto mb-2" />
+                                                                <p className="text-xs">Click to upload</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="absolute inset-0 bg-black/50 rounded-md opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                                                        <Edit className="h-8 w-8 text-white" />
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div>
