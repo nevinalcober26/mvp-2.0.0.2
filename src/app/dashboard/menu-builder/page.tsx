@@ -25,6 +25,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 
 
 const TemplateCard = ({ name, imageHint }: { name: string; imageHint: string }) => {
@@ -174,9 +175,14 @@ const SortableProductRow = ({ item, onUpdate, onImageUpload, onAvailabilityChang
 
 
 const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => {
+    if (!category && !isOpen) {
+        return null;
+    }
+
     const [items, setItems] = useState<MenuItem[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const sensors = useSensors(useSensor(PointerSensor));
+    const { toast } = useToast();
 
     useEffect(() => {
         if (category && isOpen) {
@@ -194,7 +200,7 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
             (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()))
         );
     }, [items, searchQuery]);
-
+    
     const itemIds = useMemo(() => filteredItems.map(i => i.id), [filteredItems]);
 
     const handleDragEnd = (event: DragEndEvent) => {
@@ -235,10 +241,25 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
     const handleSaveChanges = () => {
         if (category) {
             onSave(category.id, items);
+            toast({
+                title: "Changes Saved",
+                description: `Items in "${category.name}" have been updated.`,
+            });
         }
-        onOpenChange(false);
     };
-
+    
+    if (!category && isOpen) {
+        return (
+            <Sheet open={isOpen} onOpenChange={onOpenChange}>
+                <SheetContent className="sm:max-w-3xl w-full p-0 flex flex-col">
+                    <div className="flex-1 flex items-center justify-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    </div>
+                </SheetContent>
+            </Sheet>
+        );
+    }
+    
     return (
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
             <SheetContent className="sm:max-w-3xl w-full p-0 flex flex-col">
@@ -417,7 +438,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
         section.id === categoryId ? { ...section, items: updatedItems } : section
       )
     );
-    setEditingCategory(null);
+    // setEditingCategory(null);
   };
 
   const userMenus = [
