@@ -175,13 +175,25 @@ const SortableProductRow = ({ item, onUpdate, onImageUpload, onAvailabilityChang
 
 const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => {
     const [items, setItems] = useState<MenuItem[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
     const sensors = useSensors(useSensor(PointerSensor));
 
     useEffect(() => {
         if (category) {
             setItems(category.items.map((item: any) => ({ ...item, available: item.available ?? true })));
+            setSearchQuery('');
         }
-    }, [category]);
+    }, [category, isOpen]);
+    
+    const filteredItems = useMemo(() => {
+        if (!searchQuery) {
+            return items;
+        }
+        return items.filter(item =>
+            item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()))
+        );
+    }, [items, searchQuery]);
 
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
@@ -189,6 +201,7 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
             setItems((currentItems) => {
                 const oldIndex = currentItems.findIndex((item) => item.id === active.id);
                 const newIndex = currentItems.findIndex((item) => item.id === over.id);
+                if (oldIndex === -1 || newIndex === -1) return currentItems;
                 return arrayMove(currentItems, oldIndex, newIndex);
             });
         }
@@ -223,15 +236,29 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
     };
 
     if (!category) return null;
+    
+    const itemIds = useMemo(() => filteredItems.map(i => i.id), [filteredItems]);
+
 
     return (
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
-            <SheetContent className="sm:max-w-3xl w-full p-0">
-                <SheetHeader className="p-6 border-b">
+            <SheetContent className="sm:max-w-3xl w-full p-0 flex flex-col">
+                <SheetHeader className="p-6 border-b shrink-0">
                     <SheetTitle>Manage: {category.name}</SheetTitle>
                     <SheetDescription>Drag to reorder, edit details, and toggle availability.</SheetDescription>
                 </SheetHeader>
-                <div className="p-6">
+                <div className="p-6 pb-4 border-b shrink-0">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder={`Search in ${category.name}...`}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-10"
+                        />
+                    </div>
+                </div>
+                <div className="flex-1 overflow-y-auto p-6">
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                         <Table>
                             <TableHeader>
@@ -243,9 +270,9 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
                                     <TableHead>Available</TableHead>
                                 </TableRow>
                             </TableHeader>
-                            <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
+                            <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
                                 <TableBody>
-                                    {items.map(item => (
+                                    {filteredItems.map(item => (
                                         <SortableProductRow
                                             key={item.id}
                                             item={item}
@@ -257,9 +284,14 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
                                 </TableBody>
                             </SortableContext>
                         </Table>
+                        {filteredItems.length === 0 && (
+                            <div className="text-center py-16 text-muted-foreground">
+                                <p>No items found for &quot;{searchQuery}&quot;.</p>
+                            </div>
+                         )}
                     </DndContext>
                 </div>
-                <SheetFooter className="p-6 border-t">
+                <SheetFooter className="p-6 border-t shrink-0">
                     <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
                     <Button onClick={handleSaveChanges}>Save Changes</Button>
                 </SheetFooter>
