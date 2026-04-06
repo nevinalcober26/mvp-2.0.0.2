@@ -1099,7 +1099,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg hover:border-primary transition-all cursor-pointer" onClick={() => handleAddMenu('pos')}>
+            <Card className="hover:shadow-lg hover:border-primary transition-all cursor-pointer" onClick={handleImportFromPos}>
               <CardHeader className="flex-row items-center gap-4 space-y-0 pb-4">
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <Database className="h-6 w-6 text-primary" />
