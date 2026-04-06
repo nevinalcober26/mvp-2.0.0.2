@@ -27,6 +27,11 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 
 const TemplateCard = ({ name, imageHint }: { name: string; imageHint: string }) => {
@@ -317,92 +322,306 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
         return null;
     }
     
-    if (!category) {
-        return (
-            <Sheet open={isOpen} onOpenChange={onOpenChange}>
-                <SheetContent className="sm:max-w-6xl w-full p-0 flex flex-col">
-                    <div className="flex-1 flex items-center justify-center">
-                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                    </div>
-                </SheetContent>
-            </Sheet>
-        );
-    }
-
     return (
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
             <SheetContent className="sm:max-w-6xl w-full p-0 flex flex-col">
-                    <>
-                        <SheetHeader className="p-6 border-b shrink-0">
-                            <SheetTitle>Manage: {category.name}</SheetTitle>
-                            <SheetDescription>Manage the {items.length} items in this category. Drag to reorder, select to edit, and toggle availability.</SheetDescription>
-                        </SheetHeader>
-                        <div className="grid grid-cols-1 md:grid-cols-3 flex-1 overflow-hidden">
-                            <div className="md:col-span-1 border-r bg-muted/30 overflow-y-auto">
-                                <ItemEditor 
-                                    item={selectedItem}
-                                    onUpdate={handleItemUpdate}
-                                    onImageUpload={handleImageUpload}
-                                    onAvailabilityChange={handleAvailabilityChange}
-                                />
-                            </div>
-                            <div className="md:col-span-2 flex flex-col overflow-hidden">
-                                <div className="p-6 pb-4 border-b shrink-0">
-                                    <div className="relative">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            placeholder={`Search in ${category.name}...`}
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="pl-10"
-                                        />
+                    {!category ? (
+                         <div className="flex-1 flex items-center justify-center">
+                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                        </div>
+                    ) : (
+                        <>
+                            <SheetHeader className="p-6 border-b shrink-0">
+                                <SheetTitle>Manage: {category.name}</SheetTitle>
+                                <SheetDescription>Manage the {items.length} items in this category. Drag to reorder, select to edit, and toggle availability.</SheetDescription>
+                            </SheetHeader>
+                            <div className="grid grid-cols-1 md:grid-cols-3 flex-1 overflow-hidden">
+                                <div className="md:col-span-1 border-r bg-muted/30 overflow-y-auto">
+                                    <ItemEditor 
+                                        item={selectedItem}
+                                        onUpdate={handleItemUpdate}
+                                        onImageUpload={handleImageUpload}
+                                        onAvailabilityChange={handleAvailabilityChange}
+                                    />
+                                </div>
+                                <div className="md:col-span-2 flex flex-col overflow-hidden">
+                                    <div className="p-6 pb-4 border-b shrink-0">
+                                        <div className="relative">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            <Input
+                                                placeholder={`Search in ${category.name}...`}
+                                                value={searchQuery}
+                                                onChange={(e) => setSearchQuery(e.target.value)}
+                                                className="pl-10"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="flex-1 overflow-y-auto">
+                                        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead className="w-10"></TableHead>
+                                                        <TableHead>Image</TableHead>
+                                                        <TableHead>Details</TableHead>
+                                                        <TableHead>Price</TableHead>
+                                                        <TableHead>Available</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
+                                                    <TableBody>
+                                                        {filteredItems.map(item => (
+                                                            <SortableProductRow
+                                                                key={item.id}
+                                                                item={item}
+                                                                onAvailabilityChange={handleAvailabilityChange}
+                                                                onRowClick={handleRowClick}
+                                                                isSelected={selectedItem?.id === item.id}
+                                                            />
+                                                        ))}
+                                                    </TableBody>
+                                                </SortableContext>
+                                            </Table>
+                                            {filteredItems.length === 0 && (
+                                                <div className="text-center py-16 text-muted-foreground">
+                                                    <p>No items found{searchQuery && ` for "${searchQuery}"`}.</p>
+                                                </div>
+                                            )}
+                                        </DndContext>
                                     </div>
                                 </div>
-                                <div className="flex-1 overflow-y-auto">
-                                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead className="w-10"></TableHead>
-                                                    <TableHead>Image</TableHead>
-                                                    <TableHead>Details</TableHead>
-                                                    <TableHead>Price</TableHead>
-                                                    <TableHead>Available</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
-                                                <TableBody>
-                                                    {filteredItems.map(item => (
-                                                        <SortableProductRow
-                                                            key={item.id}
-                                                            item={item}
-                                                            onAvailabilityChange={handleAvailabilityChange}
-                                                            onRowClick={handleRowClick}
-                                                            isSelected={selectedItem?.id === item.id}
-                                                        />
-                                                    ))}
-                                                </TableBody>
-                                            </SortableContext>
-                                        </Table>
-                                        {filteredItems.length === 0 && (
-                                            <div className="text-center py-16 text-muted-foreground">
-                                                <p>No items found{searchQuery && ` for "${searchQuery}"`}.</p>
-                                            </div>
-                                         )}
-                                    </DndContext>
-                                </div>
                             </div>
-                        </div>
-                        <SheetFooter className="p-6 border-t shrink-0">
-                            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-                            <Button onClick={handleSaveChanges}>Save Changes</Button>
-                        </SheetFooter>
-                    </>
+                            <SheetFooter className="p-6 border-t shrink-0">
+                                <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+                                <Button onClick={handleSaveChanges}>Save Changes</Button>
+                            </SheetFooter>
+                        </>
+                    )}
             </SheetContent>
         </Sheet>
     );
 };
 
+const addSectionSchema = z.object({
+    name: z.string().min(1, 'Section name is required'),
+    productIds: z.array(z.string()).min(1, 'Please select at least one item.'),
+    isSpecial: z.boolean().default(false),
+    enableLink: z.boolean().default(true),
+    externalLink: z.string().url().optional().or(z.literal('')),
+});
+type AddSectionFormValues = z.infer<typeof addSectionSchema>;
+
+const AddSectionSheet = ({ isOpen, onOpenChange, onAddSection, allProducts, onProductAvailabilityChange }: {
+    isOpen: boolean;
+    onOpenChange: (open: boolean) => void;
+    onAddSection: (values: AddSectionFormValues) => void;
+    allProducts: MenuItem[];
+    onProductAvailabilityChange: (itemId: string, available: boolean) => void;
+}) => {
+    const [searchQuery, setSearchQuery] = useState('');
+    const form = useForm<AddSectionFormValues>({
+        resolver: zodResolver(addSectionSchema),
+        defaultValues: {
+            name: '',
+            productIds: [],
+            isSpecial: false,
+            enableLink: true,
+            externalLink: '',
+        },
+    });
+
+    useEffect(() => {
+        if (isOpen) {
+            form.reset();
+            setSearchQuery('');
+        }
+    }, [isOpen, form]);
+
+    const filteredProducts = useMemo(() => {
+        if (!searchQuery) return allProducts;
+        return allProducts.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    }, [allProducts, searchQuery]);
+
+    const onSubmit = (data: AddSectionFormValues) => {
+        onAddSection(data);
+        onOpenChange(false);
+    };
+
+    return (
+        <Sheet open={isOpen} onOpenChange={onOpenChange}>
+            <SheetContent className="sm:max-w-4xl w-full p-0 flex flex-col">
+                <SheetHeader className="p-6 border-b shrink-0">
+                    <SheetTitle>Add New Menu Section</SheetTitle>
+                    <SheetDescription>Create a new category and populate it with items from your menu.</SheetDescription>
+                </SheetHeader>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
+                        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 overflow-hidden">
+                            {/* Left Panel: Settings */}
+                            <div className="md:col-span-1 p-6 border-r bg-muted/30 overflow-y-auto space-y-6">
+                                <FormField
+                                    control={form.control}
+                                    name="name"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Section Name</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="e.g., Summer Specials" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="isSpecial"
+                                    render={({ field }) => (
+                                        <FormItem className="flex items-center justify-between rounded-lg border p-3 bg-card">
+                                            <div className="space-y-0.5">
+                                                <FormLabel>Mark as Special</FormLabel>
+                                                <FormDescription className="text-xs">Highlight this section on the menu.</FormDescription>
+                                            </div>
+                                            <FormControl>
+                                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+                                <div className="space-y-2 rounded-lg border p-3 bg-card">
+                                    <FormField
+                                        control={form.control}
+                                        name="enableLink"
+                                        render={({ field }) => (
+                                            <FormItem className="flex items-center justify-between">
+                                                <div className="space-y-0.5">
+                                                    <FormLabel>Enable Category Link</FormLabel>
+                                                    <FormDescription className="text-xs">Links to item list when clicked.</FormDescription>
+                                                </div>
+                                                <FormControl>
+                                                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    {!form.watch('enableLink') && (
+                                        <div className="pt-3 border-t">
+                                            <FormField
+                                                control={form.control}
+                                                name="externalLink"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Custom URL Link</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="https://example.com" {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            {/* Right Panel: Product Selection */}
+                            <div className="md:col-span-2 flex flex-col overflow-hidden">
+                                <div className="p-6 pb-4 border-b shrink-0">
+                                    <Label>Choose Items for this Section</Label>
+                                    <div className="relative mt-2">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            placeholder="Search all products..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="pl-10"
+                                        />
+                                    </div>
+                                    <FormField
+                                        control={form.control}
+                                        name="productIds"
+                                        render={() => (
+                                            <FormItem>
+                                                <FormMessage className="mt-2" />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                                <div className="flex-1 overflow-y-auto">
+                                    <FormField
+                                        control={form.control}
+                                        name="productIds"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <Table>
+                                                    <TableHeader>
+                                                        <TableRow>
+                                                            <TableHead className="w-12"></TableHead>
+                                                            <TableHead>Product</TableHead>
+                                                            <TableHead className="w-24 text-right">Price</TableHead>
+                                                            <TableHead className="w-28 text-center">Available</TableHead>
+                                                        </TableRow>
+                                                    </TableHeader>
+                                                    <TableBody>
+                                                        {filteredProducts.map(product => (
+                                                            <TableRow key={product.id}>
+                                                                <TableCell>
+                                                                    <Checkbox
+                                                                        checked={field.value?.includes(product.id)}
+                                                                        onCheckedChange={(checked) => {
+                                                                            return checked
+                                                                                ? field.onChange([...(field.value || []), product.id])
+                                                                                : field.onChange(
+                                                                                    field.value?.filter(
+                                                                                        (value) => value !== product.id
+                                                                                    )
+                                                                                )
+                                                                        }}
+                                                                    />
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center border overflow-hidden">
+                                                                            <Image src={product.image} alt={product.name} width={48} height={48} className="object-cover" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="font-semibold">{product.name}</p>
+                                                                            <p className="text-xs text-muted-foreground line-clamp-1">{product.description}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell className="text-right font-mono">
+                                                                    AED {product.price.toFixed(2)}
+                                                                </TableCell>
+                                                                <TableCell className="text-center">
+                                                                    <Switch
+                                                                        checked={product.available ?? true}
+                                                                        onCheckedChange={(checked) => onProductAvailabilityChange(product.id, checked)}
+                                                                    />
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                    </TableBody>
+                                                </Table>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    {filteredProducts.length === 0 && (
+                                        <div className="text-center py-16 text-muted-foreground">
+                                            <p>No products found.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                        <SheetFooter className="p-6 border-t shrink-0">
+                            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+                            <Button type="submit">Add Section</Button>
+                        </SheetFooter>
+                    </form>
+                </Form>
+            </SheetContent>
+        </Sheet>
+    )
+}
 
 
 const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
@@ -412,10 +631,13 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const [syncProgress, setSyncProgress] = useState(0);
   const [isSyncComplete, setIsSyncComplete] = useState(false);
 
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(mockMenuItems.map(item => ({ ...item, available: item.available ?? true })));
   const [menuSections, setMenuSections] = useState(mockMenuData);
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
-
+  const [isAddSectionSheetOpen, setIsAddSectionSheetOpen] = useState(false);
+  
+  const { toast } = useToast();
   const sensors = useSensors(useSensor(PointerSensor));
 
   const [previewCart, setPreviewCart] = useState<Record<string, number>>({});
@@ -508,11 +730,45 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   };
 
   const handleSaveCategoryItems = (categoryId: string, updatedItems: MenuItem[]) => {
+    const allItemIds = new Set(menuItems.map(i => i.id));
+    const currentCategoryItemIds = new Set(updatedItems.map(i => i.id));
+  
+    // Update items within the specific category
     setMenuSections(prevSections =>
       prevSections.map(section =>
         section.id === categoryId ? { ...section, items: updatedItems } : section
       )
     );
+  
+    // Rebuild the master list of all menu items to reflect changes
+    setMenuItems(prevAllItems => {
+      const otherItems = prevAllItems.filter(item => !currentCategoryItemIds.has(item.id));
+      return [...otherItems, ...updatedItems];
+    });
+  };
+  
+  const handleProductAvailabilityChange = (itemId: string, available: boolean) => {
+    const updateItems = (items: MenuItem[]): MenuItem[] => 
+        items.map(item => item.id === itemId ? { ...item, available } : item);
+    
+    setMenuItems(prev => updateItems(prev));
+    setMenuSections(prev => prev.map(sec => ({
+        ...sec,
+        items: updateItems(sec.items)
+    })));
+  };
+
+  const handleAddNewSection = (values: AddSectionFormValues) => {
+    const newSection = {
+        id: `section_${Date.now()}`,
+        name: values.name,
+        items: menuItems.filter(item => values.productIds.includes(item.id)),
+    };
+    setMenuSections(prev => [...prev, newSection]);
+    toast({
+      title: "Section Added",
+      description: `"${values.name}" has been added to your menu.`,
+    });
   };
 
   const userMenus = [
@@ -647,7 +903,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
           <DialogHeader>
             <DialogTitle className="text-center">{isSyncComplete ? 'Sync Complete!' : 'Syncing Menu from POS'}</DialogTitle>
             <DialogDescription className="text-center">
-              {isSyncComplete ? `${menuSections.reduce((acc, s) => acc + s.items.length, 0)} items imported successfully.` : 'Please wait while we securely import your menu data.'}
+              {isSyncComplete ? `${menuItems.length} items imported successfully.` : 'Please wait while we securely import your menu data.'}
             </DialogDescription>
           </DialogHeader>
           <div className="py-8 flex flex-col items-center justify-center gap-4">
@@ -699,7 +955,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
                               </div>
                           </SortableContext>
                       </DndContext>
-                      <Button variant="outline" className="mt-4">
+                      <Button variant="outline" className="mt-4" onClick={() => setIsAddSectionSheetOpen(true)}>
                           <Plus className="mr-2 h-4 w-4" /> Add Section
                       </Button>
                   </div>
@@ -714,7 +970,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
                                     <ArrowLeft className="h-6 w-6 text-gray-800" />
                                     <div className="text-center">
                                         <h1 className="text-xl font-bold text-gray-900">Bestsellers</h1>
-                                        <p className="text-sm text-teal-600 font-medium">{mockMenuItems.filter(i => i.category === 'Bestsellers').length} items</p>
+                                        <p className="text-sm text-teal-600 font-medium">{menuItems.filter(i => i.category === 'Bestsellers').length} items</p>
                                     </div>
                                     <Search className="h-6 w-6 text-gray-800" />
                                 </div>
@@ -802,6 +1058,13 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
         category={editingCategory}
         onSave={handleSaveCategoryItems}
       />
+      <AddSectionSheet
+        isOpen={isAddSectionSheetOpen}
+        onOpenChange={setIsAddSectionSheetOpen}
+        onAddSection={handleAddNewSection}
+        allProducts={menuItems}
+        onProductAvailabilityChange={handleProductAvailabilityChange}
+      />
     </>
   );
 };
@@ -832,5 +1095,3 @@ export default function MenuBuilderPage() {
 
   return <MenuBuilderMainPage onClose={handleClose} />;
 }
-
-    
