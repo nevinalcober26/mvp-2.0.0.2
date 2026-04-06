@@ -34,16 +34,29 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 
-const TemplateCard = ({ name, imageHint, isLocked }: { name: string; imageHint: string; isLocked?: boolean; }) => {
+const TemplateCard = ({ name, imageHint, isLocked, status }: { name: string; imageHint: string; isLocked?: boolean; status?: 'Draft' | 'Published' | 'Online' }) => {
   const image = PlaceHolderImages.find(img => img.imageHint === imageHint);
   return (
     <Card className={cn("overflow-hidden shadow-sm transition-shadow group", isLocked ? "cursor-not-allowed" : "hover:shadow-lg cursor-pointer")}>
       <CardHeader className="p-3 border-b flex-row justify-between items-center">
         <p className="text-xs font-semibold flex items-center gap-1.5">
-          <span className={cn("h-2 w-2 rounded-full bg-gray-300", !isLocked && "group-hover:bg-primary transition-colors")} />
+          <span className={cn(
+            "h-2 w-2 rounded-full",
+            !isLocked && "group-hover:bg-primary transition-colors",
+            status === 'Published' || status === 'Online' ? 'bg-green-500' : 'bg-gray-300'
+          )} />
           {name}
         </p>
-        {isLocked && <Lock className="h-3 w-3 text-muted-foreground" />}
+        <div className="flex items-center gap-2">
+          {status && (
+            <Badge variant={status === 'Draft' ? 'secondary' : 'default'} className={cn(
+              (status === 'Published' || status === 'Online') && 'bg-green-100 text-green-700'
+            )}>
+              {status}
+            </Badge>
+          )}
+          {isLocked && <Lock className="h-3 w-3 text-muted-foreground" />}
+        </div>
       </CardHeader>
       <CardContent className="p-3">
         <div className={cn("aspect-[4/3] w-full bg-muted rounded-md overflow-hidden", isLocked && "filter grayscale opacity-70")}>
@@ -53,6 +66,7 @@ const TemplateCard = ({ name, imageHint, isLocked }: { name: string; imageHint: 
     </Card>
   );
 };
+
 
 const SUPPORTED_POS = [
   { id: 'oracle-simphony', name: 'Oracle Micros Simphony' },
@@ -794,6 +808,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isAddSectionSheetOpen, setIsAddSectionSheetOpen] = useState(false);
+  const [userMenus, setUserMenus] = useState<any[]>([]);
   
   const { toast } = useToast();
   const sensors = useSensors(useSensor(PointerSensor));
@@ -801,6 +816,21 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const [previewCart, setPreviewCart] = useState<Record<string, number>>({});
   const [isCartAnimating, setIsCartAnimating] = useState(false);
   const prevCartTotalRef = useRef(0);
+
+  const handleAddMenu = (type: 'scratch' | 'pos') => {
+    const newName = type === 'scratch' ? `My New Menu #${userMenus.length + 1}` : `POS Imported Menu #${userMenus.length + 1}`;
+    const newMenu = {
+        name: newName,
+        imageHint: type === 'scratch' ? 'gray placeholder' : 'dark theme',
+        status: type === 'scratch' ? 'Draft' : 'Published'
+    };
+    setUserMenus(prev => [...prev, newMenu]);
+    setIsAddMenuModalOpen(false);
+    toast({
+        title: type === 'scratch' ? "Draft Menu Created" : "Menu Imported",
+        description: `${newName} has been added.`
+    });
+  };
 
   const totalItemsInCart = useMemo(() => {
     return Object.values(previewCart).reduce((sum, quantity) => sum + quantity, 0);
@@ -932,11 +962,6 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
     });
   };
 
-  const userMenus = [
-    { name: 'My Ramadan Menu', imageHint: 'abstract red' },
-    { name: 'Main Dinner Menu', imageHint: 'dark theme' },
-  ];
-
   return (
     <>
       <div className="fixed inset-0 z-40 bg-background flex flex-col animate-in fade-in duration-500">
@@ -975,19 +1000,37 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
               <section>
                 <h2 className="text-2xl font-bold mb-4">Default</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <TemplateCard name='Default' imageHint='abstract red' isLocked />
+                  <TemplateCard name='Default' imageHint='abstract red' isLocked status="Published" />
                 </div>
               </section>
               <section>
                 <h2 className="text-2xl font-bold mb-4">Your Menus</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {userMenus.map(m => <TemplateCard key={m.name} name={m.name} imageHint={m.imageHint} />)}
-                  <Card className="border-2 border-dashed bg-muted/50 hover:border-primary hover:bg-primary/5 transition-all flex items-center justify-center min-h-[200px] cursor-pointer" onClick={() => setIsAddMenuModalOpen(true)}>
-                    <div className="text-center text-muted-foreground">
-                      <Plus className="mx-auto h-8 w-8 mb-2" />
-                      <p className="font-semibold">Create New Menu</p>
-                    </div>
-                  </Card>
+                    {userMenus.length === 0 ? (
+                        <Card 
+                            className="border-2 border-dashed bg-muted/50 hover:border-primary hover:bg-primary/5 transition-all flex items-center justify-center min-h-[200px] cursor-pointer col-span-1" 
+                            onClick={() => setIsAddMenuModalOpen(true)}
+                        >
+                            <div className="text-center text-muted-foreground">
+                                <Plus className="mx-auto h-8 w-8 mb-2" />
+                                <p className="font-semibold">Create Your First Menu</p>
+                                <p className="text-xs mt-1">Start from scratch or import from POS.</p>
+                            </div>
+                        </Card>
+                    ) : (
+                        <>
+                            {userMenus.map(m => <TemplateCard key={m.name} name={m.name} imageHint={m.imageHint} status={m.status} />)}
+                             <Card 
+                                className="border-2 border-dashed bg-muted/50 hover:border-primary hover:bg-primary/5 transition-all flex items-center justify-center min-h-[200px] cursor-pointer" 
+                                onClick={() => setIsAddMenuModalOpen(true)}
+                            >
+                                <div className="text-center text-muted-foreground">
+                                <Plus className="mx-auto h-8 w-8 mb-2" />
+                                <p className="font-semibold">Create New Menu</p>
+                                </div>
+                            </Card>
+                        </>
+                    )}
                 </div>
               </section>
             </div>
@@ -1005,7 +1048,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6">
-            <Card className="hover:shadow-lg hover:border-primary transition-all cursor-pointer">
+            <Card className="hover:shadow-lg hover:border-primary transition-all cursor-pointer" onClick={() => handleAddMenu('scratch')}>
               <CardHeader className="flex-row items-center gap-4 space-y-0 pb-4">
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <Palette className="h-6 w-6 text-primary" />
@@ -1019,7 +1062,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg hover:border-primary transition-all cursor-pointer" onClick={handleImportFromPos}>
+            <Card className="hover:shadow-lg hover:border-primary transition-all cursor-pointer" onClick={() => handleAddMenu('pos')}>
               <CardHeader className="flex-row items-center gap-4 space-y-0 pb-4">
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <Database className="h-6 w-6 text-primary" />
@@ -1256,5 +1299,3 @@ export default function MenuBuilderPage() {
 
   return <MenuBuilderMainPage onClose={handleClose} />;
 }
-
-    
