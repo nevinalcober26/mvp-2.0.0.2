@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import {
   Sheet,
@@ -42,11 +42,13 @@ import {
   DollarSign,
   FileText,
   X,
+  Split,
 } from 'lucide-react';
 import type { Order } from './types';
 import { getStatusBadgeVariant } from './utils';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { SplitPaymentDialog } from './split-payment-dialog';
 
 
 interface OrderDetailsSheetProps {
@@ -61,13 +63,23 @@ export function OrderDetailsSheet({
   onOpenChange,
 }: OrderDetailsSheetProps) {
   const [isStaffInfoOpen, setIsStaffInfoOpen] = useState(false);
+  const [isSplitDialogOpen, setIsSplitDialogOpen] = useState(false);
+  const [localOrder, setLocalOrder] = useState<Order | null>(order);
 
-  if (!order) return null;
+  useEffect(() => {
+    setLocalOrder(order);
+  }, [order, open]);
 
-  const subtotal = order.totalAmount;
+  const handleOrderUpdate = (updatedOrder: Order) => {
+      setLocalOrder(updatedOrder);
+  };
+  
+  if (!localOrder) return null;
+
+  const subtotal = localOrder.totalAmount;
   const taxAmount = subtotal * 0.05;
   const totalWithTax = subtotal + taxAmount;
-  const pendingAmount = totalWithTax - order.paidAmount;
+  const pendingAmount = totalWithTax - localOrder.paidAmount;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -77,19 +89,19 @@ export function OrderDetailsSheet({
         <div className="flex flex-col h-full">
           <SheetHeader className="p-6 border-b bg-muted/50">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-              <h2 className="text-2xl font-bold">Order {order.orderId}</h2>
+              <h2 className="text-2xl font-bold">Order {localOrder.orderId}</h2>
               <div className="flex items-center gap-2">
-                <Badge variant={getStatusBadgeVariant(order.orderStatus)}>
-                  {order.orderStatus}
+                <Badge variant={getStatusBadgeVariant(localOrder.orderStatus)}>
+                  {localOrder.orderStatus}
                 </Badge>
-                <Badge variant={getStatusBadgeVariant(order.paymentState)}>
-                  {order.paymentState}
+                <Badge variant={getStatusBadgeVariant(localOrder.paymentState)}>
+                  {localOrder.paymentState}
                 </Badge>
               </div>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground pt-1">
               <CalendarIcon className="h-4 w-4" />
-              <span>{order.orderDate}</span>
+              <span>{localOrder.orderDate}</span>
             </div>
           </SheetHeader>
           <div className="flex-grow overflow-y-auto p-6">
@@ -99,12 +111,12 @@ export function OrderDetailsSheet({
                   <CardHeader className="p-8">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Package className="h-5 w-5" />
-                      Items Ordered ({order.items.length})
+                      Items Ordered ({localOrder.items.length})
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-8 pt-0">
                     <div className="space-y-4">
-                      {order.items.map((item, index) => (
+                      {localOrder.items.map((item, index) => (
                         <React.Fragment key={item.id}>
                           <div className="grid grid-cols-[1fr_auto_auto] items-center gap-4 text-sm">
                             <div>
@@ -115,7 +127,7 @@ export function OrderDetailsSheet({
                               ${(item.price * item.quantity).toFixed(2)}
                             </p>
                           </div>
-                          {index < order.items.length - 1 && (
+                          {index < localOrder.items.length - 1 && (
                             <Separator className="my-4" />
                           )}
                         </React.Fragment>
@@ -154,7 +166,7 @@ export function OrderDetailsSheet({
                       </div>
                       <div className="flex justify-between font-semibold text-green-600 font-mono">
                         <span>Paid</span>
-                        <span>${order.paidAmount.toFixed(2)}</span>
+                        <span>${localOrder.paidAmount.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between font-semibold text-red-600 font-mono">
                         <span>Pending</span>
@@ -170,30 +182,30 @@ export function OrderDetailsSheet({
                     <div>
                       <h4 className="font-semibold mb-3">Payment History</h4>
 
-                      {order.splitType ? (
+                      {localOrder.splitType ? (
                         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3 p-3 bg-secondary rounded-md border">
-                          {order.splitType === 'byItem' ? (
+                          {localOrder.splitType === 'byItem' ? (
                             <Package className="h-5 w-5" />
                           ) : (
                             <Users className="h-5 w-5" />
                           )}
                           <span>
-                            Payment split <strong>{order.splitType === 'byItem' ? 'by Item' : 'Equally'}</strong>.
+                            Payment split <strong>{localOrder.splitType === 'byItem' ? 'by Item' : 'Equally'}</strong>.
                           </span>
                         </div>
-                      ) : order.paymentState === 'Partial' ? (
+                      ) : localOrder.paymentState === 'Partial' ? (
                         <p className="text-sm text-muted-foreground mb-3">
                           A partial payment was made.
                         </p>
                       ) : null}
 
-                      {order.payments.length > 0 ||
+                      {localOrder.payments.length > 0 ||
                       pendingAmount > 0.01 ? (
                         <div className="flow-root">
                           <ul>
-                            {order.payments.map((payment, index) => {
+                            {localOrder.payments.map((payment, index) => {
                               const isLastPayment =
-                                index === order.payments.length - 1;
+                                index === localOrder.payments.length - 1;
                               const hasPendingAmount =
                                 pendingAmount > 0.01;
                               const showLineAndPadding =
@@ -236,10 +248,10 @@ export function OrderDetailsSheet({
                                               Success
                                               </Badge>
                                           </div>
-                                          {order.splitType && (
+                                          {localOrder.splitType && (
                                               <Card className="mt-3 bg-card border">
                                                   <CardContent className="p-4 space-y-3">
-                                                      {order.splitType === 'byItem' && payment.items && payment.items.length > 0 && (
+                                                      {localOrder.splitType === 'byItem' && payment.items && payment.items.length > 0 && (
                                                           <div>
                                                               <p className="text-sm font-semibold text-foreground mb-2">Items Paid For:</p>
                                                               <ul className="space-y-2 text-sm text-muted-foreground">
@@ -254,7 +266,7 @@ export function OrderDetailsSheet({
 
                                                       {payment.tip && payment.tip > 0 && (
                                                           <>
-                                                              {order.splitType === 'byItem' && payment.items && payment.items.length > 0 && <Separator />}
+                                                              {localOrder.splitType === 'byItem' && payment.items && payment.items.length > 0 && <Separator />}
                                                               <div className="flex justify-between items-center text-sm font-medium">
                                                                   <span className="text-muted-foreground">Tip Amount:</span>
                                                                   <span className="font-mono text-foreground">${payment.tip.toFixed(2)}</span>
@@ -262,15 +274,15 @@ export function OrderDetailsSheet({
                                                           </>
                                                       )}
                                                       
-                                                      {((order.splitType === 'byItem' && payment.items && payment.items.length > 0) || (payment.tip && payment.tip > 0)) && <Separator />}
+                                                      {((localOrder.splitType === 'byItem' && payment.items && payment.items.length > 0) || (payment.tip && payment.tip > 0)) && <Separator />}
 
                                                       <div className="space-y-1 text-xs text-muted-foreground">
                                                           <p>Transaction ID: {payment.transactionId}</p>
-                                                          {order.staffReference?.employee_reference_code && (
-                                                              <p>Terminal ID: {order.staffReference.employee_reference_code}</p>
+                                                          {localOrder.staffReference?.employee_reference_code && (
+                                                              <p>Terminal ID: {localOrder.staffReference.employee_reference_code}</p>
                                                           )}
-                                                          {order.source && (
-                                                              <p>Source: {order.source === 'POS' ? 'POS Machine' : order.source}</p>
+                                                          {localOrder.source && (
+                                                              <p>Source: {localOrder.source === 'POS' ? 'POS Machine' : localOrder.source}</p>
                                                           )}
                                                       </div>
                                                   </CardContent>
@@ -327,26 +339,26 @@ export function OrderDetailsSheet({
                   <CardHeader className="p-8">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <User className="h-5 w-5" />
-                      {order.customer ? 'Customer Details' : 'Guest Details'}
+                      {localOrder.customer ? 'Customer Details' : 'Guest Details'}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-8 pt-0 text-sm space-y-4">
                     <div className="flex justify-between items-center">
                       <p className="text-muted-foreground">Name</p>
                       <p className="font-medium text-right">
-                        {order.customer?.name || 'Guest Customer'}
+                        {localOrder.customer?.name || 'Guest Customer'}
                       </p>
                     </div>
                     <div className="flex justify-between items-center">
                       <p className="text-muted-foreground">Email</p>
                       <p className="font-medium text-right">
-                        {order.customer?.email || 'N/A'}
+                        {localOrder.customer?.email || 'N/A'}
                       </p>
                     </div>
                     <div className="flex justify-between items-center">
                       <p className="text-muted-foreground">Phone</p>
                       <p className="font-medium text-right">
-                        {order.customer?.phone || 'N/A'}
+                        {localOrder.customer?.phone || 'N/A'}
                       </p>
                     </div>
                   </CardContent>
@@ -362,34 +374,34 @@ export function OrderDetailsSheet({
                   <CardContent className="p-8 pt-0 grid grid-cols-2 gap-x-4 gap-y-6 text-sm">
                     <div className="space-y-1">
                       <p className="text-muted-foreground">Branch</p>
-                      <p className="font-medium">{order.branch}</p>
+                      <p className="font-medium">{localOrder.branch}</p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-muted-foreground">Table</p>
-                      <p className="font-medium">{order.table}</p>
+                      <p className="font-medium">{localOrder.table}</p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-muted-foreground">Server</p>
-                        {order.staffReference ? (
+                        {localOrder.staffReference ? (
                             <Button
                                 variant="link"
                                 className="p-0 h-auto font-medium"
                                 onClick={() => setIsStaffInfoOpen(true)}
                             >
-                                {order.staffName}
+                                {localOrder.staffName}
                             </Button>
                         ) : (
-                            <p className="font-medium">{order.staffName}</p>
+                            <p className="font-medium">{localOrder.staffName}</p>
                         )}
                     </div>
                     <div className="space-y-1">
                       <p className="text-muted-foreground">Order Type</p>
-                      <p className="font-medium">{order.orderType}</p>
+                      <p className="font-medium">{localOrder.orderType}</p>
                     </div>
                   </CardContent>
                 </Card>
 
-                {order.orderComments && (
+                {localOrder.orderComments && (
                     <Card>
                         <CardHeader className="p-8">
                             <CardTitle className="text-lg flex items-center gap-2">
@@ -399,7 +411,7 @@ export function OrderDetailsSheet({
                         </CardHeader>
                         <CardContent className="p-8 pt-0">
                             <p className="text-sm text-muted-foreground italic">
-                                "{order.orderComments}"
+                                "{localOrder.orderComments}"
                             </p>
                         </CardContent>
                     </Card>
@@ -408,16 +420,26 @@ export function OrderDetailsSheet({
             </div>
           </div>
           <SheetFooter className="p-6 border-t bg-background flex-row justify-between w-full">
-            <Button variant="outline">
-              <Printer className="mr-2 h-4 w-4" /> Print Receipt
-            </Button>
-            <SheetClose asChild>
-              <Button variant="secondary">Close</Button>
-            </SheetClose>
+            <div>
+              {pendingAmount > 0.01 && (
+                <Button onClick={() => setIsSplitDialogOpen(true)}>
+                  <Split className="mr-2 h-4 w-4" />
+                  Split Payment
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline">
+                <Printer className="mr-2 h-4 w-4" /> Print Receipt
+              </Button>
+              <SheetClose asChild>
+                <Button variant="secondary">Close</Button>
+              </SheetClose>
+            </div>
           </SheetFooter>
         </div>
       </SheetContent>
-      {order.staffReference && (
+      {localOrder.staffReference && (
         <Dialog open={isStaffInfoOpen} onOpenChange={setIsStaffInfoOpen}>
           <DialogContent className="bg-transparent p-0 max-w-sm overflow-visible border-0 shadow-none">
             <RadixDialogClose className="absolute top-0 left-0 z-50 h-9 w-9 rounded-full bg-black/20 text-white flex items-center justify-center transition-all hover:bg-black/30">
@@ -433,10 +455,10 @@ export function OrderDetailsSheet({
                     <User className="h-16 w-16 text-gray-400" />
                   </div>
                   <h2 className="mt-4 text-2xl font-bold text-gray-800">
-                    {order.staffName}
+                    {localOrder.staffName}
                   </h2>
                   <p className="font-mono text-sm text-gray-500 mt-0.5">
-                    {order.staffReference.employee_reference_code}
+                    {localOrder.staffReference.employee_reference_code}
                   </p>
                 </div>
                 
@@ -446,8 +468,8 @@ export function OrderDetailsSheet({
                     TOTAL TIPS EARNED
                   </Badge>
                   <p className="text-5xl font-black text-teal-600">
-                    <span className="text-3xl align-middle font-semibold mr-1">{order.staffReference.currency}</span>
-                    {order.staffReference.total_tip_amount.toFixed(2)}
+                    <span className="text-3xl align-middle font-semibold mr-1">{localOrder.staffReference.currency}</span>
+                    {localOrder.staffReference.total_tip_amount.toFixed(2)}
                   </p>
                   <p className="text-sm text-gray-500 mt-2">
                     Outstanding performance for last 7 period
@@ -464,7 +486,7 @@ export function OrderDetailsSheet({
                             <p className="text-sm font-bold text-gray-500 uppercase tracking-wider">Period</p>
                         </div>
                         <p className="font-bold text-sm text-gray-900">
-                            {format(new Date(order.staffReference.start_date), 'MMM d')} - {format(new Date(order.staffReference.end_date), 'MMM d, yyyy')}
+                            {format(new Date(localOrder.staffReference.start_date), 'MMM d')} - {format(new Date(localOrder.staffReference.end_date), 'MMM d, yyyy')}
                         </p>
                     </CardContent>
                   </Card>
@@ -480,8 +502,8 @@ export function OrderDetailsSheet({
                                     Total Sales
                                 </div>
                                 <p className="text-2xl font-black text-gray-900 leading-none mt-2">
-                                    <span className="text-lg align-baseline font-semibold mr-0.5">{order.staffReference.currency}</span>
-                                    {order.staffReference.total_sale_amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                                    <span className="text-lg align-baseline font-semibold mr-0.5">{localOrder.staffReference.currency}</span>
+                                    {localOrder.staffReference.total_sale_amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                                 </p>
                             </CardContent>
                         </Card>
@@ -496,7 +518,7 @@ export function OrderDetailsSheet({
                                     Total Orders
                                 </div>
                                 <p className="text-5xl font-black text-gray-900">
-                                    {order.staffReference.order_count}
+                                    {localOrder.staffReference.order_count}
                                 </p>
                             </CardContent>
                         </Card>
@@ -508,6 +530,12 @@ export function OrderDetailsSheet({
           </DialogContent>
         </Dialog>
       )}
+       <SplitPaymentDialog
+        order={localOrder}
+        open={isSplitDialogOpen}
+        onOpenChange={setIsSplitDialogOpen}
+        onUpdateOrder={handleOrderUpdate}
+      />
     </Sheet>
   );
 }
