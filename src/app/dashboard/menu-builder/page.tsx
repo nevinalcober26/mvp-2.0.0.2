@@ -69,20 +69,12 @@ const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit }: {
           {isLocked ? <Lock className="h-3 w-3 text-muted-foreground mr-1" /> : (
             <span className={cn(
               "h-2 w-2 rounded-full",
-              !isLocked && "group-hover:bg-primary transition-colors",
-              status === 'Online' ? 'bg-green-500' : 'bg-gray-300'
+              status === 'Online' ? 'bg-green-500' : 'bg-red-500'
             )} />
           )}
           {name}
         </p>
         <div className="flex items-center gap-2">
-          {status && (
-            <Badge variant={status === 'Offline' ? 'secondary' : 'default'} className={cn(
-              status === 'Online' && 'bg-primary/10 text-primary font-bold border-primary/20',
-            )}>
-              {status}
-            </Badge>
-          )}
           {isLocked ? null : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -860,6 +852,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const [userMenus, setUserMenus] = useState<any[]>([]);
   const [importedMenuName, setImportedMenuName] = useState('');
   const [editingMenuIndex, setEditingMenuIndex] = useState<number | null>(null);
+  const [defaultMenuStatus, setDefaultMenuStatus] = useState<'Online' | 'Offline'>('Online');
   
   const { toast } = useToast();
   const sensors = useSensors(useSensor(PointerSensor));
@@ -867,6 +860,11 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const [previewCart, setPreviewCart] = useState<Record<string, number>>({});
   const [isCartAnimating, setIsCartAnimating] = useState(false);
   const prevCartTotalRef = useRef(0);
+
+  useEffect(() => {
+    const isAnyCustomMenuOnline = userMenus.some(menu => menu.status === 'Online');
+    setDefaultMenuStatus(isAnyCustomMenuOnline ? 'Offline' : 'Online');
+  }, [userMenus]);
 
   const handleAddMenu = (type: 'scratch' | 'pos') => {
     if (type === 'pos') {
@@ -963,11 +961,14 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const handleConfirmPublish = () => {
     if (!pendingPublishData) return;
     
+    // Set all other custom menus to 'Offline'
     let updatedMenus = userMenus.map(menu => ({ ...menu, status: 'Offline' as const }));
 
     if (editingMenuIndex !== null) {
+        // Update the existing menu being edited
         updatedMenus[editingMenuIndex] = { ...updatedMenus[editingMenuIndex], ...pendingPublishData };
     } else {
+        // Add the new menu
         updatedMenus.push(pendingPublishData);
     }
     
@@ -1139,7 +1140,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
               <section>
                 <h2 className="text-2xl font-bold mb-4">Default</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <TemplateCard name='Default' imageHint='template-1' isLocked status="Online" />
+                  <TemplateCard name='Default' imageHint='template-1' isLocked status={defaultMenuStatus} />
                 </div>
               </section>
               <section>
@@ -1281,12 +1282,10 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
       {/* Customize Full-Screen Modal */}
       <Dialog open={posFlowStep === 'customize'} onOpenChange={(open) => !open && setPosFlowStep('')}>
           <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
-              <DialogHeader className="sr-only">
-                <DialogTitle>Customize Imported Menu</DialogTitle>
-                <DialogDescription>
+              <DialogTitle className="sr-only">Customize Imported Menu</DialogTitle>
+              <DialogDescription className="sr-only">
                   Here you can reorder menu sections and customize items imported from your Point-of-Sale system.
-                </DialogDescription>
-              </DialogHeader>
+              </DialogDescription>
               <div className="p-4 border-b flex-row items-center justify-between space-y-0 flex">
                   <Input
                     value={importedMenuName}
@@ -1295,7 +1294,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
                     aria-label="Menu Name"
                   />
                   <div className="flex items-center gap-2">
-                      <Button variant="outline" onClick={() => handleSaveImportedMenu('Offline')}>Save as Offline</Button>
+                      <Button variant="outline" onClick={() => handleSaveImportedMenu('Offline')}>Save Offline</Button>
                       <Button onClick={() => handleSaveImportedMenu('Online')}>Save & Publish</Button>
                   </div>
               </div>
