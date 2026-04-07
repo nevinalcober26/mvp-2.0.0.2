@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -40,6 +41,60 @@ interface SplitPaymentDialogProps {
   onUpdateOrder: (updatedOrder: Order) => void;
 }
 
+// --- Tip Selection Component ---
+interface TipSelectionProps {
+    selectedTip: number | 'custom' | null;
+    onTipChange: (value: number | 'custom' | null) => void;
+    customTipValue: string;
+    onCustomTipChange: (value: string) => void;
+}
+
+const TipSelection = ({ selectedTip, onTipChange, customTipValue, onCustomTipChange }: TipSelectionProps) => (
+    <div className="space-y-4 pt-2">
+        <Label>Tip Amount (Optional)</Label>
+        <div className="flex gap-2">
+            {[2, 4, 8].map(amount => (
+                <Button
+                    key={amount}
+                    type="button"
+                    variant={selectedTip === amount ? 'default' : 'outline'}
+                    onClick={() => onTipChange(amount)}
+                    className="flex-1"
+                >
+                    AED {amount.toFixed(2)}
+                </Button>
+            ))}
+            <Button
+                type="button"
+                variant={selectedTip === 'custom' ? 'default' : 'outline'}
+                onClick={() => onTipChange('custom')}
+                className="flex-1"
+            >
+                Custom
+            </Button>
+        </div>
+        {selectedTip === 'custom' && (
+            <Input
+                type="number"
+                placeholder="Enter custom amount"
+                value={customTipValue}
+                onChange={(e) => onCustomTipChange(e.target.value)}
+                autoFocus
+                className="h-12 text-base"
+            />
+        )}
+        <Button
+            type="button"
+            variant="ghost"
+            className={cn("w-full h-12 text-base", selectedTip === null ? "bg-muted text-foreground font-bold" : "text-muted-foreground")}
+            onClick={() => onTipChange(null)}
+        >
+            No Tip
+        </Button>
+    </div>
+);
+
+
 // --- Internal Components for each step ---
 
 const SelectMethodStep = ({ onSelect }: { onSelect: (method: 'equally' | 'byItem') => void }) => (
@@ -61,30 +116,28 @@ const SelectMethodStep = ({ onSelect }: { onSelect: (method: 'equally' | 'byItem
     </div>
 );
 
-const RecordPaymentConfirm = ({ onConfirm }: { onConfirm: (method: 'Card' | 'Cash') => void }) => (
-    <div className="flex gap-2">
-        <Button onClick={() => onConfirm('Card')} className="flex-1">
-            <CreditCard className="mr-2 h-4 w-4" /> Card
-        </Button>
-        <Button onClick={() => onConfirm('Cash')} variant="secondary" className="flex-1">
-            <Banknote className="mr-2 h-4 w-4" /> Cash
-        </Button>
-    </div>
-);
-
 const SplitEquallyView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenChange }: Omit<SplitPaymentDialogProps, 'open' | 'order'> & { order: Order; onBack: () => void }) => {
     const { toast } = useToast();
     const [numSplits, setNumSplits] = useState(2);
     const [paidStatus, setPaidStatus] = useState<boolean[]>([]);
     const [confirmingPayerIndex, setConfirmingPayerIndex] = useState<number | null>(null);
-    const [tip, setTip] = useState<number>(0);
+    
+    const [selectedTip, setSelectedTip] = useState<number | 'custom' | null>(4);
+    const [customTipValue, setCustomTipValue] = useState('');
+
+    const finalTip = useMemo(() => {
+        if (selectedTip === 'custom') {
+            return parseFloat(customTipValue) || 0;
+        }
+        return selectedTip || 0;
+    }, [selectedTip, customTipValue]);
 
     useEffect(() => {
         setPaidStatus(Array(numSplits).fill(false));
     }, [numSplits]);
 
     const amountPerPerson = numSplits > 0 ? totalWithTax / numSplits : 0;
-    const totalWithTip = amountPerPerson + tip;
+    const totalWithTip = amountPerPerson + finalTip;
 
     const handleRecordPayment = (index: number, method: 'Card' | 'Cash') => {
         setPaidStatus(prev => {
@@ -96,7 +149,7 @@ const SplitEquallyView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenCh
         const newPayment: Payment = {
             method: method,
             amount: amountPerPerson.toFixed(2),
-            tip: tip > 0 ? tip : undefined,
+            tip: finalTip > 0 ? finalTip : undefined,
             date: new Date().toLocaleString(),
             transactionId: `txn_split_${Date.now()}`,
             guestName: `Payer ${index + 1}`
@@ -111,15 +164,23 @@ const SplitEquallyView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenCh
         };
         onUpdateOrder(updatedOrder);
 
-        toast({ title: "Payment Recorded", description: `Payment of $${amountPerPerson.toFixed(2)}${tip > 0 ? ` (+ $${tip.toFixed(2)} tip)` : ''} for Payer ${index + 1} recorded.` });
+        toast({ title: "Payment Recorded", description: `Payment of $${amountPerPerson.toFixed(2)}${finalTip > 0 ? ` (+ $${finalTip.toFixed(2)} tip)` : ''} for Payer ${index + 1} recorded.` });
+        
         setConfirmingPayerIndex(null);
-        setTip(0);
+        setSelectedTip(4);
+        setCustomTipValue('');
 
         if (paidStatus.filter(s => !s).length === 1) { // This was the last one
             setTimeout(() => onOpenChange(false), 500);
         }
     };
     
+    const handleOpenConfirmDialog = (index: number) => {
+        setSelectedTip(4);
+        setCustomTipValue('');
+        setConfirmingPayerIndex(index);
+    }
+
     return (
         <div className="py-6 space-y-6">
             <div className="grid grid-cols-2 gap-4 items-end">
@@ -167,7 +228,7 @@ const SplitEquallyView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenCh
                                     <CheckCircle className="h-5 w-5" /> Paid
                                 </div>
                             ) : (
-                                <Button size="sm" onClick={() => { setTip(0); setConfirmingPayerIndex(index); }}>Record Payment</Button>
+                                <Button size="sm" onClick={() => handleOpenConfirmDialog(index)}>Record Payment</Button>
                             )}
                         </Card>
                     ))}
@@ -178,21 +239,17 @@ const SplitEquallyView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenCh
                     <AlertDialogHeader>
                         <AlertDialogTitle>Record Payment for Payer {confirmingPayerIndex !== null ? confirmingPayerIndex + 1 : ''}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Confirm payment of <strong>${amountPerPerson.toFixed(2)}</strong>{tip > 0 && <span> + <strong>${tip.toFixed(2)} tip</strong> for a total of <strong>${totalWithTip.toFixed(2)}</strong></span>}. Choose the payment method used.
+                            Confirm payment of <strong>${amountPerPerson.toFixed(2)}</strong>{finalTip > 0 && <span> + <strong>${finalTip.toFixed(2)} tip</strong> for a total of <strong>${totalWithTip.toFixed(2)}</strong></span>}. Choose the payment method used.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <div className="space-y-2 pt-2">
-                        <Label htmlFor="tip-amount-equal">Tip Amount (Optional)</Label>
-                        <Input
-                            id="tip-amount-equal"
-                            type="number"
-                            placeholder="0.00"
-                            value={tip === 0 ? '' : tip}
-                            onChange={(e) => setTip(parseFloat(e.target.value) || 0)}
-                        />
-                    </div>
+                    <TipSelection 
+                        selectedTip={selectedTip}
+                        onTipChange={setSelectedTip}
+                        customTipValue={customTipValue}
+                        onCustomTipChange={setCustomTipValue}
+                    />
                     <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setTip(0)}>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel onClick={() => { setSelectedTip(4); setCustomTipValue(''); }}>Cancel</AlertDialogCancel>
                         <div className="flex gap-2">
                              <Button onClick={() => handleRecordPayment(confirmingPayerIndex!, 'Card')} className="flex-1">
                                 <CreditCard className="mr-2 h-4 w-4" /> Card
@@ -213,7 +270,16 @@ const SplitByItemView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenCha
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     const [paidItems, setPaidItems] = useState<Set<string>>(new Set());
     const [confirmingPayment, setConfirmingPayment] = useState(false);
-    const [tip, setTip] = useState<number>(0);
+    
+    const [selectedTip, setSelectedTip] = useState<number | 'custom' | null>(4);
+    const [customTipValue, setCustomTipValue] = useState('');
+
+    const finalTip = useMemo(() => {
+        if (selectedTip === 'custom') {
+            return parseFloat(customTipValue) || 0;
+        }
+        return selectedTip || 0;
+    }, [selectedTip, customTipValue]);
 
     const { subtotalOfSelectedItems, totalForSelectedItems } = useMemo(() => {
         const subtotal = Array.from(selectedItems).reduce((acc, itemId) => {
@@ -226,7 +292,7 @@ const SplitByItemView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenCha
         return { subtotalOfSelectedItems: subtotal, totalForSelectedItems: total };
     }, [selectedItems, order.items]);
 
-    const totalWithTip = totalForSelectedItems + tip;
+    const totalWithTip = totalForSelectedItems + finalTip;
 
     const handleToggleItem = (itemId: string) => {
         setSelectedItems(prev => {
@@ -246,7 +312,7 @@ const SplitByItemView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenCha
         const newPayment: Payment = {
             method: method,
             amount: totalForSelectedItems.toFixed(2),
-            tip: tip > 0 ? tip : undefined,
+            tip: finalTip > 0 ? finalTip : undefined,
             date: new Date().toLocaleString(),
             transactionId: `txn_split_item_${Date.now()}`,
             guestName: 'Guest',
@@ -266,9 +332,10 @@ const SplitByItemView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenCha
         setPaidItems(prev => new Set([...prev, ...selectedItems]));
         setSelectedItems(new Set());
         setConfirmingPayment(false);
-        setTip(0);
+        setSelectedTip(4);
+        setCustomTipValue('');
 
-        toast({ title: "Payment Recorded", description: `Payment of $${totalForSelectedItems.toFixed(2)}${tip > 0 ? ` (+ $${tip.toFixed(2)} tip)` : ''} for selected items recorded.` });
+        toast({ title: "Payment Recorded", description: `Payment of $${totalForSelectedItems.toFixed(2)}${finalTip > 0 ? ` (+ $${finalTip.toFixed(2)} tip)` : ''} for selected items recorded.` });
 
         const allItemsPaid = order.items.every(i => paidItems.has(i.id) || selectedItems.has(i.id));
         if (allItemsPaid) {
@@ -306,7 +373,7 @@ const SplitByItemView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenCha
                         <p className="text-sm text-muted-foreground">Subtotal for selected (inc. tax)</p>
                         <p className="text-2xl font-bold font-mono">${totalForSelectedItems.toFixed(2)}</p>
                     </div>
-                    <Button size="lg" disabled={selectedItems.size === 0} onClick={() => { setTip(0); setConfirmingPayment(true); }}>
+                    <Button size="lg" disabled={selectedItems.size === 0} onClick={() => { setSelectedTip(4); setCustomTipValue(''); setConfirmingPayment(true); }}>
                         Record Payment
                     </Button>
                 </CardContent>
@@ -316,21 +383,17 @@ const SplitByItemView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenCha
                     <AlertDialogHeader>
                         <AlertDialogTitle>Record Payment for Selected Items</AlertDialogTitle>
                         <AlertDialogDescription>
-                           Confirm payment of <strong>${totalForSelectedItems.toFixed(2)}</strong>{tip > 0 && <span> + <strong>${tip.toFixed(2)} tip</strong> for a total of <strong>${totalWithTip.toFixed(2)}</strong></span>}. Choose the payment method used.
+                           Confirm payment of <strong>${totalForSelectedItems.toFixed(2)}</strong>{finalTip > 0 && <span> + <strong>${finalTip.toFixed(2)} tip</strong> for a total of <strong>${totalWithTip.toFixed(2)}</strong></span>}. Choose the payment method used.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <div className="space-y-2 pt-2">
-                        <Label htmlFor="tip-amount-item">Tip Amount (Optional)</Label>
-                        <Input
-                            id="tip-amount-item"
-                            type="number"
-                            placeholder="0.00"
-                            value={tip === 0 ? '' : tip}
-                            onChange={(e) => setTip(parseFloat(e.target.value) || 0)}
-                        />
-                    </div>
+                    <TipSelection 
+                        selectedTip={selectedTip}
+                        onTipChange={setSelectedTip}
+                        customTipValue={customTipValue}
+                        onCustomTipChange={setCustomTipValue}
+                    />
                     <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setTip(0)}>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel onClick={() => { setSelectedTip(4); setCustomTipValue(''); }}>Cancel</AlertDialogCancel>
                         <div className="flex gap-2">
                              <Button onClick={() => handleRecordPayment('Card')} className="flex-1">
                                 <CreditCard className="mr-2 h-4 w-4" /> Card
