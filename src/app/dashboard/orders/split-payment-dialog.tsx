@@ -77,12 +77,14 @@ const SplitEquallyView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenCh
     const [numSplits, setNumSplits] = useState(2);
     const [paidStatus, setPaidStatus] = useState<boolean[]>([]);
     const [confirmingPayerIndex, setConfirmingPayerIndex] = useState<number | null>(null);
+    const [tip, setTip] = useState<number>(0);
 
     useEffect(() => {
         setPaidStatus(Array(numSplits).fill(false));
     }, [numSplits]);
 
     const amountPerPerson = numSplits > 0 ? totalWithTax / numSplits : 0;
+    const totalWithTip = amountPerPerson + tip;
 
     const handleRecordPayment = (index: number, method: 'Card' | 'Cash') => {
         setPaidStatus(prev => {
@@ -94,6 +96,7 @@ const SplitEquallyView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenCh
         const newPayment: Payment = {
             method: method,
             amount: amountPerPerson.toFixed(2),
+            tip: tip > 0 ? tip : undefined,
             date: new Date().toLocaleString(),
             transactionId: `txn_split_${Date.now()}`,
             guestName: `Payer ${index + 1}`
@@ -103,13 +106,14 @@ const SplitEquallyView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenCh
             ...order,
             paidAmount: order.paidAmount + amountPerPerson,
             payments: [...order.payments, newPayment],
-            paymentState: order.paidAmount + amountPerPerson >= totalWithTax ? 'Fully Paid' : 'Partial',
+            paymentState: order.paidAmount + amountPerPerson >= totalWithTax - 0.01 ? 'Fully Paid' : 'Partial',
             splitType: 'equally',
         };
         onUpdateOrder(updatedOrder);
 
-        toast({ title: "Payment Recorded", description: `Payment of $${amountPerPerson.toFixed(2)} for Payer ${index + 1} recorded.` });
+        toast({ title: "Payment Recorded", description: `Payment of $${amountPerPerson.toFixed(2)}${tip > 0 ? ` (+ $${tip.toFixed(2)} tip)` : ''} for Payer ${index + 1} recorded.` });
         setConfirmingPayerIndex(null);
+        setTip(0);
 
         if (paidStatus.filter(s => !s).length === 1) { // This was the last one
             setTimeout(() => onOpenChange(false), 500);
@@ -139,7 +143,7 @@ const SplitEquallyView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenCh
                                     <CheckCircle className="h-5 w-5" /> Paid
                                 </div>
                             ) : (
-                                <Button size="sm" onClick={() => setConfirmingPayerIndex(index)}>Record Payment</Button>
+                                <Button size="sm" onClick={() => { setTip(0); setConfirmingPayerIndex(index); }}>Record Payment</Button>
                             )}
                         </Card>
                     ))}
@@ -150,11 +154,21 @@ const SplitEquallyView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenCh
                     <AlertDialogHeader>
                         <AlertDialogTitle>Record Payment for Payer {confirmingPayerIndex !== null ? confirmingPayerIndex + 1 : ''}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Confirm payment of <strong>${amountPerPerson.toFixed(2)}</strong>. Choose the payment method used.
+                            Confirm payment of <strong>${amountPerPerson.toFixed(2)}</strong>{tip > 0 && <span> + <strong>${tip.toFixed(2)} tip</strong> for a total of <strong>${totalWithTip.toFixed(2)}</strong></span>}. Choose the payment method used.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
+                    <div className="space-y-2 pt-2">
+                        <Label htmlFor="tip-amount-equal">Tip Amount (Optional)</Label>
+                        <Input
+                            id="tip-amount-equal"
+                            type="number"
+                            placeholder="0.00"
+                            value={tip === 0 ? '' : tip}
+                            onChange={(e) => setTip(parseFloat(e.target.value) || 0)}
+                        />
+                    </div>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel onClick={() => setTip(0)}>Cancel</AlertDialogCancel>
                         <div className="flex gap-2">
                              <Button onClick={() => handleRecordPayment(confirmingPayerIndex!, 'Card')} className="flex-1">
                                 <CreditCard className="mr-2 h-4 w-4" /> Card
@@ -175,6 +189,7 @@ const SplitByItemView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenCha
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     const [paidItems, setPaidItems] = useState<Set<string>>(new Set());
     const [confirmingPayment, setConfirmingPayment] = useState(false);
+    const [tip, setTip] = useState<number>(0);
 
     const { subtotalOfSelectedItems, totalForSelectedItems } = useMemo(() => {
         const subtotal = Array.from(selectedItems).reduce((acc, itemId) => {
@@ -186,6 +201,8 @@ const SplitByItemView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenCha
         const total = subtotal + tax;
         return { subtotalOfSelectedItems: subtotal, totalForSelectedItems: total };
     }, [selectedItems, order.items]);
+
+    const totalWithTip = totalForSelectedItems + tip;
 
     const handleToggleItem = (itemId: string) => {
         setSelectedItems(prev => {
@@ -205,6 +222,7 @@ const SplitByItemView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenCha
         const newPayment: Payment = {
             method: method,
             amount: totalForSelectedItems.toFixed(2),
+            tip: tip > 0 ? tip : undefined,
             date: new Date().toLocaleString(),
             transactionId: `txn_split_item_${Date.now()}`,
             guestName: 'Guest',
@@ -216,7 +234,7 @@ const SplitByItemView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenCha
             ...order,
             paidAmount: newPaidAmount,
             payments: [...order.payments, newPayment],
-            paymentState: newPaidAmount >= totalWithTax ? 'Fully Paid' : 'Partial',
+            paymentState: newPaidAmount >= totalWithTax - 0.01 ? 'Fully Paid' : 'Partial',
             splitType: 'byItem',
         };
         onUpdateOrder(updatedOrder);
@@ -224,8 +242,9 @@ const SplitByItemView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenCha
         setPaidItems(prev => new Set([...prev, ...selectedItems]));
         setSelectedItems(new Set());
         setConfirmingPayment(false);
+        setTip(0);
 
-        toast({ title: "Payment Recorded", description: `Payment of $${totalForSelectedItems.toFixed(2)} for selected items recorded.` });
+        toast({ title: "Payment Recorded", description: `Payment of $${totalForSelectedItems.toFixed(2)}${tip > 0 ? ` (+ $${tip.toFixed(2)} tip)` : ''} for selected items recorded.` });
 
         const allItemsPaid = order.items.every(i => paidItems.has(i.id) || selectedItems.has(i.id));
         if (allItemsPaid) {
@@ -263,7 +282,7 @@ const SplitByItemView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenCha
                         <p className="text-sm text-muted-foreground">Subtotal for selected (inc. tax)</p>
                         <p className="text-2xl font-bold font-mono">${totalForSelectedItems.toFixed(2)}</p>
                     </div>
-                    <Button size="lg" disabled={selectedItems.size === 0} onClick={() => setConfirmingPayment(true)}>
+                    <Button size="lg" disabled={selectedItems.size === 0} onClick={() => { setTip(0); setConfirmingPayment(true); }}>
                         Record Payment
                     </Button>
                 </CardContent>
@@ -273,11 +292,21 @@ const SplitByItemView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenCha
                     <AlertDialogHeader>
                         <AlertDialogTitle>Record Payment for Selected Items</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Confirm payment of <strong>${totalForSelectedItems.toFixed(2)}</strong>. Choose the payment method used.
+                           Confirm payment of <strong>${totalForSelectedItems.toFixed(2)}</strong>{tip > 0 && <span> + <strong>${tip.toFixed(2)} tip</strong> for a total of <strong>${totalWithTip.toFixed(2)}</strong></span>}. Choose the payment method used.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
+                    <div className="space-y-2 pt-2">
+                        <Label htmlFor="tip-amount-item">Tip Amount (Optional)</Label>
+                        <Input
+                            id="tip-amount-item"
+                            type="number"
+                            placeholder="0.00"
+                            value={tip === 0 ? '' : tip}
+                            onChange={(e) => setTip(parseFloat(e.target.value) || 0)}
+                        />
+                    </div>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel onClick={() => setTip(0)}>Cancel</AlertDialogCancel>
                         <div className="flex gap-2">
                              <Button onClick={() => handleRecordPayment('Card')} className="flex-1">
                                 <CreditCard className="mr-2 h-4 w-4" /> Card
