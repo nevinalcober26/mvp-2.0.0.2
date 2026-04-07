@@ -54,7 +54,7 @@ const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit }: {
   name: string; 
   imageHint: string; 
   isLocked?: boolean; 
-  status?: 'Draft' | 'Published' | 'Online', 
+  status?: 'Offline' | 'Online', 
   onDelete?: () => void;
   onEdit?: () => void;
 }) => {
@@ -70,15 +70,14 @@ const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit }: {
             <span className={cn(
               "h-2 w-2 rounded-full",
               !isLocked && "group-hover:bg-primary transition-colors",
-              status === 'Published' || status === 'Online' ? 'bg-green-500' : 'bg-gray-300'
+              status === 'Online' ? 'bg-green-500' : 'bg-gray-300'
             )} />
           )}
           {name}
         </p>
         <div className="flex items-center gap-2">
           {status && (
-            <Badge variant={status === 'Draft' ? 'secondary' : 'default'} className={cn(
-              status === 'Published' && 'bg-green-100 text-green-700',
+            <Badge variant={status === 'Offline' ? 'secondary' : 'default'} className={cn(
               status === 'Online' && 'bg-primary/10 text-primary font-bold border-primary/20',
             )}>
               {status}
@@ -98,7 +97,7 @@ const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit }: {
                 <DropdownMenuItem onSelect={onEdit}>
                   <Edit className="mr-2 h-4 w-4" /> Edit
                 </DropdownMenuItem>
-                <DropdownMenuItem>Set as Draft</DropdownMenuItem>
+                <DropdownMenuItem>Set as Offline</DropdownMenuItem>
                 <DropdownMenuItem>Deactivate</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="text-destructive" onClick={onDelete}>Delete</DropdownMenuItem>
@@ -878,13 +877,13 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
     const newMenu = {
         name: newName,
         imageHint: 'template-3',
-        status: 'Draft',
+        status: 'Offline',
         sections: [],
     };
     setUserMenus(prev => [...prev, newMenu]);
     setIsAddMenuModalOpen(false);
     toast({
-        title: "Draft Menu Created",
+        title: "Offline Menu Created",
         description: `${newName} has been added.`
     });
   };
@@ -927,7 +926,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
     setPosFlowStep('customize');
   };
   
-  const handleSaveImportedMenu = (status: 'Published' | 'Draft') => {
+  const handleSaveImportedMenu = (status: 'Online' | 'Offline') => {
     const newName = importedMenuName.trim();
     if (!newName) {
       toast({
@@ -945,16 +944,16 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
       sections: menuSections,
     };
 
-    if (status === 'Published') {
+    if (status === 'Online') {
         setPendingPublishData(menuData);
         setIsConfirmingPublish(true);
-    } else { // It's a Draft
+    } else { // It's an Offline menu
         if (editingMenuIndex !== null) {
             setUserMenus(prev => prev.map((menu, index) => index === editingMenuIndex ? { ...menu, ...menuData } : menu));
-            toast({ title: 'Menu Updated', description: `"${newName}" has been saved as a draft.` });
+            toast({ title: 'Menu Updated', description: `"${newName}" has been saved as offline.` });
         } else {
             setUserMenus((prev) => [...prev, menuData]);
-            toast({ title: "Draft Saved", description: `${newName} has been added to Your Menus.` });
+            toast({ title: "Offline Menu Saved", description: `${newName} has been added to Your Menus.` });
         }
         setEditingMenuIndex(null);
         setPosFlowStep('');
@@ -964,7 +963,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const handleConfirmPublish = () => {
     if (!pendingPublishData) return;
     
-    let updatedMenus = userMenus.map(menu => ({ ...menu, status: 'Draft' as const }));
+    let updatedMenus = userMenus.map(menu => ({ ...menu, status: 'Offline' as const }));
 
     if (editingMenuIndex !== null) {
         updatedMenus[editingMenuIndex] = { ...updatedMenus[editingMenuIndex], ...pendingPublishData };
@@ -976,7 +975,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
 
     toast({
         title: "Menu Published!",
-        description: `"${pendingPublishData.name}" is now the live menu. Other menus have been set to draft.`,
+        description: `"${pendingPublishData.name}" is now the live menu. Other menus have been set to offline.`,
     });
     
     setPendingPublishData(null);
@@ -1296,8 +1295,8 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
                     aria-label="Menu Name"
                   />
                   <div className="flex items-center gap-2">
-                      <Button variant="outline" onClick={() => handleSaveImportedMenu('Draft')}>Save Draft</Button>
-                      <Button onClick={() => handleSaveImportedMenu('Published')}>Save & Publish</Button>
+                      <Button variant="outline" onClick={() => handleSaveImportedMenu('Offline')}>Save as Offline</Button>
+                      <Button onClick={() => handleSaveImportedMenu('Online')}>Save & Publish</Button>
                   </div>
               </div>
               <div className="flex-1 grid grid-cols-3 overflow-hidden">
@@ -1434,7 +1433,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure you want to publish this menu?</AlertDialogTitle>
             <AlertDialogDescription>
-              Publishing this menu will make it the live version for your customers. All other custom menus will be set to 'Draft'.
+              Publishing this menu will make it the live version for your customers. All other custom menus will be set to 'Offline'.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
