@@ -532,6 +532,7 @@ export function OrderDetailsSheet({
       )}
        <SplitPaymentDialog
         order={localOrder}
+        totalWithTax={totalWithTax}
         open={isSplitDialogOpen}
         onOpenChange={setIsSplitDialogOpen}
         onUpdateOrder={handleOrderUpdate}

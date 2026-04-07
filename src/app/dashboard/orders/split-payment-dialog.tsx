@@ -34,6 +34,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface SplitPaymentDialogProps {
   order: Order | null;
+  totalWithTax: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdateOrder: (updatedOrder: Order) => void;
@@ -71,7 +72,7 @@ const RecordPaymentConfirm = ({ onConfirm }: { onConfirm: (method: 'Card' | 'Cas
     </div>
 );
 
-const SplitEquallyView = ({ order, onBack, onUpdateOrder, onOpenChange }: Omit<SplitPaymentDialogProps, 'open'> & { onBack: () => void }) => {
+const SplitEquallyView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenChange }: Omit<SplitPaymentDialogProps, 'open' | 'order'> & { order: Order; onBack: () => void }) => {
     const { toast } = useToast();
     const [numSplits, setNumSplits] = useState(2);
     const [paidStatus, setPaidStatus] = useState<boolean[]>([]);
@@ -81,8 +82,7 @@ const SplitEquallyView = ({ order, onBack, onUpdateOrder, onOpenChange }: Omit<S
         setPaidStatus(Array(numSplits).fill(false));
     }, [numSplits]);
 
-    const totalAmount = order?.totalAmount || 0;
-    const amountPerPerson = numSplits > 0 ? totalAmount / numSplits : 0;
+    const amountPerPerson = numSplits > 0 ? totalWithTax / numSplits : 0;
 
     const handleRecordPayment = (index: number, method: 'Card' | 'Cash') => {
         setPaidStatus(prev => {
@@ -99,16 +99,14 @@ const SplitEquallyView = ({ order, onBack, onUpdateOrder, onOpenChange }: Omit<S
             guestName: `Payer ${index + 1}`
         };
 
-        if (order) {
-            const updatedOrder: Order = {
-                ...order,
-                paidAmount: order.paidAmount + amountPerPerson,
-                payments: [...order.payments, newPayment],
-                paymentState: order.paidAmount + amountPerPerson >= totalAmount ? 'Fully Paid' : 'Partial',
-                splitType: 'equally',
-            };
-            onUpdateOrder(updatedOrder);
-        }
+        const updatedOrder: Order = {
+            ...order,
+            paidAmount: order.paidAmount + amountPerPerson,
+            payments: [...order.payments, newPayment],
+            paymentState: order.paidAmount + amountPerPerson >= totalWithTax ? 'Fully Paid' : 'Partial',
+            splitType: 'equally',
+        };
+        onUpdateOrder(updatedOrder);
 
         toast({ title: "Payment Recorded", description: `Payment of $${amountPerPerson.toFixed(2)} for Payer ${index + 1} recorded.` });
         setConfirmingPayerIndex(null);
@@ -172,18 +170,22 @@ const SplitEquallyView = ({ order, onBack, onUpdateOrder, onOpenChange }: Omit<S
     );
 };
 
-const SplitByItemView = ({ order, onBack, onUpdateOrder, onOpenChange }: Omit<SplitPaymentDialogProps, 'open'> & { onBack: () => void }) => {
+const SplitByItemView = ({ order, totalWithTax, onBack, onUpdateOrder, onOpenChange }: Omit<SplitPaymentDialogProps, 'open' | 'order'> & { order: Order; onBack: () => void }) => {
     const { toast } = useToast();
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     const [paidItems, setPaidItems] = useState<Set<string>>(new Set());
     const [confirmingPayment, setConfirmingPayment] = useState(false);
 
-    const subtotal = useMemo(() => {
-        return Array.from(selectedItems).reduce((acc, itemId) => {
-            const item = order?.items.find(i => i.id === itemId);
+    const { subtotalOfSelectedItems, totalForSelectedItems } = useMemo(() => {
+        const subtotal = Array.from(selectedItems).reduce((acc, itemId) => {
+            const item = order.items.find(i => i.id === itemId);
             return acc + (item ? item.price * item.quantity : 0);
         }, 0);
-    }, [selectedItems, order?.items]);
+
+        const tax = subtotal * 0.05;
+        const total = subtotal + tax;
+        return { subtotalOfSelectedItems: subtotal, totalForSelectedItems: total };
+    }, [selectedItems, order.items]);
 
     const handleToggleItem = (itemId: string) => {
         setSelectedItems(prev => {
@@ -198,36 +200,34 @@ const SplitByItemView = ({ order, onBack, onUpdateOrder, onOpenChange }: Omit<Sp
     };
 
     const handleRecordPayment = (method: 'Card' | 'Cash') => {
-        const itemsToPay = order?.items.filter(i => selectedItems.has(i.id)) || [];
+        const itemsToPay = order.items.filter(i => selectedItems.has(i.id)) || [];
         
         const newPayment: Payment = {
             method: method,
-            amount: subtotal.toFixed(2),
+            amount: totalForSelectedItems.toFixed(2),
             date: new Date().toLocaleString(),
             transactionId: `txn_split_item_${Date.now()}`,
             guestName: 'Guest',
             items: itemsToPay.map(i => ({ name: i.name, quantity: i.quantity })),
         };
         
-        if (order) {
-            const newPaidAmount = order.paidAmount + subtotal;
-            const updatedOrder: Order = {
-                ...order,
-                paidAmount: newPaidAmount,
-                payments: [...order.payments, newPayment],
-                paymentState: newPaidAmount >= order.totalAmount ? 'Fully Paid' : 'Partial',
-                splitType: 'byItem',
-            };
-            onUpdateOrder(updatedOrder);
-        }
+        const newPaidAmount = order.paidAmount + totalForSelectedItems;
+        const updatedOrder: Order = {
+            ...order,
+            paidAmount: newPaidAmount,
+            payments: [...order.payments, newPayment],
+            paymentState: newPaidAmount >= totalWithTax ? 'Fully Paid' : 'Partial',
+            splitType: 'byItem',
+        };
+        onUpdateOrder(updatedOrder);
         
         setPaidItems(prev => new Set([...prev, ...selectedItems]));
         setSelectedItems(new Set());
         setConfirmingPayment(false);
 
-        toast({ title: "Payment Recorded", description: `Payment of $${subtotal.toFixed(2)} for selected items recorded.` });
+        toast({ title: "Payment Recorded", description: `Payment of $${totalForSelectedItems.toFixed(2)} for selected items recorded.` });
 
-        const allItemsPaid = order?.items.every(i => paidItems.has(i.id) || selectedItems.has(i.id));
+        const allItemsPaid = order.items.every(i => paidItems.has(i.id) || selectedItems.has(i.id));
         if (allItemsPaid) {
              setTimeout(() => onOpenChange(false), 500);
         }
@@ -238,7 +238,7 @@ const SplitByItemView = ({ order, onBack, onUpdateOrder, onOpenChange }: Omit<Sp
             <h4 className="font-semibold text-muted-foreground">Select items to pay for:</h4>
             <ScrollArea className="h-80 border rounded-lg p-2">
                 <div className="space-y-2 p-2">
-                    {order?.items.map(item => {
+                    {order.items.map(item => {
                         const isPaid = paidItems.has(item.id);
                         return (
                             <div key={item.id} className={cn("flex items-center gap-4 p-3 rounded-md", isPaid ? 'bg-gray-100 opacity-50' : 'bg-white')}>
@@ -260,8 +260,8 @@ const SplitByItemView = ({ order, onBack, onUpdateOrder, onOpenChange }: Omit<Sp
              <Card className="mt-4">
                 <CardContent className="p-4 flex justify-between items-center">
                     <div>
-                        <p className="text-sm text-muted-foreground">Subtotal for selected</p>
-                        <p className="text-2xl font-bold font-mono">${subtotal.toFixed(2)}</p>
+                        <p className="text-sm text-muted-foreground">Subtotal for selected (inc. tax)</p>
+                        <p className="text-2xl font-bold font-mono">${totalForSelectedItems.toFixed(2)}</p>
                     </div>
                     <Button size="lg" disabled={selectedItems.size === 0} onClick={() => setConfirmingPayment(true)}>
                         Record Payment
@@ -273,7 +273,7 @@ const SplitByItemView = ({ order, onBack, onUpdateOrder, onOpenChange }: Omit<Sp
                     <AlertDialogHeader>
                         <AlertDialogTitle>Record Payment for Selected Items</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Confirm payment of <strong>${subtotal.toFixed(2)}</strong>. Choose the payment method used.
+                            Confirm payment of <strong>${totalForSelectedItems.toFixed(2)}</strong>. Choose the payment method used.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -295,7 +295,7 @@ const SplitByItemView = ({ order, onBack, onUpdateOrder, onOpenChange }: Omit<Sp
 
 // --- Main Dialog Component ---
 
-export function SplitPaymentDialog({ order, open, onOpenChange, onUpdateOrder }: SplitPaymentDialogProps) {
+export function SplitPaymentDialog({ order, totalWithTax, open, onOpenChange, onUpdateOrder }: SplitPaymentDialogProps) {
   const [step, setStep] = useState<'select' | 'equally' | 'byItem'>('select');
 
   useEffect(() => {
@@ -306,6 +306,8 @@ export function SplitPaymentDialog({ order, open, onOpenChange, onUpdateOrder }:
 
   const handleBack = () => setStep('select');
   
+  if (!order) return null;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
@@ -320,16 +322,16 @@ export function SplitPaymentDialog({ order, open, onOpenChange, onUpdateOrder }:
                 <DialogTitle className="text-xl">Split Payment</DialogTitle>
                 <DialogDescription>
                     {step === 'select' && "Choose how you want to split the bill."}
-                    {step === 'equally' && `Splitting bill for Order ${order?.orderId} equally.`}
-                    {step === 'byItem' && `Splitting bill for Order ${order?.orderId} by items.`}
+                    {step === 'equally' && `Splitting bill for Order ${order.orderId} equally.`}
+                    {step === 'byItem' && `Splitting bill for Order ${order.orderId} by items.`}
                 </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
         {step === 'select' && <SelectMethodStep onSelect={setStep} />}
-        {step === 'equally' && <SplitEquallyView order={order} onBack={handleBack} onUpdateOrder={onUpdateOrder} onOpenChange={onOpenChange} />}
-        {step === 'byItem' && <SplitByItemView order={order} onBack={handleBack} onUpdateOrder={onUpdateOrder} onOpenChange={onOpenChange} />}
+        {step === 'equally' && <SplitEquallyView order={order} totalWithTax={totalWithTax} onBack={handleBack} onUpdateOrder={onUpdateOrder} onOpenChange={onOpenChange} />}
+        {step === 'byItem' && <SplitByItemView order={order} totalWithTax={totalWithTax} onBack={handleBack} onUpdateOrder={onUpdateOrder} onOpenChange={onOpenChange} />}
         
         {step !== 'select' && (
             <DialogFooter>
