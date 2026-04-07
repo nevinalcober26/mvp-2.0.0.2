@@ -41,7 +41,7 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Form, FormControl, FormField, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -649,7 +649,7 @@ const AddSectionSheet = ({
                                                     <FormItem className="flex items-center justify-between rounded-lg border p-3">
                                                         <div className="space-y-0.5">
                                                             <FormLabel>Mark as Special</FormLabel>
-                                                            <p className="text-xs text-muted-foreground">Highlight this section on the menu.</p>
+                                                            <FormDescription className="text-xs">Highlight this section on the menu.</FormDescription>
                                                         </div>
                                                         <FormControl>
                                                             <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -688,7 +688,7 @@ const AddSectionSheet = ({
                                                     <FormItem className="flex items-center justify-between rounded-lg border p-3">
                                                         <div className="space-y-0.5">
                                                             <FormLabel>Enable Category Link</FormLabel>
-                                                             <p className="text-xs text-muted-foreground">Link to a URL instead of showing items.</p>
+                                                             <FormDescription className="text-xs">Link to a URL instead of showing items.</FormDescription>
                                                         </div>
                                                         <FormControl>
                                                             <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -868,7 +868,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isAddSectionSheetOpen, setIsAddSectionSheetOpen] = useState(false);
   const [userMenus, setUserMenus] = useState<any[]>([]);
-  const [importedMenuName, setImportedMenuName] = useState('');
+  const [editingMenuName, setEditingMenuName] = useState('');
   const [editingMenuIndex, setEditingMenuIndex] = useState<number | null>(null);
   
   const { toast } = useToast();
@@ -879,6 +879,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const prevCartTotalRef = useRef(0);
 
   const defaultMenuStatus = useMemo(() => {
+    if (userMenus.length === 0) return 'Online';
     const isAnyCustomMenuOnline = userMenus.some(menu => menu.status === 'Online');
     return isAnyCustomMenuOnline ? 'Offline' : 'Online';
   }, [userMenus]);
@@ -911,7 +912,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
 
   const handleEditMenu = (menu: any, index: number) => {
     setEditingMenuIndex(index);
-    setImportedMenuName(menu.name);
+    setEditingMenuName(menu.name);
     setMenuSections(menu.sections || []);
     setPosFlowStep('customize');
   };
@@ -936,13 +937,13 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
 
   const handleStartCustomization = () => {
     const providerName = SUPPORTED_POS.find(p => p.id === selectedPos)?.name || 'Imported Menu';
-    setImportedMenuName(`${providerName} Menu`);
+    setEditingMenuName(`${providerName} Menu`);
     setMenuSections(mockMenuData);
     setPosFlowStep('customize');
   };
   
   const handleSaveImportedMenu = (status: 'Online' | 'Offline' | 'Draft') => {
-    const newName = importedMenuName.trim();
+    const newName = editingMenuName.trim();
     if (!newName) {
       toast({
         variant: 'destructive',
@@ -980,7 +981,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
     
     let updatedMenus = userMenus.map((menu, i) => {
         if (editingMenuIndex !== null && i === editingMenuIndex) {
-            return menu;
+            return menu; // This one will be updated below
         }
         if (menu.status === 'Online') {
             return { ...menu, status: 'Offline' as const };
@@ -1310,8 +1311,8 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
               </DialogDescription>
               <div className="p-4 border-b flex-row items-center justify-between space-y-0 flex">
                   <Input
-                    value={importedMenuName}
-                    onChange={(e) => setImportedMenuName(e.target.value)}
+                    value={editingMenuName}
+                    onChange={(e) => setEditingMenuName(e.target.value)}
                     className="text-xl font-bold border-0 shadow-none focus-visible:ring-0 p-0 h-auto flex-1"
                     aria-label="Menu Name"
                   />
