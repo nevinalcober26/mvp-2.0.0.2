@@ -41,7 +41,7 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -854,7 +854,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const [pendingPublishData, setPendingPublishData] = useState<any>(null);
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>(mockMenuItems.map(item => ({ ...item, available: item.available ?? true })));
-  const [menuSections, setMenuSections] = useState(mockMenuData);
+  const [menuSections, setMenuSections] = useState<any[]>(mockMenuData);
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isAddSectionSheetOpen, setIsAddSectionSheetOpen] = useState(false);
@@ -870,7 +870,6 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const prevCartTotalRef = useRef(0);
 
   const handleAddMenu = (type: 'scratch' | 'pos') => {
-    setEditingMenuIndex(null);
     if (type === 'pos') {
       handleImportFromPos();
       return;
@@ -878,7 +877,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
     const newName = `My New Menu #${userMenus.length + 1}`;
     const newMenu = {
         name: newName,
-        imageHint: 'gray placeholder',
+        imageHint: 'template-3',
         status: 'Draft',
         sections: [],
     };
@@ -891,15 +890,15 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   };
 
   const handleImportFromPos = () => {
-    setEditingMenuIndex(null);
     setIsAddMenuModalOpen(false);
+    setEditingMenuIndex(null);
     setPosFlowStep('select');
   };
 
   const handleEditMenu = (menu: any, index: number) => {
     setEditingMenuIndex(index);
     setImportedMenuName(menu.name);
-    setMenuSections(menu.sections || mockMenuData);
+    setMenuSections(menu.sections || []);
     setPosFlowStep('customize');
   };
 
@@ -924,6 +923,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const handleStartCustomization = () => {
     const providerName = SUPPORTED_POS.find(p => p.id === selectedPos)?.name || 'Imported Menu';
     setImportedMenuName(`${providerName} Menu`);
+    setMenuSections(mockMenuData);
     setPosFlowStep('customize');
   };
   
@@ -940,7 +940,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
     
     const menuData = {
       name: newName,
-      imageHint: editingMenuIndex !== null ? userMenus[editingMenuIndex].imageHint : 'dark theme',
+      imageHint: editingMenuIndex !== null ? userMenus[editingMenuIndex].imageHint : 'template-2',
       status: status,
       sections: menuSections,
     };
@@ -1362,7 +1362,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
                                         <div key={section.id}>
                                             <h2 className="text-2xl font-bold text-gray-900 mb-4">{section.name}</h2>
                                             <div className="space-y-4">
-                                                {section.items.filter(item => item.available ?? true).map(item => (
+                                                {section.items.filter((item: any) => item.available ?? true).map((item: any) => (
                                                     <MenuItemCard
                                                         key={item.id}
                                                         item={item}
