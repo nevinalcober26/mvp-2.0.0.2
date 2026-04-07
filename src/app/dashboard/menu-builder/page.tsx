@@ -40,17 +40,29 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 
-const TemplateCard = ({ name, imageHint, isLocked, status, onDelete }: { name: string; imageHint: string; isLocked?: boolean; status?: 'Draft' | 'Published' | 'Online', onDelete?: () => void; }) => {
+const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit }: { 
+  name: string; 
+  imageHint: string; 
+  isLocked?: boolean; 
+  status?: 'Draft' | 'Published' | 'Online', 
+  onDelete?: () => void;
+  onEdit?: () => void;
+}) => {
   const image = PlaceHolderImages.find(img => img.id === imageHint);
   return (
-    <Card className={cn("overflow-hidden shadow-sm transition-shadow group", isLocked ? "cursor-not-allowed" : "hover:shadow-lg cursor-pointer")}>
+    <Card 
+      onClick={!isLocked ? onEdit : undefined}
+      className={cn("overflow-hidden shadow-sm transition-shadow group", isLocked ? "cursor-not-allowed" : "hover:shadow-lg cursor-pointer")}
+    >
       <CardHeader className="p-3 border-b flex-row justify-between items-center">
         <p className="text-xs font-semibold flex items-center gap-1.5">
-          {isLocked ? <Lock className="h-3 w-3 text-muted-foreground mr-1" /> : <span className={cn(
-            "h-2 w-2 rounded-full",
-            !isLocked && "group-hover:bg-primary transition-colors",
-            status === 'Published' || status === 'Online' ? 'bg-green-500' : 'bg-gray-300'
-          )} />}
+          {isLocked ? <Lock className="h-3 w-3 text-muted-foreground mr-1" /> : (
+            <span className={cn(
+              "h-2 w-2 rounded-full",
+              !isLocked && "group-hover:bg-primary transition-colors",
+              status === 'Published' || status === 'Online' ? 'bg-green-500' : 'bg-gray-300'
+            )} />
+          )}
           {name}
         </p>
         <div className="flex items-center gap-2">
@@ -64,11 +76,17 @@ const TemplateCard = ({ name, imageHint, isLocked, status, onDelete }: { name: s
           {isLocked ? null : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-6 w-6">
+                <button 
+                  className="h-8 w-8 rounded-full bg-black/5 text-gray-500 flex items-center justify-center hover:bg-gray-100 transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <MoreHorizontal className="h-4 w-4" />
-                </Button>
+                </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onSelect={onEdit}>
+                  <Edit className="mr-2 h-4 w-4" /> Edit
+                </DropdownMenuItem>
                 <DropdownMenuItem>Set as Draft</DropdownMenuItem>
                 <DropdownMenuItem>Deactivate</DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -829,6 +847,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const [isAddSectionSheetOpen, setIsAddSectionSheetOpen] = useState(false);
   const [userMenus, setUserMenus] = useState<any[]>([]);
   const [importedMenuName, setImportedMenuName] = useState('');
+  const [editingMenuIndex, setEditingMenuIndex] = useState<number | null>(null);
   
   const { toast } = useToast();
   const sensors = useSensors(useSensor(PointerSensor));
@@ -838,6 +857,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const prevCartTotalRef = useRef(0);
 
   const handleAddMenu = (type: 'scratch' | 'pos') => {
+    setEditingMenuIndex(null);
     if (type === 'pos') {
       handleImportFromPos();
       return;
@@ -846,7 +866,8 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
     const newMenu = {
         name: newName,
         imageHint: 'gray placeholder',
-        status: 'Draft'
+        status: 'Draft',
+        sections: [],
     };
     setUserMenus(prev => [...prev, newMenu]);
     setIsAddMenuModalOpen(false);
@@ -857,8 +878,16 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   };
 
   const handleImportFromPos = () => {
+    setEditingMenuIndex(null);
     setIsAddMenuModalOpen(false);
     setPosFlowStep('select');
+  };
+
+  const handleEditMenu = (menu: any, index: number) => {
+    setEditingMenuIndex(index);
+    setImportedMenuName(menu.name);
+    setMenuSections(menu.sections || mockMenuData);
+    setPosFlowStep('customize');
   };
 
   const startSyncProcess = () => {
@@ -896,17 +925,33 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
       return;
     }
     
-    const newMenu = {
+    const menuData = {
       name: newName,
       imageHint: 'dark theme',
       status: status,
+      sections: menuSections,
     };
-    setUserMenus((prev) => [...prev, newMenu]);
+
+    if (editingMenuIndex !== null) {
+        setUserMenus(prev => {
+            const newMenus = [...prev];
+            newMenus[editingMenuIndex] = { ...newMenus[editingMenuIndex], ...menuData };
+            return newMenus;
+        });
+        toast({
+            title: 'Menu Updated',
+            description: `"${newName}" has been saved.`,
+        });
+    } else {
+        setUserMenus((prev) => [...prev, menuData]);
+        toast({
+          title: status === 'Published' ? "Menu Saved" : "Draft Saved",
+          description: `${newName} has been added to Your Menus.`,
+        });
+    }
+    
+    setEditingMenuIndex(null);
     setPosFlowStep(''); // Close the dialog
-    toast({
-      title: status === 'Published' ? "Menu Saved" : "Draft Saved",
-      description: `${newName} has been added to Your Menus.`,
-    });
   };
 
   const handleDeleteMenu = (indexToDelete: number) => {
@@ -1064,7 +1109,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
               <section>
                 <h2 className="text-2xl font-bold mb-4">Default</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <TemplateCard name='Default' imageHint='abstract red' isLocked status="Published" />
+                  <TemplateCard name='Default' imageHint='template-1' isLocked status="Published" />
                 </div>
               </section>
               <section>
@@ -1085,11 +1130,12 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
                         <>
                             {userMenus.map((m, index) => (
                                 <TemplateCard 
-                                    key={m.name} 
+                                    key={`${m.name}-${index}`}
                                     name={m.name} 
                                     imageHint={m.imageHint} 
                                     status={m.status} 
                                     onDelete={() => handleDeleteMenu(index)}
+                                    onEdit={() => handleEditMenu(m, index)}
                                 />
                             ))}
                              <Card 
