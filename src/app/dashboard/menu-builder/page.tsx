@@ -852,7 +852,6 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const [userMenus, setUserMenus] = useState<any[]>([]);
   const [importedMenuName, setImportedMenuName] = useState('');
   const [editingMenuIndex, setEditingMenuIndex] = useState<number | null>(null);
-  const [defaultMenuStatus, setDefaultMenuStatus] = useState<'Online' | 'Offline'>('Online');
   
   const { toast } = useToast();
   const sensors = useSensors(useSensor(PointerSensor));
@@ -861,9 +860,9 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const [isCartAnimating, setIsCartAnimating] = useState(false);
   const prevCartTotalRef = useRef(0);
 
-  useEffect(() => {
+  const defaultMenuStatus = useMemo(() => {
     const isAnyCustomMenuOnline = userMenus.some(menu => menu.status === 'Online');
-    setDefaultMenuStatus(isAnyCustomMenuOnline ? 'Offline' : 'Online');
+    return isAnyCustomMenuOnline ? 'Offline' : 'Online';
   }, [userMenus]);
 
   const handleAddMenu = (type: 'scratch' | 'pos') => {
@@ -962,7 +961,13 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
     if (!pendingPublishData) return;
     
     // Set all other custom menus to 'Offline'
-    let updatedMenus = userMenus.map(menu => ({ ...menu, status: 'Offline' as const }));
+    let updatedMenus = userMenus.map((menu, i) => {
+      // If we are editing, we don't want to change the status of the menu being edited here.
+      if (editingMenuIndex !== null && i === editingMenuIndex) {
+        return menu;
+      }
+      return { ...menu, status: 'Offline' as const };
+    });
 
     if (editingMenuIndex !== null) {
         // Update the existing menu being edited
