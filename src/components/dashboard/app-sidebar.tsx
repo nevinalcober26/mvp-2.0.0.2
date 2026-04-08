@@ -111,6 +111,7 @@ const MANAGEMENT: SidebarItem[] = [
         { label: 'Variations', path: '/dashboard/catalog/variations' },
         { label: 'Allergens', path: '/dashboard/catalog/properties' },
         { label: 'Combo Groups', path: '/dashboard/catalog/combo-groups' },
+        { label: 'Nutrition', path: '/dashboard/catalog/nutrition' },
     ],
   },
   {
