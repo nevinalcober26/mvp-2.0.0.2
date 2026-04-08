@@ -403,7 +403,7 @@ export function OrderDetailsSheet({
                                 );
                               })}
 
-                              {pendingAmount > 0.01 && (
+                              {pendingAmount > 0.01 && localOrder.paymentState === 'Partial' && (
                                 <li key="pending">
                                   <div className="relative">
                                     <div className="relative flex items-start space-x-3">
@@ -529,7 +529,7 @@ export function OrderDetailsSheet({
             </div>
             <SheetFooter className="p-6 border-t bg-background flex-row justify-between w-full">
               <div>
-                {pendingAmount > 0.01 && (
+                {localOrder.paymentState === 'Unpaid' && (
                   <Button onClick={() => setIsSplitDialogOpen(true)}>
                     <Split className="mr-2 h-4 w-4" />
                     Split Payment
