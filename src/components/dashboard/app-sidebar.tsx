@@ -109,7 +109,7 @@ const MANAGEMENT: SidebarItem[] = [
         { label: 'Categories', path: '/dashboard/catalog/categories' },
         { label: 'Products', path: '/dashboard/products' },
         { label: 'Variations', path: '/dashboard/catalog/variations' },
-        { label: 'Properties', path: '/dashboard/catalog/properties' },
+        { label: 'Allergens', path: '/dashboard/catalog/properties' },
         { label: 'Combo Groups', path: '/dashboard/catalog/combo-groups' },
     ],
   },

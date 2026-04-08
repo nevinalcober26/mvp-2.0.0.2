@@ -84,8 +84,8 @@ export default function PropertiesPage() {
         setProperties(props => props.filter(p => p.id !== deleteTarget.id));
         toast({
           variant: 'destructive',
-          title: 'Property Deleted',
-          description: `The "${deleteTarget.name}" property has been removed.`,
+          title: 'Item Deleted',
+          description: `The "${deleteTarget.name}" item has been removed.`,
         });
         setDeleteTarget(null);
     }
@@ -108,14 +108,14 @@ export default function PropertiesPage() {
             <main className="p-4 sm:p-6 lg:p-8 space-y-6">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h1 className="text-2xl font-bold">Product Properties</h1>
+                    <h1 className="text-2xl font-bold">Allergens &amp; Properties</h1>
                     <p className="text-muted-foreground">
                         Manage special tags for your products, like allergens or dietary needs, each with its own icon.
                     </p>
                   </div>
                   <Button onClick={handleAdd}>
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    Add Property
+                    Add Item
                   </Button>
                 </div>
 
@@ -123,9 +123,9 @@ export default function PropertiesPage() {
                     <CardHeader>
                         <div className="flex justify-between items-center">
                             <div>
-                                <CardTitle>All Properties</CardTitle>
+                                <CardTitle>All Items</CardTitle>
                                 <CardDescription>
-                                    A list of all available properties in your restaurant.
+                                    A list of all available allergens and properties in your restaurant.
                                 </CardDescription>
                             </div>
                              <div className="flex items-center gap-2">
@@ -144,7 +144,7 @@ export default function PropertiesPage() {
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead className="w-[80px]">Icon</TableHead>
-                                        <TableHead>Property Name</TableHead>
+                                        <TableHead>Name</TableHead>
                                         <TableHead className="text-right w-[150px]">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -171,7 +171,7 @@ export default function PropertiesPage() {
                                                                       <Edit className="h-4 w-4" />
                                                                   </Button>
                                                               </TooltipTrigger>
-                                                              <TooltipContent>Edit Property</TooltipContent>
+                                                              <TooltipContent>Edit Item</TooltipContent>
                                                           </Tooltip>
                                                           <Tooltip>
                                                               <TooltipTrigger asChild>
@@ -179,7 +179,7 @@ export default function PropertiesPage() {
                                                                       <Trash className="h-4 w-4" />
                                                                   </Button>
                                                               </TooltipTrigger>
-                                                              <TooltipContent>Delete Property</TooltipContent>
+                                                              <TooltipContent>Delete Item</TooltipContent>
                                                           </Tooltip>
                                                       </div>
                                                     </TooltipProvider>
@@ -189,7 +189,7 @@ export default function PropertiesPage() {
                                     ) : (
                                         <TableRow>
                                             <TableCell colSpan={3} className="h-24 text-center">
-                                                No properties found. Get started by adding a new one.
+                                                No items found. Get started by adding a new one.
                                             </TableCell>
                                         </TableRow>
                                     )}
@@ -233,7 +233,7 @@ export default function PropertiesPage() {
                     </CardContent>
                      <CardFooter className="flex items-center justify-between">
                         <div className="text-xs text-muted-foreground">
-                            Showing <strong>{properties.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}</strong> to <strong>{Math.min(currentPage * itemsPerPage, properties.length)}</strong> of <strong>{properties.length}</strong> properties
+                            Showing <strong>{properties.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}</strong> to <strong>{Math.min(currentPage * itemsPerPage, properties.length)}</strong> of <strong>{properties.length}</strong> items
                         </div>
                         <div className="flex items-center space-x-2">
                             <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.max(p - 1, 1))} disabled={currentPage === 1}>
@@ -259,7 +259,7 @@ export default function PropertiesPage() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the <strong>{deleteTarget?.name}</strong> property.
+                            This action cannot be undone. This will permanently delete the <strong>{deleteTarget?.name}</strong> item.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

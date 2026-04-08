@@ -30,7 +30,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { Property } from './types';
 
 const propertySchema = z.object({
-  name: z.string().min(1, 'Property name is required'),
+  name: z.string().min(1, 'Item name is required'),
   imageUrl: z.string().nullable().optional(),
 });
 
@@ -102,8 +102,8 @@ export function PropertySheet({ open, onOpenChange, property, onSave }: Property
 
     onSave(finalData);
     toast({
-      title: property ? 'Property Updated' : 'Property Created',
-      description: `Property "${finalData.name}" has been saved.`,
+      title: property ? 'Item Updated' : 'Item Created',
+      description: `Item "${finalData.name}" has been saved.`,
     });
     onOpenChange(false);
   };
@@ -112,9 +112,9 @@ export function PropertySheet({ open, onOpenChange, property, onSave }: Property
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-lg">
         <SheetHeader>
-          <SheetTitle>{property ? 'Edit' : 'Add'} Property</SheetTitle>
+          <SheetTitle>{property ? 'Edit' : 'Add'} Allergen / Property</SheetTitle>
           <SheetDescription>
-            Manage a property tag and its associated icon.
+            Manage a property or allergen tag and its associated icon.
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
@@ -124,7 +124,7 @@ export function PropertySheet({ open, onOpenChange, property, onSave }: Property
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Property Name</FormLabel>
+                  <FormLabel>Name</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Spicy" {...field} />
                   </FormControl>
@@ -138,7 +138,7 @@ export function PropertySheet({ open, onOpenChange, property, onSave }: Property
               name="imageUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Property Icon</FormLabel>
+                  <FormLabel>Icon</FormLabel>
                    <FormControl>
                       <div className="space-y-2">
                           <label className="cursor-pointer block w-full aspect-square max-w-[160px] rounded-lg border-2 border-dashed flex items-center justify-center bg-muted overflow-hidden hover:bg-muted/80 hover:border-primary transition-colors">
@@ -176,7 +176,7 @@ export function PropertySheet({ open, onOpenChange, property, onSave }: Property
 
             <SheetFooter>
               <SheetClose asChild><Button type="button" variant="ghost">Cancel</Button></SheetClose>
-              <Button type="submit">Save Property</Button>
+              <Button type="submit">Save Item</Button>
             </SheetFooter>
           </form>
         </Form>
