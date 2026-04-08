@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -126,7 +127,11 @@ const productSchema = z
         })
       )
       .optional(),
-    nutrition: z.record(z.string(), z.coerce.number().optional()).optional(),
+    enableNutrition: z.boolean().default(true),
+    nutrition: z.array(z.object({
+      name: z.string(), // This will be the key like 'protein'
+      value: z.coerce.number().min(0, "Value cannot be negative.").optional(),
+    })).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.discountType === 'percentage') {
@@ -195,6 +200,10 @@ export function ProductSheet({
         discountType = 'fixed';
         discountValue = product.price - product.discountedPrice;
     }
+    
+    const nutritionArray = product?.nutrition 
+        ? Object.entries(product.nutrition).map(([key, value]) => ({ name: key, value: value as number })) 
+        : [];
 
     return {
       name: product?.name || '',
@@ -219,7 +228,8 @@ export function ProductSheet({
       videoUrl: product?.videoUrl || '',
       externalLink: product?.externalLink || '',
       variations: product?.variations || [],
-      nutrition: product?.nutrition || {},
+      enableNutrition: !!(product?.nutrition && Object.keys(product.nutrition).length > 0) || !product,
+      nutrition: nutritionArray,
     };
   }, [product]);
 
@@ -237,8 +247,17 @@ export function ProductSheet({
     control: form.control,
     name: 'variations',
   });
+  
+   const {
+    fields: nutritionFields,
+    append: appendNutrition,
+    remove: removeNutrition,
+  } = useFieldArray({
+    control: form.control,
+    name: 'nutrition',
+  });
 
-  const { toast } = useToast();
+  const toast = useToast();
   const { isDirty, isValid, errors } = form.formState;
   const productName = form.watch('name');
   const productCategory = form.watch('category');
@@ -360,7 +379,7 @@ export function ProductSheet({
       discountedPrice = data.price - data.discountValue;
     }
 
-    const { discountType: dt, discountValue: dv, properties: formProperties, ...restOfData } = data;
+    const { discountType: dt, discountValue: dv, properties: formProperties, enableNutrition, nutrition: nutritionArray, ...restOfData } = data;
 
     let finalStatus: Product['status'];
     if (product) { // Editing
@@ -375,6 +394,15 @@ export function ProductSheet({
     } else { // Creating
         finalStatus = statusOverride || 'Active';
     }
+
+    const nutritionObject = data.enableNutrition && data.nutrition && data.nutrition.length > 0
+        ? data.nutrition.reduce((acc, curr) => {
+            if (curr.name && curr.value !== undefined && curr.value !== null) {
+                acc[curr.name] = curr.value;
+            }
+            return acc;
+        }, {} as Record<string, number>) 
+        : undefined;
 
 
     const fullProductData: Product = {
@@ -391,6 +419,7 @@ export function ProductSheet({
       description: data.description || '',
       mainImage: mainImagePreview || undefined,
       additionalImages: galleryPreviews,
+      nutrition: nutritionObject,
     };
     
     onSave(fullProductData as Product);
@@ -437,6 +466,11 @@ export function ProductSheet({
     { value: 'variations', label: 'Variations', isComplete: areVariationsComplete },
     { value: 'nutrition', label: 'Nutrition', isComplete: true },
   ];
+  
+  const addedNutritionNames = nutritionFields.map(field => field.name);
+  const availableNutritionItems = initialNutritionItems.filter(
+    item => item.enabled && !addedNutritionNames.includes(item.name.toLowerCase().replace(/\s/g, '_'))
+  );
 
   return (
     <>
@@ -1324,43 +1358,93 @@ export function ProductSheet({
                       </TabsContent>
                       <TabsContent value="nutrition">
                         <Card>
-                          <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><Leaf className="h-5 w-5" /> Nutritional Facts</CardTitle>
-                            <CardDescription>
-                              Provide nutritional information for this product. Values are per serving.
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {initialNutritionItems.filter(item => item.enabled).map(item => (
-                              <FormField
-                                key={item.id}
-                                control={form.control}
-                                name={`nutrition.${item.name.toLowerCase().replace(/\s/g, '_')}`}
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>{item.name}</FormLabel>
-                                    <div className="relative">
-                                      <FormControl>
-                                        <Input
-                                          type="number"
-                                          step="0.1"
-                                          placeholder="0.0"
-                                          {...field}
-                                          value={field.value ?? ''}
-                                          onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.valueAsNumber)}
-                                          className="pr-12"
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2"><Leaf className="h-5 w-5" /> Nutritional Facts</CardTitle>
+                                <CardDescription>
+                                Provide nutritional information for this product. Values are per serving.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                <FormField
+                                    control={form.control}
+                                    name="enableNutrition"
+                                    render={({ field }) => (
+                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                        <div className="space-y-0.5">
+                                        <FormLabel className="text-base">Enable Nutritional Info</FormLabel>
+                                        <FormDescription>
+                                            When enabled, you can add nutritional facts to this product.
+                                        </FormDescription>
+                                        </div>
+                                        <FormControl>
+                                        <Switch
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
                                         />
-                                      </FormControl>
-                                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                        <span className="text-muted-foreground text-sm uppercase">{item.unit}</span>
-                                      </div>
+                                        </FormControl>
+                                    </FormItem>
+                                    )}
+                                />
+                                {form.watch('enableNutrition') && (
+                                    <div className="space-y-4 pt-4 border-t">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
+                                            {nutritionFields.map((field, index) => {
+                                                const nutritionItem = initialNutritionItems.find(item => item.name.toLowerCase().replace(/\s/g, '_') === field.name);
+                                                return (
+                                                <div key={field.id} className="flex items-end gap-2">
+                                                    <FormField
+                                                    control={form.control}
+                                                    name={`nutrition.${index}.value`}
+                                                    render={({ field: valueField }) => (
+                                                        <FormItem className="flex-1">
+                                                        <FormLabel>{nutritionItem?.name || field.name}</FormLabel>
+                                                        <div className="relative">
+                                                            <FormControl>
+                                                            <Input
+                                                                type="number"
+                                                                step="0.1"
+                                                                placeholder="0.0"
+                                                                {...valueField}
+                                                                value={valueField.value ?? ''}
+                                                                onChange={e => valueField.onChange(e.target.value === '' ? undefined : e.target.valueAsNumber)}
+                                                                className="pr-12"
+                                                            />
+                                                            </FormControl>
+                                                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                                            <span className="text-muted-foreground text-sm uppercase">{nutritionItem?.unit}</span>
+                                                            </div>
+                                                        </div>
+                                                         <FormMessage />
+                                                        </FormItem>
+                                                    )}
+                                                    />
+                                                    <Button type="button" variant="ghost" size="icon" onClick={() => removeNutrition(index)}>
+                                                        <Trash className="h-4 w-4 text-destructive" />
+                                                    </Button>
+                                                </div>
+                                                );
+                                            })}
+                                        </div>
+                                    
+                                        {availableNutritionItems.length > 0 && (
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                <Button variant="outline" className="mt-4">
+                                                    <PlusCircle className="mr-2 h-4 w-4" /> Add Fact
+                                                </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent>
+                                                    {availableNutritionItems.map(item => (
+                                                        <DropdownMenuItem key={item.id} onSelect={() => appendNutrition({ name: item.name.toLowerCase().replace(/\s/g, '_'), value: undefined })}>
+                                                            {item.name}
+                                                        </DropdownMenuItem>
+                                                    ))}
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        )}
                                     </div>
-                                    <FormMessage />
-                                  </FormItem>
                                 )}
-                              />
-                            ))}
-                          </CardContent>
+                            </CardContent>
                         </Card>
                       </TabsContent>
                     </div>
@@ -1461,3 +1545,4 @@ export function ProductSheet({
     </>
   );
 }
+
