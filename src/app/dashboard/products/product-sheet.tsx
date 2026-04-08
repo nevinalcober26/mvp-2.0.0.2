@@ -72,6 +72,7 @@ import {
   Image as ImageIcon,
   GalleryHorizontal,
   X,
+  Leaf,
 } from 'lucide-react';
 import type { Product, Variation } from './types';
 import Image from 'next/image';
@@ -125,6 +126,7 @@ const productSchema = z
         })
       )
       .optional(),
+    nutrition: z.record(z.string(), z.coerce.number().optional()).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.discountType === 'percentage') {
@@ -153,6 +155,16 @@ const productSchema = z
 type ProductFormValues = z.infer<typeof productSchema>;
 
 const mockProperties = ['Spicy', 'Vegetarian', 'Gluten-Free', 'New'];
+
+const initialNutritionItems: { id: string; name: string; unit: 'g' | 'mg' | 'kcal'; enabled: boolean; }[] = [
+  { id: '1', name: 'Calories', unit: 'kcal', enabled: true },
+  { id: '2', name: 'Protein', unit: 'g', enabled: true },
+  { id: '3', name: 'Fat', unit: 'g', enabled: true },
+  { id: '4', name: 'Carbohydrates', unit: 'g', enabled: true },
+  { id: '5', name: 'Sugar', unit: 'g', enabled: true },
+  { id: '6', name: 'Sodium', unit: 'mg', enabled: true },
+  { id: '7', name: 'Fiber', unit: 'g', enabled: true },
+];
 
 export function ProductSheet({
   open,
@@ -208,6 +220,7 @@ export function ProductSheet({
       videoUrl: product?.videoUrl || '',
       externalLink: product?.externalLink || '',
       variations: product?.variations || [],
+      nutrition: product?.nutrition || {},
     };
   }, [product]);
 
@@ -394,6 +407,7 @@ export function ProductSheet({
       price: 'pricing',
       discountValue: 'pricing',
       variations: 'variations',
+      nutrition: 'nutrition',
     };
 
     for (const key of errorKeys) {
@@ -422,6 +436,7 @@ export function ProductSheet({
     { value: 'display', label: 'Display & Options', isComplete: true },
     { value: 'media', label: 'Media', isComplete: true },
     { value: 'variations', label: 'Variations', isComplete: areVariationsComplete },
+    { value: 'nutrition', label: 'Nutrition', isComplete: true },
   ];
 
   return (
@@ -1306,6 +1321,47 @@ export function ProductSheet({
                                     Add Variation
                                 </Button>
                             </CardContent>
+                        </Card>
+                      </TabsContent>
+                      <TabsContent value="nutrition">
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><Leaf className="h-5 w-5" /> Nutritional Facts</CardTitle>
+                            <CardDescription>
+                              Provide nutritional information for this product. Values are per serving.
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {initialNutritionItems.filter(item => item.enabled).map(item => (
+                              <FormField
+                                key={item.id}
+                                control={form.control}
+                                name={`nutrition.${item.name.toLowerCase().replace(/\s/g, '_')}`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{item.name}</FormLabel>
+                                    <div className="relative">
+                                      <FormControl>
+                                        <Input
+                                          type="number"
+                                          step="0.1"
+                                          placeholder="0.0"
+                                          {...field}
+                                          value={field.value ?? ''}
+                                          onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.valueAsNumber)}
+                                          className="pr-12"
+                                        />
+                                      </FormControl>
+                                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                        <span className="text-muted-foreground text-sm uppercase">{item.unit}</span>
+                                      </div>
+                                    </div>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            ))}
+                          </CardContent>
                         </Card>
                       </TabsContent>
                     </div>

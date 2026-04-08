@@ -15,6 +15,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +27,7 @@ import {
   Settings,
   Video,
   Edit,
+  Leaf,
 } from 'lucide-react';
 import type { Product } from './types';
 import Image from 'next/image';
@@ -37,6 +39,17 @@ interface ProductInfoSheetProps {
   onOpenChange: (open: boolean) => void;
   onEdit: (product: Product) => void;
 }
+
+const initialNutritionItems: { id: string; name: string; unit: 'g' | 'mg' | 'kcal'; enabled: boolean; }[] = [
+  { id: '1', name: 'Calories', unit: 'kcal', enabled: true },
+  { id: '2', name: 'Protein', unit: 'g', enabled: true },
+  { id: '3', name: 'Fat', unit: 'g', enabled: true },
+  { id: '4', name: 'Carbohydrates', unit: 'g', enabled: true },
+  { id: '5', name: 'Sugar', unit: 'g', enabled: true },
+  { id: '6', name: 'Sodium', unit: 'mg', enabled: true },
+  { id: '7', name: 'Fiber', unit: 'g', enabled: true },
+];
+
 
 export function ProductInfoSheet({
   product,
@@ -136,6 +149,34 @@ export function ProductInfoSheet({
               </CardContent>
             </Card>
 
+            {product.nutrition && Object.keys(product.nutrition).length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Leaf className="h-5 w-5" />
+                    Nutritional Information
+                  </CardTitle>
+                  <CardDescription>Values per serving.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  {Object.entries(product.nutrition)
+                    .filter(([, value]) => typeof value === 'number' && !isNaN(value))
+                    .map(([key, value]) => {
+                      const nutritionItem = initialNutritionItems.find(item => item.name.toLowerCase().replace(/\s/g, '_') === key);
+                      const unit = nutritionItem ? nutritionItem.unit : '';
+                      const formattedKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+                      return (
+                        <div key={key} className="flex justify-between border-b pb-2">
+                          <span className="text-muted-foreground">{formattedKey}</span>
+                          <span className="font-semibold">{value}{unit}</span>
+                        </div>
+                      );
+                    })}
+                </CardContent>
+              </Card>
+            )}
+
             {product.variations && product.variations.length > 0 && (
               <Card>
                 <CardHeader>
@@ -159,12 +200,12 @@ export function ProductInfoSheet({
                         </div>
                         <div className="text-right">
                           <p className="font-mono font-semibold">
-                            ${variation.price.toFixed(2)}
+                            ${variation.priceValue.toFixed(2)}
                           </p>
                           <Badge
-                            variant={variation.visible ? 'default' : 'secondary'}
+                            variant={variation.hidden ? 'secondary' : 'default'}
                           >
-                            {variation.visible ? 'Visible' : 'Hidden'}
+                            {variation.hidden ? 'Hidden' : 'Visible'}
                           </Badge>
                         </div>
                       </div>

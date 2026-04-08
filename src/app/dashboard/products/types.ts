@@ -37,4 +37,5 @@ export type Product = {
   additionalImages?: string[];
   videoUrl?: string;
   variations?: Variation[];
+  nutrition?: Record<string, number>;
 };
