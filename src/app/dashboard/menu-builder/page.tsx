@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout } from 'lucide-react';
+import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Minus } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription as DialogDescriptionComponent, DialogFooter } from '@/components/ui/dialog';
@@ -785,14 +785,6 @@ const SortableProductRow = ({ item, onAvailabilityChange, onRowClick, isSelected
     );
 };
 
-const allergenIcons: { [key: string]: React.ElementType } = {
-  'Gluten': Wheat,
-  'Dairy': Milk,
-  'Vegetarian': Leaf,
-  'Spicy': Flame,
-  'Vegan': Sprout
-};
-
 const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
     const [quantity, setQuantity] = useState(1);
     const [selectedVariation, setSelectedVariation] = useState<string | null>(null);
@@ -1028,7 +1020,7 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
                         <SheetDescription>Drag to reorder, click a row to edit details, and toggle availability.</SheetDescription>
                     </SheetHeader>
                     <div className="grid grid-cols-1 lg:grid-cols-12 flex-1 overflow-hidden">
-                        <div className="lg:col-span-3 border-r bg-muted/30 flex flex-col overflow-hidden">
+                        <div className="lg:col-span-4 border-r bg-muted/30 flex flex-col overflow-hidden">
                            <div className="p-4 border-b shrink-0">
                                 <div className="relative">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -1082,7 +1074,7 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
                              />
                            </div>
                         </div>
-                        <div className="lg:col-span-4 bg-muted/30 flex items-center justify-center p-4">
+                        <div className="lg:col-span-3 bg-muted/30 flex items-center justify-center p-4">
                            <ItemPreviewer item={selectedItem} />
                         </div>
                     </div>
@@ -1249,9 +1241,9 @@ const AddSectionSheet = ({
                 </SheetHeader>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
-                        <div className="grid grid-cols-1 lg:grid-cols-3 flex-1 overflow-hidden relative">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 flex-1 overflow-hidden relative">
                             {/* Settings Column */}
-                             <div className="lg:col-span-1 flex flex-col overflow-hidden border-r">
+                             <div className="lg:col-span-3 flex flex-col overflow-hidden border-r">
                                 <ScrollArea className="flex-1">
                                     <div className="p-6 space-y-6">
                                         <FormField
@@ -1386,7 +1378,7 @@ const AddSectionSheet = ({
                             )}
 
                             {/* Item Selection & Editor Columns */}
-                            <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 flex-1 overflow-hidden">
+                            <div className="lg:col-span-9 grid grid-cols-1 md:grid-cols-3 flex-1 overflow-hidden">
                                 {/* Available Items */}
                                 <div className="md:col-span-1 flex flex-col overflow-hidden border-r">
                                     <div className="p-4 border-b">
