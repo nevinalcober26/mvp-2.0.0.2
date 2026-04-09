@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Minus, Sparkles } from 'lucide-react';
+import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Minus, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription as DialogDescriptionComponent, DialogFooter } from '@/components/ui/dialog';
@@ -611,7 +611,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                                     <span className="font-semibold">{variation.value || 'New Variation'}</span>
                                 </CollapsibleTrigger>
                                 <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveVariation(index)} className="ml-4 shrink-0">
-                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                    <Trash className="h-4 w-4 text-destructive" />
                                 </Button>
                             </div>
                             <CollapsibleContent>
@@ -700,7 +700,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                                             </div>
                                         </div>
                                         <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveNutritionField(key)}>
-                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                            <Trash className="h-4 w-4 text-destructive" />
                                         </Button>
                                     </div>
                                 )
@@ -1126,10 +1126,9 @@ const AddSectionSheet = ({
     onProductUpdate: (product: MenuItem) => void;
 }) => {
     const [addedProducts, setAddedProducts] = useState<MenuItem[]>([]);
-    const [editingProduct, setEditingProduct] = useState<MenuItem | null>(null);
+    const [selectedProduct, setSelectedProduct] = useState<MenuItem | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const sensors = useSensors(useSensor(PointerSensor));
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const fileInputRefForSection = useRef<HTMLInputElement>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -1152,7 +1151,7 @@ const AddSectionSheet = ({
         if (isOpen) {
             form.reset();
             setAddedProducts([]);
-            setEditingProduct(null);
+            setSelectedProduct(null);
             setSearchQuery('');
             setImagePreview(null);
             if (fileInputRefForSection.current) fileInputRefForSection.current.value = '';
@@ -1175,8 +1174,8 @@ const AddSectionSheet = ({
 
     const handleRemoveProduct = (productId: string) => {
         setAddedProducts(prev => prev.filter(p => p.id !== productId));
-        if (editingProduct?.id === productId) {
-            setEditingProduct(null);
+        if (selectedProduct?.id === productId) {
+            setSelectedProduct(null);
         }
     };
 
@@ -1192,15 +1191,15 @@ const AddSectionSheet = ({
     };
     
     const handleEditorChange = (itemId: string, field: keyof MenuItem, value: any) => {
-        if (!editingProduct || itemId !== editingProduct.id) return;
-        const updatedProduct = { ...editingProduct, [field]: value };
-        setEditingProduct(updatedProduct);
+        if (!selectedProduct || itemId !== selectedProduct.id) return;
+        const updatedProduct = { ...selectedProduct, [field]: value };
+        setSelectedProduct(updatedProduct);
         setAddedProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
         onProductUpdate(updatedProduct);
     };
 
     const handleImageUpload = (itemId: string, event: React.ChangeEvent<HTMLInputElement>) => {
-        if (!editingProduct || itemId !== editingProduct.id) return;
+        if (!selectedProduct || itemId !== selectedProduct.id) return;
         const file = event.target.files?.[0];
         if (file) {
             const reader = new FileReader();
@@ -1374,7 +1373,7 @@ const AddSectionSheet = ({
                              </div>
 
                              {form.watch('enableCategoryLink') && (
-                                <div className="absolute inset-0 lg:left-1/3 bg-background/80 backdrop-blur-sm z-10 flex items-center justify-center">
+                                <div className="absolute inset-0 lg:left-1/4 bg-background/80 backdrop-blur-sm z-10 flex items-center justify-center">
                                     <div className="text-center p-4">
                                         <p className="font-semibold">Item selection is disabled.</p>
                                         <p className="text-sm text-muted-foreground">This section is configured as an external link.</p>
@@ -1382,7 +1381,7 @@ const AddSectionSheet = ({
                                 </div>
                             )}
 
-                            {/* Item Selection & Editor Columns */}
+                            {/* Item Selection & Previewer Columns */}
                             <div className="lg:col-span-9 grid grid-cols-1 md:grid-cols-3 flex-1 overflow-hidden">
                                 {/* Available Items */}
                                 <div className="md:col-span-1 flex flex-col overflow-hidden border-r">
@@ -1413,7 +1412,7 @@ const AddSectionSheet = ({
                                 <div className="md:col-span-1 flex flex-col overflow-hidden border-r">
                                     <div className="p-4 border-b shrink-0">
                                         <h3 className="font-semibold text-lg">{form.watch('name') || 'New Section'} ({addedProducts.length} items)</h3>
-                                        <p className="text-sm text-muted-foreground">Drag to reorder. Click to edit.</p>
+                                        <p className="text-sm text-muted-foreground">Drag to reorder. Click to preview.</p>
                                     </div>
                                     <ScrollArea className="flex-1">
                                          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -1430,8 +1429,8 @@ const AddSectionSheet = ({
                                                         };
                                                         return (
                                                             <SortableWrapper key={product.id}>
-                                                                <div className="flex-1 cursor-pointer" onClick={() => setEditingProduct(product)}>
-                                                                    <p className={cn("text-sm font-semibold line-clamp-1", editingProduct?.id === product.id && "text-primary")}>{product.name}</p>
+                                                                <div className="flex-1 cursor-pointer" onClick={() => setSelectedProduct(product)}>
+                                                                    <p className={cn("text-sm font-semibold line-clamp-1", selectedProduct?.id === product.id && "text-primary")}>{product.name}</p>
                                                                     <p className="text-xs text-muted-foreground">AED {product.price.toFixed(2)}</p>
                                                                 </div>
                                                                 <Button type="button" size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => handleRemoveProduct(product.id)}>
@@ -1445,17 +1444,9 @@ const AddSectionSheet = ({
                                          </DndContext>
                                     </ScrollArea>
                                 </div>
-                                {/* Item Editor */}
-                                 <div className="md:col-span-1 bg-muted/30 overflow-y-auto">
-                                    <div className="p-4 border-b shrink-0">
-                                        <h3 className="font-semibold text-lg">Item Editor</h3>
-                                    </div>
-                                    <ItemEditor 
-                                        item={editingProduct}
-                                        onUpdate={handleEditorChange}
-                                        onImageUpload={handleImageUpload}
-                                        onAvailabilityChange={handleEditorChange}
-                                    />
+                                {/* Item Previewer */}
+                                <div className="md:col-span-1 bg-muted/30 flex items-center justify-center p-4 overflow-y-auto">
+                                   <ItemPreviewer item={selectedProduct} />
                                 </div>
                             </div>
                         </div>
