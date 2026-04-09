@@ -8,10 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Minus } from 'lucide-react';
+import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Minus, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription as DialogDescriptionComponent, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription as DialogDescriptionComponent } from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -789,6 +789,17 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
     const [quantity, setQuantity] = useState(1);
     const [selectedVariation, setSelectedVariation] = useState<string | null>(null);
 
+    const allergenIcons: Record<string, React.ElementType> = {
+        'Gluten': Wheat,
+        'Dairy': Milk,
+        'Vegetarian': Leaf,
+        'Spicy': Flame,
+        'Halal': Sprout,
+        'Gluten-Free': Wheat,
+        'New': Sparkles,
+        'Organic': Leaf
+    };
+
     useEffect(() => {
         setQuantity(1);
         setSelectedVariation(item?.variations?.[0]?.value || null);
@@ -1220,12 +1231,6 @@ const AddSectionSheet = ({
         if (fileInputRefForSection.current) fileInputRefForSection.current.value = '';
     };
 
-
-    const handleAvailabilityChange = (itemId: string, available: boolean) => {
-        if (editingProduct && editingProduct.id === itemId) {
-            handleEditorChange(itemId, 'available', available);
-        }
-    };
 
     const onSubmit = (data: AddSectionFormValues) => {
         onAddSection(data, addedProducts.map(p => p.id));
@@ -1934,9 +1939,9 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
                     Connect Your POS
                     </Button>
                 </div>
-                <DialogFooter className="sm:justify-center">
+                <div className="sm:justify-center">
                     <Button variant="outline" onClick={() => setPosFlowStep('')}>Cancel</Button>
-                </DialogFooter>
+                </div>
                 </>
             )}
         </DialogContent>
