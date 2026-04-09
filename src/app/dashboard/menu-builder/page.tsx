@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket } from 'lucide-react';
+import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash, Trash2, PlusCircle, Plug, Leaf, Package, Rocket } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription as DialogDescriptionComponent, DialogFooter } from '@/components/ui/dialog';
@@ -252,10 +252,12 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [localVariations, setLocalVariations] = useState<Variation[]>([]);
+    const [localNutrition, setLocalNutrition] = useState<Record<string, number>>({});
 
     useEffect(() => {
         if (item) {
             setLocalVariations(item.variations || []);
+            setLocalNutrition(item.nutrition || {});
         }
     }, [item]);
 
@@ -291,6 +293,28 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
         onUpdate(item.id, 'variations', newVariations);
     };
 
+    const handleNutritionChange = (key: string, value: string) => {
+        if (!item) return;
+        const newNutrition = { ...localNutrition, [key]: parseFloat(value) || 0 };
+        setLocalNutrition(newNutrition);
+        onUpdate(item.id, 'nutrition', newNutrition);
+    };
+    
+    const handleAddNutritionField = (key: string) => {
+        if (!item) return;
+        const newNutrition = { ...localNutrition, [key]: 0 };
+        setLocalNutrition(newNutrition);
+        onUpdate(item.id, 'nutrition', newNutrition);
+    };
+
+    const handleRemoveNutritionField = (key: string) => {
+        if (!item) return;
+        const { [key]: _, ...rest } = localNutrition;
+        setLocalNutrition(rest);
+        onUpdate(item.id, 'nutrition', rest);
+    };
+
+
     if (!item) {
         return (
             <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-8">
@@ -301,14 +325,10 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
         );
     }
     
-    const availableNutritionItems = (currentNutrition?: Record<string, number>) => {
-        if (!currentNutrition) return initialNutritionItems.filter(item => item.enabled);
-        const addedKeys = Object.keys(currentNutrition);
-        return initialNutritionItems.filter(item => 
-            item.enabled && 
-            !addedKeys.includes(item.name.toLowerCase().replace(/\s/g, '_'))
-        );
-    };
+    const addedNutritionKeys = Object.keys(localNutrition);
+    const availableNutritionItems = initialNutritionItems.filter(
+        ni => ni.enabled && !addedNutritionKeys.includes(ni.name.toLowerCase().replace(/\s/g, '_'))
+    );
 
     return (
         <div className="p-6 space-y-6">
@@ -459,7 +479,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                     </div>
                     {item.nutrition !== undefined && (
                         <div className="space-y-4 pt-4 border-t">
-                            {Object.keys(item.nutrition).map(key => {
+                            {Object.entries(localNutrition).map(([key, value]) => {
                                 const nutritionItem = initialNutritionItems.find(i => i.name.toLowerCase().replace(/\s/g, '_') === key);
                                 return (
                                     <div key={key} className="flex items-end gap-2">
@@ -470,27 +490,20 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                                                     id={`nutrition-${key}`}
                                                     type="number"
                                                     step="0.1"
-                                                    value={item.nutrition?.[key] ?? ''}
-                                                    onChange={(e) => {
-                                                        const value = e.target.value === '' ? undefined : parseFloat(e.target.value);
-                                                        const newNutrition = { ...item.nutrition, [key]: value };
-                                                        onUpdate(item.id, 'nutrition', newNutrition);
-                                                    }}
+                                                    value={value ?? ''}
+                                                    onChange={(e) => handleNutritionChange(key, e.target.value)}
                                                     className="pr-12"
                                                 />
                                                 <span className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-muted-foreground text-sm uppercase">{nutritionItem?.unit}</span>
                                             </div>
                                         </div>
-                                        <Button type="button" variant="ghost" size="icon" onClick={() => {
-                                            const { [key]: _, ...rest } = item.nutrition || {};
-                                            onUpdate(item.id, 'nutrition', rest);
-                                        }}>
+                                        <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveNutritionField(key)}>
                                             <Trash2 className="h-4 w-4 text-destructive" />
                                         </Button>
                                     </div>
                                 )
                             })}
-                            {availableNutritionItems(item.nutrition).length > 0 && (
+                            {availableNutritionItems.length > 0 && (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="outline" size="sm" className="mt-2">
@@ -499,11 +512,8 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent>
-                                        {availableNutritionItems(item.nutrition).map(ni => (
-                                            <DropdownMenuItem key={ni.id} onSelect={() => {
-                                                const newNutrition = { ...item.nutrition, [ni.name.toLowerCase().replace(/\s/g, '_')]: 0 };
-                                                onUpdate(item.id, 'nutrition', newNutrition);
-                                            }}>
+                                        {availableNutritionItems.map(ni => (
+                                            <DropdownMenuItem key={ni.id} onSelect={() => handleAddNutritionField(ni.name.toLowerCase().replace(/\s/g, '_'))}>
                                                 {ni.name}
                                             </DropdownMenuItem>
                                         ))}
