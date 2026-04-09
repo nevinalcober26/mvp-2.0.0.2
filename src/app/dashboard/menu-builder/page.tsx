@@ -5,13 +5,13 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { MenuBuilderPreloader } from '@/components/dashboard/menu-builder/preloader';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
 import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription as DialogDescriptionComponent, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription as DialogDescriptionComponent } from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +30,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import { MenuItemCard, type MenuItem as BaseMenuItem } from '@/app/mobile/menu/menu-item-card';
 import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -403,9 +403,17 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
             setLocalVariations(item.variations || []);
             const nutritionData = item.nutrition || {};
             setLocalNutrition(nutritionData);
-            setIsNutritionEnabled(Object.keys(nutritionData).length > 0 || item.nutrition === undefined);
+            setIsNutritionEnabled(item.nutrition !== undefined);
         }
     }, [item]);
+
+    const totalKcal = useMemo(() => {
+        if (!isNutritionEnabled) return 0;
+        const protein = localNutrition.protein || 0;
+        const carbs = localNutrition.carbohydrates || 0;
+        const fat = localNutrition.fat || 0;
+        return Math.round((protein * 4) + (carbs * 4) + (fat * 9));
+    }, [localNutrition, isNutritionEnabled]);
 
     const handleUpdate = (field: keyof MenuItem, value: any) => {
         if (item) onUpdate(item.id, field, value);
@@ -459,7 +467,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
         if (!enabled) {
             setLocalNutrition({});
             handleUpdate('nutrition', undefined);
-        } else if (item && !item.nutrition) {
+        } else if (item && item.nutrition === undefined) {
             handleUpdate('nutrition', {});
         }
     };
@@ -709,6 +717,14 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                         </div>
                     )}
                 </CardContent>
+                {isNutritionEnabled && totalKcal > 0 && (
+                    <CardFooter className="bg-muted/50 p-3 border-t">
+                        <div className="flex justify-between items-center w-full">
+                            <span className="font-bold text-sm">Total Calories (est.)</span>
+                            <span className="font-mono font-bold text-lg text-primary">{totalKcal} kcal</span>
+                        </div>
+                    </CardFooter>
+                )}
             </Card>
         </div>
     );
