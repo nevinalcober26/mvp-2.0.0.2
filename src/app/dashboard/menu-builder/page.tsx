@@ -166,12 +166,113 @@ interface MenuItem extends BaseMenuItem {
 }
 
 const mockMenuItems: MenuItem[] = [
-    { id: 'pizza-margherita-12', name: 'Pizza Margherita - 12 inches', description: 'Homemade dough, homemade pizza sauce,...', price: 36.00, category: 'Bestsellers', image: getImageUrl('margherita-pizza'), isCustomisable: false, properties: ['Vegetarian'] },
-    { id: 'chicken-alfredo-pizza-12', name: 'Chicken Alfredo Pizza - 12 inches', description: 'Homemade dough, white sauce base, marinated...', price: 48.00, category: 'Bestsellers', isCustomisable: true, image: getImageUrl('alfredo-pizza'), properties: ['Halal'] },
-    { id: 'pizza-margherita-10', name: 'Pizza Margherita - 10 inches', description: 'Homemade dough, homemade pizza sauce,...', price: 27.00, category: 'Pizza', image: getImageUrl('margherita-pizza'), isCustomisable: false, properties: ['Vegetarian'] },
-    { id: 'hawaiian-pizza-10', name: 'Hawaiian Pizza - 10 inches', description: 'Homemade dough, pizza sauce, mozzarella, ham,...', price: 32.00, category: 'Pizza', isCustomisable: true, image: getImageUrl('hawaiian-pizza') },
-    { id: 'soft-drink', name: 'Soft Drink', description: 'Choose your favorite flavor.', price: 3.00, category: 'Drinks', isCustomisable: true, image: getImageUrl('soft-drink') },
-    { id: 'bottled-water', name: 'Bottled Water', description: 'Still or sparkling water.', price: 2.50, category: 'Drinks', image: getImageUrl('bottled-water') },
+    { 
+        id: 'pizza-margherita-12', 
+        name: 'Pizza Margherita - 12 inches', 
+        description: 'Homemade dough, homemade pizza sauce,...', 
+        price: 36.00, 
+        category: 'Bestsellers', 
+        image: getImageUrl('margherita-pizza'), 
+        isCustomisable: true, 
+        properties: ['Vegetarian'],
+        variations: [
+            { id: 'var_pm12_1', value: 'Thin Crust', priceMode: 'override', priceValue: 36.00, hidden: false, categoryPage: true, productPage: true },
+            { id: 'var_pm12_2', value: 'Thick Crust', priceMode: 'add', priceValue: 5.00, hidden: false, categoryPage: true, productPage: true },
+        ],
+        nutrition: {
+            protein: 25,
+            fat: 20,
+            carbohydrates: 80,
+            sugar: 10
+        }
+    },
+    { 
+        id: 'chicken-alfredo-pizza-12', 
+        name: 'Chicken Alfredo Pizza - 12 inches', 
+        description: 'Homemade dough, white sauce base, marinated...', 
+        price: 48.00, 
+        category: 'Bestsellers', 
+        isCustomisable: true, 
+        image: getImageUrl('alfredo-pizza'), 
+        properties: ['Halal'],
+        variations: [
+            { id: 'var_alfredo_1', value: 'Standard', priceMode: 'override', priceValue: 48.00, hidden: false, categoryPage: true, productPage: true },
+            { id: 'var_alfredo_2', value: 'Extra Chicken', priceMode: 'add', priceValue: 8.00, hidden: false, categoryPage: true, productPage: true },
+        ],
+        nutrition: {
+            protein: 45,
+            fat: 30,
+            carbohydrates: 75,
+            sugar: 8
+        }
+    },
+    { 
+        id: 'pizza-margherita-10', 
+        name: 'Pizza Margherita - 10 inches', 
+        description: 'Homemade dough, homemade pizza sauce,...', 
+        price: 27.00, 
+        category: 'Pizza', 
+        image: getImageUrl('margherita-pizza'), 
+        isCustomisable: false, 
+        properties: ['Vegetarian'],
+        nutrition: {
+            protein: 18,
+            fat: 15,
+            carbohydrates: 60,
+            sugar: 7
+        }
+    },
+    { 
+        id: 'hawaiian-pizza-10', 
+        name: 'Hawaiian Pizza - 10 inches', 
+        description: 'Homemade dough, pizza sauce, mozzarella, ham,...', 
+        price: 32.00, 
+        category: 'Pizza', 
+        isCustomisable: true, 
+        image: getImageUrl('hawaiian-pizza'),
+        properties: [],
+        variations: [
+            { id: 'var_hawaiian_1', value: 'Regular', priceMode: 'override', priceValue: 32.00, hidden: false, categoryPage: true, productPage: true },
+            { id: 'var_hawaiian_2', value: 'Extra Pineapple', priceMode: 'add', priceValue: 3.00, hidden: false, categoryPage: true, productPage: true },
+        ]
+    },
+    { 
+        id: 'soft-drink', 
+        name: 'Soft Drink', 
+        description: 'Choose your favorite flavor.', 
+        price: 3.00, 
+        category: 'Drinks', 
+        isCustomisable: true, 
+        image: getImageUrl('soft-drink'),
+        properties: [],
+        variations: [
+            { id: 'var_drink_1', value: 'Coca-Cola', priceMode: 'override', priceValue: 3.00, hidden: false, categoryPage: true, productPage: true },
+            { id: 'var_drink_2', value: 'Sprite', priceMode: 'override', priceValue: 3.00, hidden: false, categoryPage: true, productPage: true },
+            { id: 'var_drink_3', value: 'Fanta', priceMode: 'override', priceValue: 3.00, hidden: false, categoryPage: true, productPage: true },
+        ],
+        nutrition: {
+            protein: 0,
+            fat: 0,
+            carbohydrates: 39,
+            sugar: 39
+        }
+    },
+    { 
+        id: 'bottled-water', 
+        name: 'Bottled Water', 
+        description: 'Still or sparkling water.', 
+        price: 2.50, 
+        category: 'Drinks', 
+        isCustomisable: false,
+        image: getImageUrl('bottled-water'),
+        properties: [],
+        nutrition: {
+            protein: 0,
+            fat: 0,
+            carbohydrates: 0,
+            sugar: 0
+        }
+    },
     { 
         id: 'steak-frites', 
         name: 'Steak Frites', 
@@ -181,10 +282,15 @@ const mockMenuItems: MenuItem[] = [
         image: getImageUrl('ribeye-steak'),
         properties: ['Halal'],
         variations: [
-            { id: 'var_steak_1', value: 'Rare', priceMode: 'override', priceValue: 25.00, hidden: false },
-            { id: 'var_steak_2', value: 'Medium Rare', priceMode: 'override', priceValue: 25.00, hidden: false },
-            { id: 'var_steak_3', value: 'Medium', priceMode: 'override', priceValue: 25.00, hidden: false },
-        ]
+            { id: 'var_steak_1', value: 'Rare', priceMode: 'override', priceValue: 25.00, hidden: false, categoryPage: true, productPage: true },
+            { id: 'var_steak_2', value: 'Medium Rare', priceMode: 'override', priceValue: 25.00, hidden: false, categoryPage: true, productPage: true },
+            { id: 'var_steak_3', value: 'Medium', priceMode: 'override', priceValue: 25.00, hidden: false, categoryPage: true, productPage: true },
+        ],
+        nutrition: {
+            protein: 50,
+            fat: 35,
+            carbohydrates: 40
+        }
     } as any,
     { 
         id: 'classic-cheeseburger', 
@@ -201,17 +307,47 @@ const mockMenuItems: MenuItem[] = [
             sugar: 8
         },
         variations: [
-            { id: 'var_cb_1', value: 'Single Patty', priceMode: 'override', priceValue: 35.00, hidden: false },
-            { id: 'var_cb_2', value: 'Double Patty', priceMode: 'add', priceValue: 10.00, hidden: false },
+            { id: 'var_cb_1', value: 'Single Patty', priceMode: 'override', priceValue: 35.00, hidden: false, categoryPage: true, productPage: true },
+            { id: 'var_cb_2', value: 'Double Patty', priceMode: 'add', priceValue: 10.00, hidden: false, categoryPage: true, productPage: true },
         ]
     } as any,
-    { id: 'truffle-fries', name: 'Truffle Fries', description: 'Crispy fries with a truffle twist.', price: 15.00, category: 'Sides', image: getImageUrl('truffle-fries'), properties: ['Vegetarian'] } as any,
-    { id: 'lava-cake', name: 'Chocolate Lava Cake', description: 'A chocolate lover\'s dream.', price: 22.00, category: 'Desserts', image: getImageUrl('lava-cake'), properties: ['Vegetarian'] } as any
+    { 
+        id: 'truffle-fries', 
+        name: 'Truffle Fries', 
+        description: 'Crispy fries with a truffle twist.', 
+        price: 15.00, 
+        category: 'Sides', 
+        image: getImageUrl('truffle-fries'), 
+        properties: ['Vegetarian'],
+        nutrition: {
+            protein: 4,
+            fat: 15,
+            carbohydrates: 35,
+            sodium: 350
+        }
+    } as any,
+    { 
+        id: 'lava-cake', 
+        name: 'Chocolate Lava Cake', 
+        description: 'A chocolate lover\'s dream.', 
+        price: 22.00, 
+        category: 'Desserts', 
+        image: getImageUrl('lava-cake'), 
+        properties: ['Vegetarian'],
+        nutrition: {
+            protein: 6,
+            fat: 22,
+            carbohydrates: 50,
+            sugar: 35
+        }
+    } as any
 ];
+
 
 const mockMenuData = [
     { id: 'bestsellers', name: 'Bestsellers', items: mockMenuItems.filter(i => i.category === 'Bestsellers') },
     { id: 'pizza', name: 'Pizza', items: mockMenuItems.filter(i => i.category === 'Pizza') },
+    { id: 'main-courses', name: 'Main Courses', items: mockMenuItems.filter(i => i.category === 'Main Courses') },
     { id: 'sides', name: 'Sides', items: mockMenuItems.filter(i => i.category === 'Sides') },
     { id: 'desserts', name: 'Desserts', items: mockMenuItems.filter(i => i.category === 'Desserts') },
     { id: 'drinks', name: 'Drinks', items: mockMenuItems.filter(i => i.category === 'Drinks') },
@@ -287,7 +423,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
 
     const handleAddVariation = () => {
         const newVariation: Variation = {
-            id: `var_${Date.now()}`, value: '', priceMode: 'override', priceValue: 0, hidden: false
+            id: `var_${Date.now()}`, value: '', priceMode: 'override', priceValue: 0, hidden: false, categoryPage: true, productPage: true
         };
         const newVariations = [...localVariations, newVariation];
         setLocalVariations(newVariations);
