@@ -52,6 +52,11 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Upload } from 'lucide-react';
 import type { PosConnection } from '@/app/dashboard/integration/pos/types';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 
 const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit }: { 
   name: string; 
@@ -246,6 +251,45 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
     onAvailabilityChange: (itemId: string, available: boolean) => void;
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [localVariations, setLocalVariations] = useState<Variation[]>([]);
+
+    useEffect(() => {
+        if (item) {
+            setLocalVariations(item.variations || []);
+        }
+    }, [item]);
+
+    const handleVariationChange = (index: number, field: keyof Variation, value: any) => {
+        if (!item) return;
+        const newVariations = [...localVariations];
+        if (field === 'priceValue' && typeof value === 'string') {
+            value = parseFloat(value) || 0;
+        }
+        newVariations[index] = { ...newVariations[index], [field]: value };
+        setLocalVariations(newVariations);
+        onUpdate(item.id, 'variations', newVariations);
+    };
+
+    const handleAddVariation = () => {
+        if (!item) return;
+        const newVariation: Variation = {
+            id: `var_${Date.now()}`,
+            value: '',
+            priceMode: 'override',
+            priceValue: 0,
+            hidden: false
+        };
+        const newVariations = [...localVariations, newVariation];
+        setLocalVariations(newVariations);
+        onUpdate(item.id, 'variations', newVariations);
+    };
+
+    const handleRemoveVariation = (index: number) => {
+        if (!item) return;
+        const newVariations = localVariations.filter((_, i) => i !== index);
+        setLocalVariations(newVariations);
+        onUpdate(item.id, 'variations', newVariations);
+    };
 
     if (!item) {
         return (
@@ -257,7 +301,8 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
         );
     }
     
-    const availableNutritionItems = (currentNutrition: Record<string, number>) => {
+    const availableNutritionItems = (currentNutrition?: Record<string, number>) => {
+        if (!currentNutrition) return initialNutritionItems.filter(item => item.enabled);
         const addedKeys = Object.keys(currentNutrition);
         return initialNutritionItems.filter(item => 
             item.enabled && 
@@ -329,27 +374,73 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                 />
             </div>
 
-            {item.variations && item.variations.length > 0 && (
-                <Card className="mt-6">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-lg"><Package className="h-5 w-5" /> Variations</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                        {item.variations.map(variation => (
-                            <div key={variation.id} className="flex justify-between items-center text-sm p-2 rounded-md bg-muted/50">
-                                <div>
-                                    <p className="font-medium">{variation.value}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="font-mono font-semibold">
-                                        {variation.priceMode === 'override' ? '' : variation.priceMode === 'add' ? '+' : '-'}${variation.priceValue.toFixed(2)}
-                                    </p>
-                                </div>
+            <Card className="mt-6">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg"><Package className="h-5 w-5" /> Variations</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {localVariations.map((variation, index) => (
+                        <Collapsible key={variation.id || index} defaultOpen className="rounded-lg border bg-muted/40">
+                            <div className="flex items-center p-3">
+                                <CollapsibleTrigger className="flex flex-1 items-center gap-2 text-left [&[data-state=open]>svg]:rotate-180">
+                                    <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                                    <span className="font-semibold">{variation.value || 'New Variation'}</span>
+                                </CollapsibleTrigger>
+                                <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveVariation(index)} className="ml-4 shrink-0">
+                                    <Trash className="h-4 w-4 text-destructive" />
+                                </Button>
                             </div>
-                        ))}
-                    </CardContent>
-                </Card>
-            )}
+                            <CollapsibleContent>
+                                <div className="space-y-4 border-t bg-card p-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <Label>Variation Value</Label>
+                                            <Input
+                                                value={variation.value}
+                                                onChange={(e) => handleVariationChange(index, 'value', e.target.value)}
+                                                placeholder="e.g., Small, Large, Spicy"
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label>Price Rule</Label>
+                                            <Select
+                                                value={variation.priceMode}
+                                                onValueChange={(value) => handleVariationChange(index, 'priceMode', value)}
+                                            >
+                                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="override">Set specific price</SelectItem>
+                                                    <SelectItem value="add">Add to base price</SelectItem>
+                                                    <SelectItem value="subtract">Subtract from base price</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <Label>
+                                            { {
+                                                'override': 'Specific Price (AED)',
+                                                'add': 'Amount to Add (AED)',
+                                                'subtract': 'Amount to Subtract (AED)'
+                                            }[variation.priceMode] }
+                                        </Label>
+                                        <Input
+                                            type="number"
+                                            value={variation.priceValue}
+                                            onChange={(e) => handleVariationChange(index, 'priceValue', e.target.value)}
+                                            placeholder="0.00"
+                                        />
+                                    </div>
+                                </div>
+                            </CollapsibleContent>
+                        </Collapsible>
+                    ))}
+                    <Button type="button" variant="outline" onClick={handleAddVariation} className="w-full">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add Variation
+                    </Button>
+                </CardContent>
+            </Card>
 
             <Card className="mt-6">
                 <CardHeader>
@@ -362,11 +453,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                             id="enableNutrition"
                             checked={item.nutrition !== undefined}
                             onCheckedChange={(checked) => {
-                                if (checked) {
-                                    onUpdate(item.id, 'nutrition', {});
-                                } else {
-                                    onUpdate(item.id, 'nutrition', undefined);
-                                }
+                                onUpdate(item.id, 'nutrition', checked ? {} : undefined);
                             }}
                         />
                     </div>
@@ -403,7 +490,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                                     </div>
                                 )
                             })}
-                            {availableNutritionItems(item.nutrition || {}).length > 0 && (
+                            {availableNutritionItems(item.nutrition).length > 0 && (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="outline" size="sm" className="mt-2">
@@ -412,7 +499,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent>
-                                        {availableNutritionItems(item.nutrition || {}).map(ni => (
+                                        {availableNutritionItems(item.nutrition).map(ni => (
                                             <DropdownMenuItem key={ni.id} onSelect={() => {
                                                 const newNutrition = { ...item.nutrition, [ni.name.toLowerCase().replace(/\s/g, '_')]: 0 };
                                                 onUpdate(item.id, 'nutrition', newNutrition);
@@ -753,8 +840,8 @@ const AddSectionSheet = ({
         }
     };
     
-    const handleEditorChange = (field: keyof MenuItem, value: any) => {
-        if (!editingProduct) return;
+    const handleEditorChange = (itemId: string, field: keyof MenuItem, value: any) => {
+        if (!editingProduct || itemId !== editingProduct.id) return;
         const updatedProduct = { ...editingProduct, [field]: value };
         setEditingProduct(updatedProduct);
         setAddedProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
@@ -762,12 +849,13 @@ const AddSectionSheet = ({
     };
 
     const handleImageUpload = (itemId: string, event: React.ChangeEvent<HTMLInputElement>) => {
+        if (!editingProduct || itemId !== editingProduct.id) return;
         const file = event.target.files?.[0];
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
                 const result = reader.result as string;
-                handleEditorChange('image', result);
+                handleEditorChange(itemId, 'image', result);
             };
             reader.readAsDataURL(file);
         }
@@ -793,9 +881,9 @@ const AddSectionSheet = ({
     };
 
 
-    const handleAvailabilityChange = (available: boolean) => {
-        if (editingProduct) {
-            handleEditorChange('available', available);
+    const handleAvailabilityChange = (itemId: string, available: boolean) => {
+        if (editingProduct && editingProduct.id === itemId) {
+            handleEditorChange(itemId, 'available', available);
         }
     };
 
@@ -1017,132 +1105,12 @@ const AddSectionSheet = ({
                                     <div className="p-4 border-b shrink-0">
                                         <h3 className="font-semibold text-lg">Item Editor</h3>
                                     </div>
-                                    {editingProduct ? (
-                                        <div className="p-4 space-y-4">
-                                            <div>
-                                                <Label>Product Image</Label>
-                                                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => handleImageUpload(editingProduct.id, e)} />
-                                                <div className="relative group mt-2" onClick={() => fileInputRef.current?.click()}>
-                                                    <div className="w-full aspect-video rounded-md bg-background flex items-center justify-center border overflow-hidden cursor-pointer">
-                                                        {editingProduct.image ? (
-                                                            <Image src={editingProduct.image} alt={editingProduct.name} width={240} height={135} className="object-cover w-full h-full" />
-                                                        ) : (
-                                                            <div className="text-center text-muted-foreground">
-                                                                <ImageIcon className="h-8 w-8 mx-auto mb-2" />
-                                                                <p className="text-xs">Click to upload</p>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="absolute inset-0 bg-black/50 rounded-md opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-                                                        <Edit className="h-8 w-8 text-white" />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <Label htmlFor="itemName">Product Name</Label>
-                                                <Input id="itemName" value={editingProduct.name} onChange={(e) => handleEditorChange('name', e.target.value)} className="font-bold text-base" />
-                                            </div>
-                                            <div>
-                                                <Label htmlFor="itemDescription">Description</Label>
-                                                <Textarea id="itemDescription" value={editingProduct.description} onChange={(e) => handleEditorChange('description', e.target.value)} placeholder="Short description..." rows={3}/>
-                                            </div>
-                                            <div>
-                                                <Label htmlFor="itemPrice">Price (AED)</Label>
-                                                <Input id="itemPrice" type="number" value={editingProduct.price} onChange={(e) => handleEditorChange('price', parseFloat(e.target.value) || 0)}/>
-                                            </div>
-                                            <div className="flex items-center justify-between rounded-lg border p-3 bg-background">
-                                                <Label htmlFor="itemAvailability" className="font-medium">Available</Label>
-                                                <Switch id="itemAvailability" checked={editingProduct.available ?? true} onCheckedChange={handleAvailabilityChange} />
-                                            </div>
-                                            
-                                            {editingProduct.variations && editingProduct.variations.length > 0 && (
-                                                <Card className="mt-6">
-                                                    <CardHeader className="p-4">
-                                                        <CardTitle className="flex items-center gap-2 text-base"><Package className="h-4 w-4" /> Variations</CardTitle>
-                                                    </CardHeader>
-                                                    <CardContent className="p-4 pt-0 space-y-2">
-                                                        {editingProduct.variations.map(variation => (
-                                                            <div key={variation.id} className="flex justify-between items-center text-sm p-2 rounded-md bg-muted/50">
-                                                                <p className="font-medium">{variation.value}</p>
-                                                                <p className="font-mono font-semibold">
-                                                                    {variation.priceMode === 'override' ? '' : variation.priceMode === 'add' ? '+' : '-'}${variation.priceValue.toFixed(2)}
-                                                                </p>
-                                                            </div>
-                                                        ))}
-                                                    </CardContent>
-                                                </Card>
-                                            )}
-
-                                            <Card className="mt-6">
-                                                <CardHeader className="p-4">
-                                                    <CardTitle className="flex items-center gap-2 text-base"><Leaf className="h-4 w-4" /> Nutritional Facts</CardTitle>
-                                                </CardHeader>
-                                                <CardContent className="p-4 pt-0 space-y-4">
-                                                     <div className="flex items-center justify-between rounded-lg border p-3 bg-background">
-                                                        <Label htmlFor="enableNutrition" className="font-medium">Enable Info</Label>
-                                                        <Switch
-                                                            id="enableNutrition"
-                                                            checked={editingProduct.nutrition !== undefined}
-                                                            onCheckedChange={(checked) => handleEditorChange('nutrition', checked ? {} : undefined)}
-                                                        />
-                                                    </div>
-                                                     {editingProduct.nutrition !== undefined && (
-                                                        <div className="space-y-4 pt-4 border-t">
-                                                            {Object.keys(editingProduct.nutrition).map(key => {
-                                                                const nutritionItem = initialNutritionItems.find(i => i.name.toLowerCase().replace(/\s/g, '_') === key);
-                                                                return (
-                                                                    <div key={key} className="flex items-end gap-2">
-                                                                        <div className="flex-1">
-                                                                            <Label htmlFor={`nutrition-${key}`} className="text-sm text-muted-foreground">{nutritionItem?.name || key}</Label>
-                                                                            <div className="relative">
-                                                                                <Input
-                                                                                    id={`nutrition-${key}`}
-                                                                                    type="number" step="0.1"
-                                                                                    value={editingProduct.nutrition?.[key] ?? ''}
-                                                                                    onChange={(e) => handleEditorChange('nutrition', { ...editingProduct.nutrition, [key]: e.target.value === '' ? undefined : parseFloat(e.target.value) })}
-                                                                                    className="pr-12"
-                                                                                />
-                                                                                <span className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-muted-foreground text-sm uppercase">{nutritionItem?.unit}</span>
-                                                                            </div>
-                                                                        </div>
-                                                                        <Button type="button" variant="ghost" size="icon" onClick={() => {
-                                                                            const { [key]: _, ...rest } = editingProduct.nutrition || {};
-                                                                            handleEditorChange('nutrition', rest);
-                                                                        }}>
-                                                                            <Trash2 className="h-4 w-4 text-destructive" />
-                                                                        </Button>
-                                                                    </div>
-                                                                )
-                                                            })}
-                                                            <DropdownMenu>
-                                                                <DropdownMenuTrigger asChild>
-                                                                    <Button variant="outline" size="sm" className="mt-2">
-                                                                        <PlusCircle className="mr-2 h-4 w-4" /> Add Fact
-                                                                    </Button>
-                                                                </DropdownMenuTrigger>
-                                                                <DropdownMenuContent>
-                                                                    {initialNutritionItems.filter(i => !Object.keys(editingProduct.nutrition || {}).includes(i.name.toLowerCase().replace(/\s/g, '_'))).map(ni => (
-                                                                        <DropdownMenuItem key={ni.id} onSelect={() => {
-                                                                            const newNutrition = { ...editingProduct.nutrition, [ni.name.toLowerCase().replace(/\s/g, '_')]: 0 };
-                                                                            handleEditorChange('nutrition', newNutrition);
-                                                                        }}>
-                                                                            {ni.name}
-                                                                        </DropdownMenuItem>
-                                                                    ))}
-                                                                </DropdownMenuContent>
-                                                            </DropdownMenu>
-                                                        </div>
-                                                    )}
-                                                </CardContent>
-                                            </Card>
-                                        </div>
-                                    ) : (
-                                        <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-8">
-                                            <Edit className="h-12 w-12 mb-4" />
-                                            <h3 className="font-semibold">Select an Item</h3>
-                                            <p className="text-sm">Click on an item from the center list to edit its details here.</p>
-                                        </div>
-                                    )}
+                                    <ItemEditor 
+                                        item={editingProduct}
+                                        onUpdate={handleEditorChange}
+                                        onImageUpload={handleImageUpload}
+                                        onAvailabilityChange={handleAvailabilityChange}
+                                    />
                                 </div>
                             </div>
                         </div>
