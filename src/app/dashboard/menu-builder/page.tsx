@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2 } from 'lucide-react';
+import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -22,7 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator, SelectGroup, SelectLabel } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -937,6 +937,7 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const [editingMenuName, setEditingMenuName] = useState('');
   const [editingMenuIndex, setEditingMenuIndex] = useState<number | null>(null);
   
+  const router = useRouter();
   const { toast } = useToast();
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -1312,10 +1313,32 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
             <DialogDescription>Choose your Point of Sale system to import from.</DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <Select value={selectedPos} onValueChange={setSelectedPos}>
-              <SelectTrigger><SelectValue placeholder="Select a POS..." /></SelectTrigger>
+            <Select
+              value={selectedPos}
+              onValueChange={(value) => {
+                if (value === '__ADD_NEW_POS__') {
+                  router.push('/dashboard/integration/pos');
+                  setPosFlowStep('');
+                } else {
+                  setSelectedPos(value);
+                }
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a POS..." />
+              </SelectTrigger>
               <SelectContent>
-                {SUPPORTED_POS.map(pos => <SelectItem key={pos.id} value={pos.id}>{pos.name}</SelectItem>)}
+                <SelectGroup>
+                    <SelectLabel>Available POS Systems</SelectLabel>
+                    {SUPPORTED_POS.map(pos => <SelectItem key={pos.id} value={pos.id}>{pos.name}</SelectItem>)}
+                </SelectGroup>
+                <SelectSeparator />
+                <SelectItem value="__ADD_NEW_POS__">
+                    <div className="flex items-center gap-2 text-primary font-semibold">
+                        <PlusCircle className="h-4 w-4" />
+                        Connect New POS
+                    </div>
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
