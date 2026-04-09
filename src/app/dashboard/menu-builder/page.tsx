@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle } from 'lucide-react';
+import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -937,6 +937,9 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
   const [editingMenuName, setEditingMenuName] = useState('');
   const [editingMenuIndex, setEditingMenuIndex] = useState<number | null>(null);
   
+  // Simulate no connected POS systems initially
+  const [connectedPos, setConnectedPos] = useState<any[]>([]);
+
   const router = useRouter();
   const { toast } = useToast();
   const sensors = useSensors(useSensor(PointerSensor));
@@ -1307,47 +1310,78 @@ const MenuBuilderMainPage = ({ onClose }: { onClose: () => void }) => {
       
       {/* POS Selection Modal */}
       <Dialog open={posFlowStep === 'select'} onOpenChange={() => setPosFlowStep('')}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Select POS Provider</DialogTitle>
-            <DialogDescription>Choose your Point of Sale system to import from.</DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <Select
-              value={selectedPos}
-              onValueChange={(value) => {
-                if (value === '__ADD_NEW_POS__') {
-                  router.push('/dashboard/integration/pos');
-                  setPosFlowStep('');
-                } else {
-                  setSelectedPos(value);
-                }
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a POS..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                    <SelectLabel>Available POS Systems</SelectLabel>
-                    {SUPPORTED_POS.map(pos => <SelectItem key={pos.id} value={pos.id}>{pos.name}</SelectItem>)}
-                </SelectGroup>
-                <SelectSeparator />
-                <SelectItem value="__ADD_NEW_POS__">
+        <DialogHeader>
+            <DialogTitle>Import from POS</DialogTitle>
+            <DialogDescription>
+            {connectedPos.length > 0
+                ? 'Choose a connected POS system to import your menu from.'
+                : "First, connect your Point-of-Sale system to import your menu automatically."}
+            </DialogDescription>
+        </DialogHeader>
+        {connectedPos.length > 0 ? (
+            <>
+            <div className="py-4">
+                <Select
+                value={selectedPos}
+                onValueChange={(value) => {
+                    if (value === '__ADD_NEW_POS__') {
+                    router.push('/dashboard/integration/pos');
+                    setPosFlowStep('');
+                    } else {
+                    setSelectedPos(value);
+                    }
+                }}
+                >
+                <SelectTrigger>
+                    <SelectValue placeholder="Select a connected POS..." />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectGroup>
+                    <SelectLabel>Connected POS Systems</SelectLabel>
+                    {connectedPos.map((pos: any) => (
+                        <SelectItem key={pos.id} value={pos.id}>
+                        {pos.label} ({pos.brand})
+                        </SelectItem>
+                    ))}
+                    </SelectGroup>
+                    <SelectSeparator />
+                    <SelectItem value="__ADD_NEW_POS__">
                     <div className="flex items-center gap-2 text-primary font-semibold">
                         <PlusCircle className="h-4 w-4" />
                         Connect New POS
                     </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setPosFlowStep('')}>Cancel</Button>
-            <Button onClick={startSyncProcess} disabled={!selectedPos}>Next</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+                    </SelectItem>
+                </SelectContent>
+                </Select>
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setPosFlowStep('')}>Cancel</Button>
+                <Button onClick={startSyncProcess} disabled={!selectedPos}>Next</Button>
+            </DialogFooter>
+            </>
+        ) : (
+            <>
+            <div className="py-8 text-center space-y-4">
+                <div className="mx-auto h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center">
+                    <Plug className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <p className="text-muted-foreground">
+                No POS systems have been connected yet.
+                </p>
+                <Button onClick={() => {
+                router.push('/dashboard/integration/pos');
+                setPosFlowStep('');
+                }}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Connect Your POS
+                </Button>
+            </div>
+            <DialogFooter className="sm:justify-center">
+                <Button variant="outline" onClick={() => setPosFlowStep('')}>Cancel</Button>
+            </DialogFooter>
+            </>
+        )}
+        </Dialog>
 
       {/* Syncing Modal */}
       <Dialog open={posFlowStep === 'sync'} onOpenChange={() => setPosFlowStep('')}>
