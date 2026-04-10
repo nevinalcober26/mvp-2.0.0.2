@@ -1419,7 +1419,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       handleImportFromPos();
     } else {
       setEditingMenuIndex(null);
-      setEditingMenuName('New Untitled Menu');
+      setEditingMenuName('Untitled Menu');
       setMenuSections([]);
       setPosFlowStep('customize');
     }
@@ -1451,8 +1451,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
   };
 
   const handleStartCustomization = () => {
-    const providerName = SUPPORTED_POS.find(p => p.id === selectedPos)?.name || 'Imported Menu';
-    setEditingMenuName(`${providerName} Menu`);
+    setEditingMenuName('Untitled Menu');
     setMenuSections(mockMenuData);
     setPosFlowStep('customize');
   };
@@ -1708,6 +1707,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       
       <Dialog open={isAddMenuModalOpen} onOpenChange={setIsAddMenuModalOpen}>
         <DialogContent className="sm:max-w-2xl">
+          <DialogTitle className="sr-only">Add New Menu</DialogTitle>
           <DialogHeader>
             <DialogTitle className="text-center text-2xl font-bold">How would you like to build your menu?</DialogTitle>
             <DialogDescription>
@@ -1825,10 +1825,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       
       <Dialog open={posFlowStep === 'sync'}>
         <DialogContent>
-          <DialogTitle className="sr-only">Syncing</DialogTitle>
-          <DialogHeader className="sr-only">
-             <DialogTitle>Syncing</DialogTitle>
-          </DialogHeader>
+          <DialogTitle className="sr-only">Syncing Menu</DialogTitle>
           <div className="py-8 flex flex-col items-center justify-center gap-4">
             <div className={cn(
                 "h-24 w-24 rounded-full border-4 border-muted flex items-center justify-center transition-all duration-500",
@@ -1865,7 +1862,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
         <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
           <DialogTitle className="sr-only">Customize Menu</DialogTitle>
           <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex gap-4">
-            <div className="flex items-center gap-4 flex-1">
+            <div className="flex items-center gap-2 flex-1">
               <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setPosFlowStep('')}>
                 <ArrowLeft className="h-5 w-5" />
               </Button>
