@@ -11,7 +11,7 @@ import { EMenuIcon } from '@/components/dashboard/app-sidebar';
 import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Minus, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,6 +59,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
 
 const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit }: { 
@@ -436,7 +437,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
         setLocalVariations(newVariations);
         handleUpdate('variations', newVariations);
     };
-
+    
     const handleAddVariation = () => {
         const newVariation: Variation = {
             id: `var_${Date.now()}`, value: '', priceMode: 'override', priceValue: 0, hidden: false, categoryPage: true, productPage: true
@@ -681,30 +682,33 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                     </div>
                     {isNutritionEnabled && (
                         <div className="space-y-4 pt-4 border-t">
-                            {Object.entries(localNutrition).map(([key, value]) => {
-                                const nutritionItem = initialNutritionItems.find(i => i.name.toLowerCase().replace(/\s/g, '_') === key || i.name.toLowerCase() === key);
-                                return (
-                                    <div key={key} className="flex items-end gap-2">
-                                        <div className="flex-1">
-                                            <Label htmlFor={`nutrition-${key}`} className="text-sm text-muted-foreground">{nutritionItem?.name || key}</Label>
-                                            <div className="relative">
-                                                <Input
-                                                    id={`nutrition-${key}`}
-                                                    type="number"
-                                                    step="0.1"
-                                                    value={value ?? ''}
-                                                    onChange={(e) => handleNutritionChange(key, e.target.value)}
-                                                    className="pr-12"
-                                                />
-                                                <span className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-muted-foreground text-sm uppercase">{nutritionItem?.unit}</span>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
+                                {Object.entries(localNutrition).map(([key, value]) => {
+                                    const nutritionItem = initialNutritionItems.find(i => i.name.toLowerCase().replace(/\s/g, '_') === key || i.name.toLowerCase() === key);
+                                    return (
+                                        <div key={key} className="flex items-end gap-2">
+                                            <div className="flex-1">
+                                                <Label htmlFor={`nutrition-${key}`} className="text-sm text-muted-foreground">{nutritionItem?.name || key}</Label>
+                                                <div className="relative">
+                                                    <Input
+                                                        id={`nutrition-${key}`}
+                                                        type="number"
+                                                        step="0.1"
+                                                        value={value ?? ''}
+                                                        onChange={(e) => handleNutritionChange(key, e.target.value)}
+                                                        className="pr-12"
+                                                    />
+                                                    <span className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-muted-foreground text-sm uppercase">{nutritionItem?.unit}</span>
+                                                </div>
                                             </div>
+                                            <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveNutritionField(key)}>
+                                                <Trash className="h-4 w-4 text-destructive" />
+                                            </Button>
                                         </div>
-                                        <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveNutritionField(key)}>
-                                            <Trash className="h-4 w-4 text-destructive" />
-                                        </Button>
-                                    </div>
-                                )
-                            })}
+                                    )
+                                })}
+                            </div>
+                        
                             {availableNutritionItems.length > 0 && (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
@@ -1030,8 +1034,8 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
                         <SheetTitle>Manage: {category.name} ({items.length} items)</SheetTitle>
                         <SheetDescription>Drag to reorder, click a row to edit details, and toggle availability.</SheetDescription>
                     </SheetHeader>
-                    <div className="grid grid-cols-1 lg:grid-cols-12 flex-1 overflow-hidden">
-                        <div className="lg:col-span-4 border-r bg-muted/30 flex flex-col overflow-hidden">
+                    <PanelGroup direction="horizontal" className="flex-1 overflow-hidden">
+                        <Panel defaultSize={33} minSize={25} className="flex flex-col overflow-hidden border-r bg-muted/30">
                            <div className="p-4 border-b shrink-0">
                                 <div className="relative">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -1074,8 +1078,9 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
                                     )}
                                 </DndContext>
                             </div>
-                        </div>
-                        <div className="lg:col-span-5 flex flex-col overflow-hidden border-r">
+                        </Panel>
+                        <PanelResizeHandle className="w-1.5 bg-muted hover:bg-border transition-colors data-[resize-handle-state=drag]:bg-primary" />
+                        <Panel defaultSize={42} minSize={30} className="flex flex-col overflow-hidden border-r">
                            <div className="flex-1 overflow-y-auto">
                              <ItemEditor 
                                 item={selectedItem}
@@ -1084,11 +1089,12 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
                                 onAvailabilityChange={handleAvailabilityChange}
                              />
                            </div>
-                        </div>
-                        <div className="lg:col-span-3 bg-muted/30 flex items-center justify-center p-4">
+                        </Panel>
+                        <PanelResizeHandle className="w-1.5 bg-muted hover:bg-border transition-colors data-[resize-handle-state=drag]:bg-primary" />
+                        <Panel defaultSize={25} minSize={20} className="bg-muted/30 flex items-center justify-center p-4">
                            <ItemPreviewer item={selectedItem} />
-                        </div>
-                    </div>
+                        </Panel>
+                    </PanelGroup>
                     <SheetFooter className="p-6 border-t shrink-0">
                         <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
                         <Button onClick={handleSaveChanges}>Save Changes</Button>
@@ -1253,8 +1259,8 @@ const AddSectionSheet = ({
                 </SheetHeader>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
-                        <div className="grid grid-cols-1 lg:grid-cols-12 flex-1 overflow-hidden relative">
-                             <div className="lg:col-span-3 flex flex-col overflow-hidden border-r">
+                        <PanelGroup direction="horizontal" className="flex-1 flex overflow-hidden">
+                            <Panel defaultSize={20} minSize={15} className="flex flex-col overflow-hidden border-r">
                                 <ScrollArea className="flex-1">
                                     <div className="p-6 space-y-6">
                                         <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormLabel>Section Name</FormLabel><FormControl><Input placeholder="e.g., Summer Specials" {...field} /></FormControl><FormMessage /></FormItem>)}/>
@@ -1295,96 +1301,99 @@ const AddSectionSheet = ({
                                         </div>
                                     </div>
                                 </ScrollArea>
-                             </div>
-
-                             {form.watch('enableCategoryLink') && (
-                                <div className="absolute inset-0 lg:left-1/4 bg-background/80 backdrop-blur-sm z-10 flex items-center justify-center">
-                                    <div className="text-center p-4">
-                                        <p className="font-semibold">Item selection is disabled.</p>
-                                        <p className="text-sm text-muted-foreground">This section is configured as an external link.</p>
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="lg:col-span-9 grid grid-cols-1 xl:grid-cols-12 flex-1 overflow-hidden">
-                                <div className="xl:col-span-4 flex flex-col overflow-hidden border-r">
-                                    <div className="flex-1 flex flex-col min-h-0">
-                                        <div className="p-4 border-b shrink-0">
-                                            <h3 className="font-semibold">Available Products</h3>
-                                            <div className="relative mt-2">
-                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                                <Input placeholder="Search all products..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
-                                            </div>
+                            </Panel>
+                            <PanelResizeHandle className="w-1.5 bg-muted hover:bg-border transition-colors data-[resize-handle-state=drag]:bg-primary z-20" />
+                            <Panel defaultSize={55} className="relative flex-1">
+                                {form.watch('enableCategoryLink') && (
+                                    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-10 flex items-center justify-center">
+                                        <div className="text-center p-4">
+                                            <p className="font-semibold">Item selection is disabled.</p>
+                                            <p className="text-sm text-muted-foreground">This section is configured as an external link.</p>
                                         </div>
-                                        <ScrollArea className="flex-1">
-                                            <div className="p-2 space-y-1">
-                                                {availableProducts.map(product => (
-                                                    <div key={product.id} className="flex items-center gap-2 p-2 rounded-md hover:bg-muted">
-                                                        <Image src={product.image!} alt={product.name} width={40} height={40} className="rounded object-cover" />
-                                                        <div className="flex-1">
-                                                            <p className="text-sm font-semibold line-clamp-1">{product.name}</p>
-                                                            <p className="text-xs text-muted-foreground">AED {product.price.toFixed(2)}</p>
+                                    </div>
+                                )}
+                                <PanelGroup direction="horizontal">
+                                    <Panel defaultSize={45} minSize={25} className="flex flex-col overflow-hidden border-r">
+                                        <div className="flex-1 flex flex-col min-h-0">
+                                            <div className="p-4 border-b shrink-0">
+                                                <h3 className="font-semibold">Available Products</h3>
+                                                <div className="relative mt-2">
+                                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                                    <Input placeholder="Search all products..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
+                                                </div>
+                                            </div>
+                                            <ScrollArea className="flex-1">
+                                                <div className="p-2 space-y-1">
+                                                    {availableProducts.map(product => (
+                                                        <div key={product.id} className="flex items-center gap-2 p-2 rounded-md hover:bg-muted">
+                                                            <Image src={product.image!} alt={product.name} width={40} height={40} className="rounded object-cover" />
+                                                            <div className="flex-1">
+                                                                <p className="text-sm font-semibold line-clamp-1">{product.name}</p>
+                                                                <p className="text-xs text-muted-foreground">AED {product.price.toFixed(2)}</p>
+                                                            </div>
+                                                            <Button type="button" size="icon" variant="ghost" className="h-8 w-8 text-primary" onClick={() => handleAddProduct(product)}>
+                                                                <Plus className="h-4 w-4" />
+                                                            </Button>
                                                         </div>
-                                                        <Button type="button" size="icon" variant="ghost" className="h-8 w-8 text-primary" onClick={() => handleAddProduct(product)}>
-                                                            <Plus className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </ScrollArea>
-                                    </div>
-                                    <div className="border-t"></div>
-                                    <div className="flex-1 flex flex-col min-h-0">
-                                        <div className="p-4 border-b shrink-0">
-                                            <h3 className="font-semibold text-lg">{form.watch('name') || 'New Section'} ({addedProducts.length} items)</h3>
-                                            <p className="text-sm text-muted-foreground">Drag to reorder. Click to edit.</p>
+                                                    ))}
+                                                </div>
+                                            </ScrollArea>
                                         </div>
+                                        <div className="border-t"></div>
+                                        <div className="flex-1 flex flex-col min-h-0">
+                                            <div className="p-4 border-b shrink-0">
+                                                <h3 className="font-semibold text-lg">{form.watch('name') || 'New Section'} ({addedProducts.length} items)</h3>
+                                                <p className="text-sm text-muted-foreground">Drag to reorder. Click to edit.</p>
+                                            </div>
+                                            <ScrollArea className="flex-1">
+                                                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                                                    <SortableContext items={addedProductIds} strategy={verticalListSortingStrategy}>
+                                                        <div className="p-2 space-y-1">
+                                                            {addedProducts.map(product => {
+                                                                const SortableWrapper = ({ children }: { children: React.ReactNode }) => {
+                                                                    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: product.id });
+                                                                    const style = { transform: CSS.Transform.toString(transform), transition };
+                                                                    return <div ref={setNodeRef} style={style} className="touch-none flex items-center gap-2 p-2 rounded-md bg-background border" {...attributes} >
+                                                                        <button {...listeners} className="cursor-grab p-1"><GripVertical className="h-5 w-5 text-muted-foreground" /></button>
+                                                                        {children}
+                                                                    </div>;
+                                                                };
+                                                                return (
+                                                                    <SortableWrapper key={product.id}>
+                                                                        <div className="flex-1 cursor-pointer" onClick={() => setSelectedProduct(product)}>
+                                                                            <p className={cn("text-sm font-semibold line-clamp-1", selectedProduct?.id === product.id && "text-primary")}>{product.name}</p>
+                                                                            <p className="text-xs text-muted-foreground">AED {product.price.toFixed(2)}</p>
+                                                                        </div>
+                                                                        <Button type="button" size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => handleRemoveProduct(product.id)}>
+                                                                            <X className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </SortableWrapper>
+                                                                )
+                                                            })}
+                                                        </div>
+                                                    </SortableContext>
+                                                 </DndContext>
+                                            </ScrollArea>
+                                        </div>
+                                    </Panel>
+                                    <PanelResizeHandle className="w-1.5 bg-muted hover:bg-border transition-colors data-[resize-handle-state=drag]:bg-primary" />
+                                    <Panel defaultSize={55} minSize={35} className="flex flex-col overflow-hidden">
                                         <ScrollArea className="flex-1">
-                                             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                                                <SortableContext items={addedProductIds} strategy={verticalListSortingStrategy}>
-                                                    <div className="p-2 space-y-1">
-                                                        {addedProducts.map(product => {
-                                                            const SortableWrapper = ({ children }: { children: React.ReactNode }) => {
-                                                                const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: product.id });
-                                                                const style = { transform: CSS.Transform.toString(transform), transition };
-                                                                return <div ref={setNodeRef} style={style} className="touch-none flex items-center gap-2 p-2 rounded-md bg-background border" {...attributes} >
-                                                                    <button {...listeners} className="cursor-grab p-1"><GripVertical className="h-5 w-5 text-muted-foreground" /></button>
-                                                                    {children}
-                                                                </div>;
-                                                            };
-                                                            return (
-                                                                <SortableWrapper key={product.id}>
-                                                                    <div className="flex-1 cursor-pointer" onClick={() => setSelectedProduct(product)}>
-                                                                        <p className={cn("text-sm font-semibold line-clamp-1", selectedProduct?.id === product.id && "text-primary")}>{product.name}</p>
-                                                                        <p className="text-xs text-muted-foreground">AED {product.price.toFixed(2)}</p>
-                                                                    </div>
-                                                                    <Button type="button" size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => handleRemoveProduct(product.id)}>
-                                                                        <X className="h-4 w-4" />
-                                                                    </Button>
-                                                                </SortableWrapper>
-                                                            )
-                                                        })}
-                                                    </div>
-                                                </SortableContext>
-                                             </DndContext>
+                                            <ItemEditor
+                                                item={selectedProduct}
+                                                onUpdate={handleEditorChange}
+                                                onImageUpload={handleImageUpload}
+                                                onAvailabilityChange={handleAvailabilityChange}
+                                            />
                                         </ScrollArea>
-                                    </div>
-                                </div>
-                                <div className="xl:col-span-5 flex flex-col overflow-hidden border-r">
-                                    <ScrollArea className="flex-1">
-                                        <ItemEditor
-                                            item={selectedProduct}
-                                            onUpdate={handleEditorChange}
-                                            onImageUpload={handleImageUpload}
-                                            onAvailabilityChange={handleAvailabilityChange}
-                                        />
-                                    </ScrollArea>
-                                </div>
-                                <div className="xl:col-span-3 bg-muted/30 flex items-center justify-center p-4 overflow-y-auto">
-                                    <ItemPreviewer item={selectedProduct} />
-                                </div>
-                            </div>
-                        </div>
+                                    </Panel>
+                                </PanelGroup>
+                            </Panel>
+                            <PanelResizeHandle className="w-1.5 bg-muted hover:bg-border transition-colors data-[resize-handle-state=drag]:bg-primary z-20" />
+                            <Panel defaultSize={25} minSize={20} className="bg-muted/30 flex items-center justify-center p-4 overflow-y-auto">
+                                <ItemPreviewer item={selectedProduct} />
+                            </Panel>
+                        </PanelGroup>
                         <SheetFooter className="p-6 border-t shrink-0">
                             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
                             <Button type="submit">Create Section</Button>
