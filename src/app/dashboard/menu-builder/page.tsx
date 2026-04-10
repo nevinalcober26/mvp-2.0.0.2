@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, Check } from 'lucide-react';
+import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, Check, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
@@ -1309,13 +1309,14 @@ const addSectionSchema = z.object({
 });
 type AddSectionFormValues = z.infer<typeof addSectionSchema>;
 
-const MenuBuilderMainPage = ({ onClose }: { 
+const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpen }: { 
     onClose: () => void,
+    isAddMenuModalOpen: boolean;
+    setIsAddMenuModalOpen: (open: boolean) => void;
  }) => {
   const router = useRouter();
   const { toast } = useToast();
   
-  const [isAddMenuModalOpen, setIsAddMenuModalOpen] = useState(false);
   const [posFlowStep, setPosFlowStep] = useState<'select' | 'sync' | 'customize' | ''>('');
   const [selectedPos, setSelectedPos] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
@@ -1810,6 +1811,7 @@ const MenuBuilderMainPage = ({ onClose }: {
       <Dialog open={posFlowStep === 'customize'}>
         <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
           <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex">
+            <DialogTitle className="sr-only">Customize Menu</DialogTitle>
             <Input
               value={editingMenuName}
               onChange={(e) => setEditingMenuName(e.target.value)}
@@ -1989,7 +1991,6 @@ const MenuBuilderMainPage = ({ onClose }: {
     </>
   );
 };
-
 const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
 
 const BuilderSidebar = ({ onClose, onAddMenu }: { onClose: () => void, onAddMenu: () => void }) => {
@@ -2034,6 +2035,7 @@ export default function MenuBuilderPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [showBuilder, setShowBuilder] = useState(false);
+  const [isAddMenuModalOpen, setIsAddMenuModalOpen] = useState(false);
   
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -2056,9 +2058,11 @@ export default function MenuBuilderPage() {
 
   return (
     <div className="fixed inset-0 z-40 bg-background flex animate-in fade-in duration-500">
-      <BuilderSidebar onClose={handleClose} onAddMenu={() => {}} />
+      <BuilderSidebar onClose={handleClose} onAddMenu={() => setIsAddMenuModalOpen(true)} />
       <MenuBuilderMainPage
         onClose={handleClose}
+        isAddMenuModalOpen={isAddMenuModalOpen}
+        setIsAddMenuModalOpen={setIsAddMenuModalOpen}
       />
     </div>
   );
