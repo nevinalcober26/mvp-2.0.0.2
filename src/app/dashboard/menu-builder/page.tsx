@@ -1748,6 +1748,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       
       <Dialog open={posFlowStep === 'select'} onOpenChange={() => setPosFlowStep('')}>
         <DialogContent>
+          <DialogTitle className="sr-only">POS Selection</DialogTitle>
           <DialogHeader>
             <DialogTitle>Import from POS</DialogTitle>
             <DialogDescription>
@@ -1824,15 +1825,21 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       
       <Dialog open={posFlowStep === 'sync'}>
         <DialogContent>
+          <DialogTitle className="sr-only">Syncing</DialogTitle>
           <DialogHeader className="sr-only">
              <DialogTitle>Syncing</DialogTitle>
           </DialogHeader>
           <div className="py-8 flex flex-col items-center justify-center gap-4">
-            {isSyncComplete ? (
-              <CheckCircle2 className="h-12 w-12 text-green-600 animate-in zoom-in duration-300" />
-            ) : (
-              <Loader2 className="h-12 w-12 text-primary animate-spin" />
-            )}
+            <div className={cn(
+                "h-24 w-24 rounded-full border-4 border-muted flex items-center justify-center transition-all duration-500",
+                isSyncComplete ? "border-green-500 bg-green-50" : "border-primary/20"
+              )}>
+                {isSyncComplete ? (
+                  <Check className="h-12 w-12 text-green-600 animate-in zoom-in duration-300" />
+                ) : (
+                  <Loader2 className="h-12 w-12 text-primary animate-spin" />
+                )}
+              </div>
              <DialogTitle className="text-center">{isSyncComplete ? 'Sync Complete!' : 'Syncing Menu from POS'}</DialogTitle>
             <DialogDescription className="text-center">
               {isSyncComplete ? `${menuItems.length} items imported successfully.` : 'Please wait while we securely import your menu data.'}
@@ -1856,14 +1863,19 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       
       <Dialog open={posFlowStep === 'customize'}>
         <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
-          <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex">
-            <DialogTitle className="sr-only">Customize Menu</DialogTitle>
-            <Input
-              value={editingMenuName}
-              onChange={(e) => setEditingMenuName(e.target.value)}
-              className="text-xl font-bold border-0 shadow-none focus-visible:ring-0 p-0 h-auto flex-1"
-              aria-label="Menu Name"
-            />
+          <DialogTitle className="sr-only">Customize Menu</DialogTitle>
+          <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex gap-4">
+            <div className="flex items-center gap-4 flex-1">
+              <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setPosFlowStep('')}>
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <Input
+                value={editingMenuName}
+                onChange={(e) => setEditingMenuName(e.target.value)}
+                className="text-xl font-bold border-0 shadow-none focus-visible:ring-0 p-0 h-auto"
+                aria-label="Menu Name"
+              />
+            </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={() => handleSaveImportedMenu('Draft')}>Save as Draft</Button>
               <Button onClick={() => handleSaveImportedMenu('Online')}>
