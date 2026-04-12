@@ -1103,16 +1103,107 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
     );
 };
 
+const addSectionSchema = z.object({
+    name: z.string().min(1, 'Section name is required'),
+    description: z.string().optional(),
+    imageUrl: z.string().optional(),
+    enableSpecial: z.boolean().default(false),
+    specialTagName: z.string().optional(),
+    enableCategoryLink: z.boolean().default(false),
+    externalLink: z.string().url().optional().or(z.literal('')),
+});
+type AddSectionFormValues = z.infer<typeof addSectionSchema>;
+
+const AddSectionDetailsDialog = ({ isOpen, onOpenChange, onConfirm }: { isOpen: boolean; onOpenChange: (open: boolean) => void; onConfirm: (data: AddSectionFormValues) => void; }) => {
+  const form = useForm<AddSectionFormValues>({
+    resolver: zodResolver(addSectionSchema),
+    defaultValues: { name: '', description: '', imageUrl: '', enableSpecial: false },
+  });
+
+  useEffect(() => {
+    if (isOpen) {
+      form.reset();
+    }
+  }, [isOpen, form]);
+
+  const onSubmit = (data: AddSectionFormValues) => {
+    onConfirm(data);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create New Menu Section</DialogTitle>
+          <DialogDescription>
+            Enter the basic details for your new section. You can add products in the next step.
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form id="add-section-details-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+            <FormField control={form.control} name="name" render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Section Name*</FormLabel>
+                    <FormControl><Input placeholder="e.g., Summer Specials" {...field} /></FormControl>
+                    <FormMessage />
+                </FormItem>
+            )}/>
+            <FormField control={form.control} name="description" render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl><Textarea placeholder="A short description for this section." rows={2} {...field} /></FormControl>
+                    <FormMessage />
+                </FormItem>
+            )}/>
+            <FormField control={form.control} name="imageUrl" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Image</FormLabel>
+                <div className="flex items-center gap-4">
+                  <div className="w-24 h-24 bg-muted rounded-md flex items-center justify-center border">
+                    <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <Button variant="outline" asChild><label className="cursor-pointer"><Upload className="mr-2 h-4 w-4"/>Upload</label></Button>
+                  <Input type="file" id="image-upload" className="hidden" />
+                </div>
+              </FormItem>
+            )}/>
+             <FormField control={form.control} name="enableSpecial" render={({ field }) => (
+                <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                        <FormLabel>Mark as Special</FormLabel>
+                        <FormDescription>
+                            Highlight this section on your menu.
+                        </FormDescription>
+                    </div>
+                    <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                </FormItem>
+            )} />
+          </form>
+        </Form>
+        <DialogFooter>
+          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button type="submit" form="add-section-details-form">
+            Create & Add Items <ArrowRight className="ml-2 h-4 w-4"/>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+
 const AddSectionSheet = ({ 
     isOpen, 
     onOpenChange, 
     onAddSection, 
-    allProducts, 
+    allProducts,
+    initialData,
 }: {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
     onAddSection: (data: AddSectionFormValues, productIds: string[]) => void;
     allProducts: MenuItem[];
+    initialData?: Partial<AddSectionFormValues> | null;
 }) => {
     const [addedProducts, setAddedProducts] = useState<MenuItem[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -1129,12 +1220,20 @@ const AddSectionSheet = ({
 
     useEffect(() => {
         if (isOpen) {
-            form.reset();
+            form.reset({
+                name: initialData?.name || '',
+                description: initialData?.description || '',
+                imageUrl: initialData?.imageUrl || '',
+                enableSpecial: initialData?.enableSpecial || false,
+                specialTagName: '',
+                enableCategoryLink: false,
+                externalLink: '',
+            });
             setAddedProducts([]);
             setSearchQuery('');
             setSelectedItem(null);
         }
-    }, [isOpen, form]);
+    }, [isOpen, form, initialData]);
 
     const availableProducts = useMemo(() => {
         const addedIds = new Set(addedProducts.map(p => p.id));
@@ -1231,9 +1330,9 @@ const AddSectionSheet = ({
                         <Form {...form}>
                            <form onSubmit={form.handleSubmit(onSubmit)} id="add-section-form" className="flex-1 flex flex-col overflow-hidden">
                               <div className="p-4 space-y-4 border-b">
-                                   <h3 className="font-semibold">New Section Details</h3>
-                                  <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormLabel>Section Name</FormLabel><FormControl><Input placeholder="e.g., Summer Specials" {...field} /></FormControl><FormMessage /></FormItem>)}/>
-                                  <FormField control={form.control} name="description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="A short description for this section." rows={2} {...field} /></FormControl><FormMessage /></FormItem>)}/>
+                                   <h3 className="font-semibold">Section Details</h3>
+                                  <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormLabel>Section Name</FormLabel><FormControl><Input placeholder="e.g., Summer Specials" {...field} readOnly /></FormControl><FormMessage /></FormItem>)}/>
+                                  <FormField control={form.control} name="description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="A short description for this section." rows={2} {...field} readOnly /></FormControl><FormMessage /></FormItem>)}/>
                               </div>
                               <div className="p-4 border-b shrink-0">
                                   <h3 className="font-semibold mb-2">Available Products ({availableProducts.length})</h3>
@@ -1340,17 +1439,6 @@ const SortableProductRow = ({ item, isSelected, onAvailabilityChange, onRowClick
     );
 };
 
-const addSectionSchema = z.object({
-    name: z.string().min(1, 'Section name is required'),
-    description: z.string().optional(),
-    imageUrl: z.string().optional(),
-    enableSpecial: z.boolean().default(false),
-    specialTagName: z.string().optional(),
-    enableCategoryLink: z.boolean().default(false),
-    externalLink: z.string().url().optional().or(z.literal('')),
-});
-type AddSectionFormValues = z.infer<typeof addSectionSchema>;
-
 const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpen }: { 
     onClose: () => void,
     isAddMenuModalOpen: boolean;
@@ -1378,9 +1466,17 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
   const [userMenus, setUserMenus] = useState<any[]>([]);
   const [editingMenuName, setEditingMenuName] = useState('');
   const [editingMenuIndex, setEditingMenuIndex] = useState<number | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ index: number; name: string } | null>(null);
+  const [isAddSectionDetailsModalOpen, setIsAddSectionDetailsModalOpen] = useState(false);
+  const [newSectionDetails, setNewSectionDetails] = useState<Partial<AddSectionFormValues> | null>(null);
+
+  const handleStartAddingItems = (data: AddSectionFormValues) => {
+    setNewSectionDetails(data);
+    setIsAddSectionDetailsModalOpen(false);
+    setIsAddSectionSheetOpen(true);
+  };
   
   const [connectedPos, setConnectedPos] = useState<PosConnection[]>([]);
-  const [deleteConfirmation, setDeleteConfirmation] = useState<{ index: number; name: string } | null>(null);
 
   useEffect(() => {
     try {
@@ -1707,10 +1803,9 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       
       <Dialog open={isAddMenuModalOpen} onOpenChange={setIsAddMenuModalOpen}>
         <DialogContent className="sm:max-w-2xl">
-          <DialogTitle className="sr-only">Add New Menu</DialogTitle>
           <DialogHeader>
             <DialogTitle className="text-center text-2xl font-bold">How would you like to build your menu?</DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-center">
               Choose how you want to set up your menu. You can manage multiple versions and publish anytime.
             </DialogDescription>
           </DialogHeader>
@@ -1748,7 +1843,6 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       
       <Dialog open={posFlowStep === 'select'} onOpenChange={() => setPosFlowStep('')}>
         <DialogContent>
-          <DialogTitle className="sr-only">POS Selection</DialogTitle>
           <DialogHeader>
             <DialogTitle>Import from POS</DialogTitle>
             <DialogDescription>
@@ -1825,7 +1919,9 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       
       <Dialog open={posFlowStep === 'sync'}>
         <DialogContent>
-          <DialogTitle className="sr-only">Syncing Menu</DialogTitle>
+          <DialogHeader>
+            <DialogTitle className="sr-only">Syncing Menu</DialogTitle>
+          </DialogHeader>
           <div className="py-8 flex flex-col items-center justify-center gap-4">
             <div className={cn(
                 "h-24 w-24 rounded-full border-4 border-muted flex items-center justify-center transition-all duration-500",
@@ -1858,9 +1954,8 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
         </DialogContent>
       </Dialog>
       
-      <Dialog open={posFlowStep === 'customize'}>
+      <Dialog open={posFlowStep === 'customize'} onOpenChange={(open) => !open && setPosFlowStep('')}>
         <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
-          <DialogTitle className="sr-only">Customize Menu</DialogTitle>
           <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex gap-4">
             <div className="flex items-center gap-2 flex-1">
               <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setPosFlowStep('')}>
@@ -1900,7 +1995,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
                   </div>
                 </SortableContext>
               </DndContext>
-              <Button variant="outline" className="mt-4" onClick={() => setIsAddSectionSheetOpen(true)}>
+              <Button variant="outline" className="mt-4" onClick={() => setIsAddSectionDetailsModalOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Section
               </Button>
@@ -1999,20 +2094,26 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
         category={editingCategory}
         onSave={handleSaveCategoryItems}
       />
+      <AddSectionDetailsDialog
+        isOpen={isAddSectionDetailsModalOpen}
+        onOpenChange={setIsAddSectionDetailsModalOpen}
+        onConfirm={handleStartAddingItems}
+      />
       <AddSectionSheet
         isOpen={isAddSectionSheetOpen}
         onOpenChange={setIsAddSectionSheetOpen}
         onAddSection={handleAddNewSection}
         allProducts={menuItems}
+        initialData={newSectionDetails}
       />
       <AlertDialog open={isConfirmingPublish} onOpenChange={setIsConfirmingPublish}>
         <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to publish this menu?</AlertDialogTitle>
+          <DialogHeader>
+            <DialogTitle>Are you sure you want to publish this menu?</DialogTitle>
             <AlertDialogDescription>
               Publishing this menu will make it the live version for your customers. Other active menus will be set to offline.
             </AlertDialogDescription>
-          </AlertDialogHeader>
+          </DialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmPublish}>Publish</AlertDialogAction>
@@ -2084,3 +2185,4 @@ export default function MenuBuilderPage() {
     </div>
   );
 }
+
