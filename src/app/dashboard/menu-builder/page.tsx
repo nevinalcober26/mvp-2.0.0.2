@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, Check, ChevronRight } from 'lucide-react';
+import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, ArrowRight, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, Check } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
@@ -1452,8 +1452,6 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncProgress, setSyncProgress] = useState(0);
   const [isSyncComplete, setIsSyncComplete] = useState(false);
-  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   
   const [isConfirmingPublish, setIsConfirmingPublish] = useState(false);
   const [pendingPublishData, setPendingPublishData] = useState<any>(null);
@@ -1464,7 +1462,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isAddSectionSheetOpen, setIsAddSectionSheetOpen] = useState(false);
   const [userMenus, setUserMenus] = useState<any[]>([]);
-  const [editingMenuName, setEditingMenuName] = useState('');
+  const [editingMenuName, setEditingMenuName] = useState('Untitled Menu');
   const [editingMenuIndex, setEditingMenuIndex] = useState<number | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ index: number; name: string } | null>(null);
   const [isAddSectionDetailsModalOpen, setIsAddSectionDetailsModalOpen] = useState(false);
@@ -1803,6 +1801,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       
       <Dialog open={isAddMenuModalOpen} onOpenChange={setIsAddMenuModalOpen}>
         <DialogContent className="sm:max-w-2xl">
+          <DialogTitle className="sr-only">How would you like to build your menu?</DialogTitle>
           <DialogHeader>
             <DialogTitle className="text-center text-2xl font-bold">How would you like to build your menu?</DialogTitle>
             <DialogDescription className="text-center">
@@ -1843,6 +1842,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       
       <Dialog open={posFlowStep === 'select'} onOpenChange={() => setPosFlowStep('')}>
         <DialogContent>
+          <DialogTitle className="sr-only">Import from POS</DialogTitle>
           <DialogHeader>
             <DialogTitle>Import from POS</DialogTitle>
             <DialogDescription>
@@ -1919,8 +1919,12 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       
       <Dialog open={posFlowStep === 'sync'}>
         <DialogContent>
+          <DialogTitle className="sr-only">Syncing Menu</DialogTitle>
           <DialogHeader>
-            <DialogTitle className="sr-only">Syncing Menu</DialogTitle>
+            <DialogTitle className="text-center">{isSyncComplete ? 'Sync Complete!' : 'Syncing Menu from POS'}</DialogTitle>
+            <DialogDescription className="text-center">
+              {isSyncComplete ? `${menuItems.length} items imported successfully.` : 'Please wait while we securely import your menu data.'}
+            </DialogDescription>
           </DialogHeader>
           <div className="py-8 flex flex-col items-center justify-center gap-4">
             <div className={cn(
@@ -1933,10 +1937,6 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
                   <Loader2 className="h-12 w-12 text-primary animate-spin" />
                 )}
               </div>
-             <DialogTitle className="text-center">{isSyncComplete ? 'Sync Complete!' : 'Syncing Menu from POS'}</DialogTitle>
-            <DialogDescription className="text-center">
-              {isSyncComplete ? `${menuItems.length} items imported successfully.` : 'Please wait while we securely import your menu data.'}
-            </DialogDescription>
             {!isSyncComplete && (
                 <Progress value={syncProgress} className="w-full mt-2" />
             )}
@@ -1956,6 +1956,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       
       <Dialog open={posFlowStep === 'customize'} onOpenChange={(open) => !open && setPosFlowStep('')}>
         <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
+          <DialogTitle className="sr-only">Customize Imported Menu</DialogTitle>
           <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex gap-4">
             <div className="flex items-center gap-2 flex-1">
               <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setPosFlowStep('')}>
@@ -2108,12 +2109,12 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       />
       <AlertDialog open={isConfirmingPublish} onOpenChange={setIsConfirmingPublish}>
         <AlertDialogContent>
-          <DialogHeader>
+          <AlertDialogHeader>
             <DialogTitle>Are you sure you want to publish this menu?</DialogTitle>
             <AlertDialogDescription>
               Publishing this menu will make it the live version for your customers. Other active menus will be set to offline.
             </AlertDialogDescription>
-          </DialogHeader>
+          </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmPublish}>Publish</AlertDialogAction>
@@ -2185,4 +2186,3 @@ export default function MenuBuilderPage() {
     </div>
   );
 }
-
