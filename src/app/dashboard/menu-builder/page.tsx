@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, ArrowRight, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, Check } from 'lucide-react';
+import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, ChevronRight, Search, Flame, ShoppingCart, ImageIcon, Edit, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
@@ -62,125 +62,127 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import NextLink from 'next/link';
 
-const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
-
-const BuilderSidebar = ({ onClose, onAddMenu }: { onClose: () => void, onAddMenu: () => void }) => {
-  return (
-    <aside className="w-80 bg-white border-r flex flex-col">
-      <div className="h-16 border-b flex items-center justify-between px-4 shrink-0">
-        <h2 className="text-lg font-bold">Menu Builder</h2>
-        <Button variant="ghost" size="icon" onClick={onClose}><X className="h-5 w-5" /></Button>
-      </div>
-      <div className="p-4 border-b">
-        <Button className="w-full" onClick={onAddMenu}><Plus className="h-4 w-4 mr-2"/> Create Menu</Button>
-      </div>
-      <ScrollArea className="flex-1">
-        <div className="p-4 space-y-4">
-          <h3 className="text-sm font-semibold text-muted-foreground px-2">Brand Settings</h3>
-          <Card className="bg-muted/50">
-            <CardHeader>
-              <CardTitle className="text-base">Bloomsbury's</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-3">
-                {userAvatar && (
-                  <Image src={userAvatar.imageUrl} alt="Brand Logo" width={48} height={48} className="rounded-full border" data-ai-hint={userAvatar.imageHint} />
-                )}
-                <div>
-                  <p className="text-sm font-semibold">Alex Thompson</p>
-                  <p className="text-xs text-muted-foreground">Admin</p>
+const BuilderSidebar = () => {
+    const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
+    return (
+        <aside className="w-80 bg-white border-r flex flex-col">
+            <div className="h-16 border-b flex items-center justify-between px-4 shrink-0">
+                <h2 className="text-lg font-bold">Menu Builder</h2>
+            </div>
+            <div className="p-4 border-b">
+                <Button className="w-full"><Plus className="h-4 w-4 mr-2" /> Create Menu</Button>
+            </div>
+            <ScrollArea className="flex-1">
+                <div className="p-4 space-y-4">
+                    <h3 className="text-sm font-semibold text-muted-foreground px-2">Brand Settings</h3>
+                    <Card className="bg-muted/50">
+                        <CardHeader>
+                            <CardTitle className="text-base">Bloomsbury's</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex items-center gap-3">
+                                {userAvatar && (
+                                    <Image src={userAvatar.imageUrl} alt="Brand Logo" width={48} height={48} className="rounded-full border" data-ai-hint={userAvatar.imageHint} />
+                                )}
+                                <div>
+                                    <p className="text-sm font-semibold">Alex Thompson</p>
+                                    <p className="text-xs text-muted-foreground">Admin</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </ScrollArea>
-      <div className="p-4 border-t">
-        {/* Footer content if any */}
-      </div>
-    </aside>
-  );
+            </ScrollArea>
+            <div className="p-4 border-t">
+                {/* Footer content if any */}
+            </div>
+        </aside>
+    );
 };
 
 
-const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit }: { 
-  name: string; 
-  imageHint: string; 
-  isLocked?: boolean; 
-  status?: 'Offline' | 'Online' | 'Draft', 
-  onDelete?: () => void;
-  onEdit?: () => void;
+const TemplateCard = ({ name, imageHint, isLocked, status, onDelete, onEdit }: {
+    name: string;
+    imageHint: string;
+    isLocked?: boolean;
+    status?: 'Offline' | 'Online' | 'Draft',
+    onDelete?: () => void;
+    onEdit?: () => void;
 }) => {
-  const image = PlaceHolderImages.find(img => img.id === imageHint);
-  
-  const isOnline = status === 'Online';
-  const isDraft = status === 'Draft';
+    const image = PlaceHolderImages.find(img => img.id === imageHint);
 
-  const tooltipText = isOnline ? "Currently set as live and public" : "Currently offline";
-  const dotColor = isOnline ? 'bg-green-500' : 'bg-red-500';
+    const isOnline = status === 'Online';
+    const isDraft = status === 'Draft';
 
-  return (
-    <Card 
-      onClick={!isLocked ? onEdit : undefined}
-      className={cn("overflow-hidden shadow-sm transition-shadow group", isLocked ? "cursor-not-allowed" : "hover:shadow-lg cursor-pointer")}
-    >
-      <CardHeader className="p-3 border-b flex-row justify-between items-center">
-        <div className="text-xs font-semibold flex items-center gap-1.5">
-          <TooltipProvider delayDuration={100}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className={cn("h-2 w-2 rounded-full", dotColor)} />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{tooltipText}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+    const tooltipText = isOnline ? "Currently set as live and public" : "Currently offline";
+    const dotColor = isOnline ? 'bg-green-500' : 'bg-red-500';
 
-          {isLocked && <Lock className="h-3 w-3 text-muted-foreground" />}
-          
-          <span className="truncate">{name}</span>
-          
-          {isDraft && <Badge variant="secondary" className="font-bold text-xs px-1.5 py-0.5 h-4">DRAFT</Badge>}
-        </div>
-        {!isLocked && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button 
-                className="h-8 w-8 rounded-full bg-black/5 text-gray-500 flex items-center justify-center hover:bg-gray-100 transition-colors"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onSelect={onEdit}>
-                <Edit className="mr-2 h-4 w-4" /> Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem disabled>Set as Offline</DropdownMenuItem>
-              <DropdownMenuItem disabled>Deactivate</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                className="text-destructive cursor-pointer" 
-                onSelect={(e) => {
-                  e.preventDefault();
-                  if (onDelete) onDelete();
-                }}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-      </CardHeader>
-      <CardContent className="p-3">
-        <div className={cn("aspect-[4/3] w-full bg-muted rounded-md overflow-hidden", isLocked && "filter grayscale opacity-70")}>
-          {image && <Image src={image.imageUrl} alt={name} width={600} height={400} className="object-cover h-full w-full" data-ai-hint={image.imageHint} />}
-        </div>
-      </CardContent>
-    </Card>
-  );
+    return (
+        <Card
+            onClick={(e) => {
+                if (!isLocked && onEdit) {
+                    onEdit();
+                }
+            }}
+            className={cn("overflow-hidden shadow-sm transition-shadow group", isLocked ? "cursor-not-allowed" : "hover:shadow-lg cursor-pointer")}
+        >
+            <CardHeader className="p-3 border-b flex-row justify-between items-center">
+                <div className="text-xs font-semibold flex items-center gap-1.5">
+                    <TooltipProvider delayDuration={100}>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <span className={cn("h-2 w-2 rounded-full", dotColor)} />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>{tooltipText}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+
+                    {isLocked && <Lock className="h-3 w-3 text-muted-foreground" />}
+
+                    <span className="truncate">{name}</span>
+
+                    {isDraft && <Badge variant="secondary" className="font-bold text-xs px-1.5 py-0.5 h-4">DRAFT</Badge>}
+                </div>
+                {!isLocked && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button
+                                className="h-8 w-8 rounded-full bg-black/5 text-gray-500 flex items-center justify-center hover:bg-gray-100 transition-colors"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <MoreHorizontal className="h-4 w-4" />
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onSelect={onEdit}>
+                                <Edit className="mr-2 h-4 w-4" /> Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem disabled>Set as Offline</DropdownMenuItem>
+                            <DropdownMenuItem disabled>Deactivate</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                                className="text-destructive cursor-pointer"
+                                onSelect={(e) => {
+                                    e.preventDefault();
+                                    if (onDelete) onDelete();
+                                }}
+                            >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
+            </CardHeader>
+            <CardContent className="p-3">
+                <div className={cn("aspect-[4/3] w-full bg-muted rounded-md overflow-hidden", isLocked && "filter grayscale opacity-70")}>
+                    {image && <Image src={image.imageUrl} alt={name} width={600} height={400} className="object-cover h-full w-full" data-ai-hint={image.imageHint} />}
+                </div>
+            </CardContent>
+        </Card>
+    );
 };
 
 
@@ -216,14 +218,14 @@ interface MenuItem extends BaseMenuItem {
 }
 
 const mockMenuItems: MenuItem[] = [
-    { 
-        id: 'pizza-margherita-12', 
-        name: 'Pizza Margherita - 12 inches', 
-        description: 'Homemade dough, homemade pizza sauce, shredded mozzarella cheese, and shredded cheddar cheese.', 
-        price: 36.00, 
-        category: 'Bestsellers', 
-        image: getImageUrl('margherita-pizza'), 
-        isCustomisable: true, 
+    {
+        id: 'pizza-margherita-12',
+        name: 'Pizza Margherita - 12 inches',
+        description: 'Homemade dough, homemade pizza sauce, shredded mozzarella cheese, and shredded cheddar cheese.',
+        price: 36.00,
+        category: 'Bestsellers',
+        image: getImageUrl('margherita-pizza'),
+        isCustomisable: true,
         properties: ['Vegetarian', 'Gluten', 'Dairy'],
         variations: [
             { id: 'var_pm12_1', value: 'Thin Crust', priceMode: 'override', priceValue: 36.00, hidden: false, categoryPage: true, productPage: true },
@@ -235,14 +237,14 @@ const mockMenuItems: MenuItem[] = [
             carbs: 98,
         }
     },
-    { 
-        id: 'chicken-alfredo-pizza-12', 
-        name: 'Chicken Alfredo Pizza - 12 inches', 
-        description: 'Homemade dough, white sauce base, marinated...', 
-        price: 48.00, 
-        category: 'Bestsellers', 
-        isCustomisable: true, 
-        image: getImageUrl('alfredo-pizza'), 
+    {
+        id: 'chicken-alfredo-pizza-12',
+        name: 'Chicken Alfredo Pizza - 12 inches',
+        description: 'Homemade dough, white sauce base, marinated...',
+        price: 48.00,
+        category: 'Bestsellers',
+        isCustomisable: true,
+        image: getImageUrl('alfredo-pizza'),
         properties: ['Halal'],
         variations: [
             { id: 'var_alfredo_1', value: 'Standard', priceMode: 'override', priceValue: 48.00, hidden: false, categoryPage: true, productPage: true },
@@ -255,14 +257,14 @@ const mockMenuItems: MenuItem[] = [
             sugar: 8
         }
     },
-    { 
-        id: 'pizza-margherita-10', 
-        name: 'Pizza Margherita - 10 inches', 
-        description: 'Homemade dough, homemade pizza sauce,...', 
-        price: 27.00, 
-        category: 'Pizza', 
-        image: getImageUrl('margherita-pizza'), 
-        isCustomisable: false, 
+    {
+        id: 'pizza-margherita-10',
+        name: 'Pizza Margherita - 10 inches',
+        description: 'Homemade dough, homemade pizza sauce,...',
+        price: 27.00,
+        category: 'Pizza',
+        image: getImageUrl('margherita-pizza'),
+        isCustomisable: false,
         properties: ['Vegetarian', 'Gluten', 'Dairy'],
         nutrition: {
             protein: 18,
@@ -271,13 +273,13 @@ const mockMenuItems: MenuItem[] = [
             sugar: 7
         }
     },
-    { 
-        id: 'hawaiian-pizza-10', 
-        name: 'Hawaiian Pizza - 10 inches', 
-        description: 'Homemade dough, pizza sauce, mozzarella, ham,...', 
-        price: 32.00, 
-        category: 'Pizza', 
-        isCustomisable: true, 
+    {
+        id: 'hawaiian-pizza-10',
+        name: 'Hawaiian Pizza - 10 inches',
+        description: 'Homemade dough, pizza sauce, mozzarella, ham,...',
+        price: 32.00,
+        category: 'Pizza',
+        isCustomisable: true,
         image: getImageUrl('hawaiian-pizza'),
         properties: ['Gluten', 'Dairy'],
         variations: [
@@ -291,13 +293,13 @@ const mockMenuItems: MenuItem[] = [
             sugar: 25
         }
     },
-    { 
-        id: 'soft-drink', 
-        name: 'Soft Drink', 
-        description: 'Choose your favorite flavor.', 
-        price: 3.00, 
-        category: 'Drinks', 
-        isCustomisable: true, 
+    {
+        id: 'soft-drink',
+        name: 'Soft Drink',
+        description: 'Choose your favorite flavor.',
+        price: 3.00,
+        category: 'Drinks',
+        isCustomisable: true,
         image: getImageUrl('soft-drink'),
         properties: [],
         variations: [
@@ -312,12 +314,12 @@ const mockMenuItems: MenuItem[] = [
             sugar: 39
         }
     },
-    { 
-        id: 'bottled-water', 
-        name: 'Bottled Water', 
-        description: 'Still or sparkling water.', 
-        price: 2.50, 
-        category: 'Drinks', 
+    {
+        id: 'bottled-water',
+        name: 'Bottled Water',
+        description: 'Still or sparkling water.',
+        price: 2.50,
+        category: 'Drinks',
         isCustomisable: false,
         image: getImageUrl('bottled-water'),
         properties: [],
@@ -328,12 +330,12 @@ const mockMenuItems: MenuItem[] = [
             sugar: 0
         }
     },
-    { 
-        id: 'steak-frites', 
-        name: 'Steak Frites', 
-        description: 'Juicy steak served with a side of crispy french fries.', 
-        price: 25.00, 
-        category: 'Main Courses', 
+    {
+        id: 'steak-frites',
+        name: 'Steak Frites',
+        description: 'Juicy steak served with a side of crispy french fries.',
+        price: 25.00,
+        category: 'Main Courses',
         image: getImageUrl('ribeye-steak'),
         properties: ['Halal'],
         variations: [
@@ -347,12 +349,12 @@ const mockMenuItems: MenuItem[] = [
             carbs: 40
         }
     } as any,
-    { 
-        id: 'classic-cheeseburger', 
-        name: 'Classic Cheeseburger', 
-        description: 'A succulent beef patty with melted cheddar.', 
-        price: 35.00, 
-        category: 'Bestsellers', 
+    {
+        id: 'classic-cheeseburger',
+        name: 'Classic Cheeseburger',
+        description: 'A succulent beef patty with melted cheddar.',
+        price: 35.00,
+        category: 'Bestsellers',
         image: getImageUrl('classic-cheeseburger'),
         properties: ['Halal', 'Gluten', 'Dairy'],
         nutrition: {
@@ -366,13 +368,13 @@ const mockMenuItems: MenuItem[] = [
             { id: 'var_cb_2', value: 'Double Patty', priceMode: 'add', priceValue: 10.00, hidden: false, categoryPage: true, productPage: true },
         ]
     } as any,
-    { 
-        id: 'truffle-fries', 
-        name: 'Truffle Fries', 
-        description: 'Crispy fries with a truffle twist.', 
-        price: 15.00, 
-        category: 'Sides', 
-        image: getImageUrl('truffle-fries'), 
+    {
+        id: 'truffle-fries',
+        name: 'Truffle Fries',
+        description: 'Crispy fries with a truffle twist.',
+        price: 15.00,
+        category: 'Sides',
+        image: getImageUrl('truffle-fries'),
         properties: ['Vegetarian'],
         nutrition: {
             protein: 4,
@@ -381,13 +383,13 @@ const mockMenuItems: MenuItem[] = [
             sodium: 350
         }
     } as any,
-    { 
-        id: 'lava-cake', 
-        name: 'Chocolate Lava Cake', 
-        description: 'A chocolate lover\'s dream.', 
-        price: 22.00, 
-        category: 'Desserts', 
-        image: getImageUrl('lava-cake'), 
+    {
+        id: 'lava-cake',
+        name: 'Chocolate Lava Cake',
+        description: 'A chocolate lover\'s dream.',
+        price: 22.00,
+        category: 'Desserts',
+        image: getImageUrl('lava-cake'),
         properties: ['Vegetarian', 'Gluten', 'Dairy'],
         nutrition: {
             protein: 6,
@@ -483,7 +485,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
         setLocalVariations(newVariations);
         handleUpdate('variations', newVariations);
     };
-    
+
     const handleAddVariation = () => {
         const newVariation: Variation = {
             id: `var_${Date.now()}`, value: '', priceMode: 'override', priceValue: 0, hidden: false, categoryPage: true, productPage: true
@@ -504,7 +506,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
         setLocalNutrition(newNutrition);
         handleUpdate('nutrition', newNutrition);
     };
-    
+
     const handleAddNutritionField = (key: string) => {
         const newNutrition = { ...localNutrition, [key]: 0 };
         setLocalNutrition(newNutrition);
@@ -537,7 +539,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
             </div>
         );
     }
-    
+
     const addedNutritionKeys = Object.keys(localNutrition);
     const availableNutritionItems = initialNutritionItems.filter(
         ni => ni.enabled && !addedNutritionKeys.includes(ni.name.toLowerCase().replace(/\s/g, '_'))
@@ -606,7 +608,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                     onCheckedChange={(checked) => onAvailabilityChange(item.id, checked)}
                 />
             </div>
-            
+
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg"><Tag className="h-5 w-5" /> Allergens & Properties</CardTitle>
@@ -754,7 +756,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                                     )
                                 })}
                             </div>
-                        
+
                             {availableNutritionItems.length > 0 && (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
@@ -824,7 +826,7 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
             </div>
         );
     }
-    
+
     return (
         <div className="w-full max-w-[340px] h-[720px] bg-gray-100 rounded-[32px] shadow-2xl p-3 border-[6px] border-black overflow-hidden flex flex-col">
             <div className="flex-1 overflow-y-auto bg-white rounded-t-[20px]">
@@ -837,7 +839,7 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
                     <h2 className="text-2xl font-bold">{item.name}</h2>
                     <p className="text-sm text-gray-500">{item.description}</p>
                     <p className="text-xl font-bold">AED {item.price.toFixed(2)} <span className="text-base text-gray-400 font-normal">(Base Price)</span></p>
-                    
+
                     {item.nutrition && (
                         <Card className="bg-gray-50 rounded-xl">
                             <CardHeader className="flex-row items-center gap-2 space-y-0 p-3">
@@ -853,7 +855,7 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
                             </CardContent>
                         </Card>
                     )}
-                    
+
                     {item.properties && item.properties.length > 0 && (
                          <Card className="bg-yellow-50 border-yellow-200 rounded-xl">
                             <CardHeader className="flex-row items-center gap-2 space-y-0 p-3">
@@ -918,13 +920,13 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
 };
 
 const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => {
-    
+
     const [items, setItems] = useState<MenuItem[]>([]);
     const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const sensors = useSensors(useSensor(PointerSensor));
     const { toast } = useToast();
-    
+
     useEffect(() => {
         if (category && isOpen) {
           setItems(category.items.map((item: any) => ({ ...item, available: item.available ?? true })));
@@ -940,9 +942,9 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
             (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()))
         );
     }, [items, searchQuery]);
-    
+
     const itemIds = useMemo(() => filteredItems.map(i => i.id), [filteredItems]);
-    
+
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
         if (over && active.id !== over.id) {
@@ -952,7 +954,7 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
             if (oldIndexInFiltered === -1 || newIndexInFiltered === -1) return;
 
             const newOrderedFilteredItems = arrayMove(filteredItems, oldIndexInFiltered, newIndexInFiltered);
-            
+
             const newFullItemsOrder = [...items];
             let lastFoundIndex = -1;
 
@@ -978,7 +980,7 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
             setSelectedItem(prev => prev ? { ...prev, [field]: value } : null);
         }
     };
-    
+
     const handleImageUpload = (itemId: string, event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
@@ -1009,7 +1011,7 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
             });
         }
     };
-    
+
     const handleRowClick = (item: MenuItem) => {
         setSelectedItem(item);
     };
@@ -1079,7 +1081,7 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
                         <PanelResizeHandle className="w-1.5 bg-muted hover:bg-border transition-colors data-[resize-handle-state=drag]:bg-primary" />
                         <Panel defaultSize={42} minSize={30} className="flex flex-col overflow-hidden border-r">
                            <div className="flex-1 overflow-y-auto">
-                             <ItemEditor 
+                             <ItemEditor
                                 item={selectedItem}
                                 onUpdate={handleItemUpdate}
                                 onImageUpload={handleImageUpload}
@@ -1192,10 +1194,10 @@ const AddSectionDetailsDialog = ({ isOpen, onOpenChange, onConfirm }: { isOpen: 
 };
 
 
-const AddSectionSheet = ({ 
-    isOpen, 
-    onOpenChange, 
-    onAddSection, 
+const AddSectionSheet = ({
+    isOpen,
+    onOpenChange,
+    onAddSection,
     allProducts,
     initialData,
 }: {
@@ -1212,7 +1214,7 @@ const AddSectionSheet = ({
 
     const form = useForm<AddSectionFormValues>({
         resolver: zodResolver(addSectionSchema),
-        defaultValues: { 
+        defaultValues: {
             name: '',
             description: '',
         },
@@ -1237,8 +1239,8 @@ const AddSectionSheet = ({
 
     const availableProducts = useMemo(() => {
         const addedIds = new Set(addedProducts.map(p => p.id));
-        return allProducts.filter(p => 
-            !addedIds.has(p.id) && 
+        return allProducts.filter(p =>
+            !addedIds.has(p.id) &&
             p.name.toLowerCase().includes(searchQuery.toLowerCase())
         );
     }, [allProducts, addedProducts, searchQuery]);
@@ -1255,7 +1257,7 @@ const AddSectionSheet = ({
             setSelectedItem(null);
         }
     };
-    
+
     const handleReorderProducts = (event: DragEndEvent) => {
         const { active, over } = event;
         if (over && active.id !== over.id) {
@@ -1381,7 +1383,7 @@ const AddSectionSheet = ({
                     <PanelResizeHandle className="w-1.5 bg-muted hover:bg-border transition-colors data-[resize-handle-state=drag]:bg-primary" />
                     <Panel defaultSize={35} minSize={25} className="flex flex-col overflow-hidden border-r">
                         <div className="flex-1 overflow-y-auto">
-                            <ItemEditor 
+                            <ItemEditor
                                 item={selectedItem}
                                 onUpdate={handleItemUpdate}
                                 onImageUpload={handleImageUpload}
@@ -1429,7 +1431,7 @@ const SortableProductRow = ({ item, isSelected, onAvailabilityChange, onRowClick
                 <p className="text-xs text-muted-foreground line-clamp-1">{item.description}</p>
             </TableCell>
             <TableCell className="text-right">
-                <Switch 
+                <Switch
                     checked={item.available}
                     onCheckedChange={(checked) => onAvailabilityChange(item.id, checked)}
                     onClick={e => e.stopPropagation()}
@@ -1439,20 +1441,20 @@ const SortableProductRow = ({ item, isSelected, onAvailabilityChange, onRowClick
     );
 };
 
-const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpen }: { 
+const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpen }: {
     onClose: () => void,
     isAddMenuModalOpen: boolean;
     setIsAddMenuModalOpen: (open: boolean) => void;
  }) => {
   const router = useRouter();
   const { toast } = useToast();
-  
+
   const [posFlowStep, setPosFlowStep] = useState<'select' | 'sync' | 'customize' | ''>('');
   const [selectedPos, setSelectedPos] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncProgress, setSyncProgress] = useState(0);
   const [isSyncComplete, setIsSyncComplete] = useState(false);
-  
+
   const [isConfirmingPublish, setIsConfirmingPublish] = useState(false);
   const [pendingPublishData, setPendingPublishData] = useState<any>(null);
 
@@ -1473,7 +1475,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
     setIsAddSectionDetailsModalOpen(false);
     setIsAddSectionSheetOpen(true);
   };
-  
+
   const [connectedPos, setConnectedPos] = useState<PosConnection[]>([]);
 
   useEffect(() => {
@@ -1530,7 +1532,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
     setPosFlowStep('sync');
     setIsSyncComplete(false);
     setSyncProgress(0);
-    
+
     let progress = 0;
     const interval = setInterval(() => {
       progress += Math.floor(Math.random() * 10) + 5;
@@ -1549,7 +1551,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
     setMenuSections(mockMenuData);
     setPosFlowStep('customize');
   };
-  
+
   const handleSaveImportedMenu = (status: 'Online' | 'Offline' | 'Draft') => {
     const newName = editingMenuName.trim();
     if (!newName) {
@@ -1560,7 +1562,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       });
       return;
     }
-    
+
     const menuToSave = editingMenuIndex !== null ? userMenus[editingMenuIndex] : null;
 
     const menuData = {
@@ -1588,7 +1590,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
 
   const handleConfirmPublish = () => {
     if (!pendingPublishData) return;
-    
+
     let updatedMenus = userMenus.map((menu, i) => {
         if (editingMenuIndex !== null && i === editingMenuIndex) {
             return menu;
@@ -1604,14 +1606,14 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
     } else {
         updatedMenus.push(pendingPublishData);
     }
-    
+
     setUserMenus(updatedMenus);
 
     toast({
         title: "Menu Published!",
         description: `"${pendingPublishData.name}" is now the live menu. Other active menus have been set to offline.`,
     });
-    
+
     setPendingPublishData(null);
     setIsConfirmingPublish(false);
     setEditingMenuIndex(null);
@@ -1673,7 +1675,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
     });
   };
 
-  
+
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (over && active.id !== over.id) {
@@ -1696,7 +1698,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
         section.id === categoryId ? { ...section, items: updatedItems } : section
       )
     );
-  
+
     const allUpdatedItems = menuSections.reduce((acc, section) => {
         if (section.id === categoryId) {
             return acc.concat(updatedItems);
@@ -1707,11 +1709,11 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
     const uniqueItems = Array.from(new Map(allUpdatedItems.map(item => [item.id, item])).values());
     setMenuItems(uniqueItems);
   };
-  
+
   const handleProductUpdate = (updatedProduct: MenuItem) => {
-    const updateItems = (items: MenuItem[]): MenuItem[] => 
+    const updateItems = (items: MenuItem[]): MenuItem[] =>
         items.map(item => item.id === updatedProduct.id ? { ...item, ...updatedProduct } : item);
-    
+
     setMenuItems(prev => updateItems(prev));
     setMenuSections(prev => prev.map(sec => ({
         ...sec,
@@ -1798,10 +1800,9 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
           </div>
         </ScrollArea>
       </div>
-      
+
       <Dialog open={isAddMenuModalOpen} onOpenChange={setIsAddMenuModalOpen}>
         <DialogContent className="sm:max-w-2xl">
-          <DialogTitle className="sr-only">How would you like to build your menu?</DialogTitle>
           <DialogHeader>
             <DialogTitle className="text-center text-2xl font-bold">How would you like to build your menu?</DialogTitle>
             <DialogDescription className="text-center">
@@ -1839,10 +1840,9 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
           </div>
         </DialogContent>
       </Dialog>
-      
+
       <Dialog open={posFlowStep === 'select'} onOpenChange={() => setPosFlowStep('')}>
         <DialogContent>
-          <DialogTitle className="sr-only">Import from POS</DialogTitle>
           <DialogHeader>
             <DialogTitle>Import from POS</DialogTitle>
             <DialogDescription>
@@ -1916,7 +1916,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
           )}
         </DialogContent>
       </Dialog>
-      
+
       <Dialog open={posFlowStep === 'sync'}>
         <DialogContent>
           <DialogTitle className="sr-only">Syncing Menu</DialogTitle>
@@ -1950,13 +1950,13 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
             ) : (
               <Button variant="outline" className="w-full" onClick={() => setPosFlowStep('')}>Cancel Sync</Button>
             )}
-          </DialogFooter>
+           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       <Dialog open={posFlowStep === 'customize'} onOpenChange={(open) => !open && setPosFlowStep('')}>
         <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
-          <DialogTitle className="sr-only">Customize Imported Menu</DialogTitle>
+          <DialogTitle className="sr-only">Manage Synced Menu</DialogTitle>
           <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex gap-4">
             <div className="flex items-center gap-2 flex-1">
               <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setPosFlowStep('')}>
@@ -2069,7 +2069,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
                       </div>
                     </div>
                   )}
-                  
+
                   <nav className="shrink-0 bg-[#F7F9FB] border-t border-gray-200/80">
                     <div className="flex justify-around items-center h-20">
                       <div className="flex flex-col items-center gap-1 text-teal-500">
@@ -2089,7 +2089,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
           </div>
         </DialogContent>
       </Dialog>
-      <CategoryItemsSheet 
+      <CategoryItemsSheet
         isOpen={isCategorySheetOpen}
         onOpenChange={setIsCategorySheetOpen}
         category={editingCategory}
@@ -2155,7 +2155,7 @@ export default function MenuBuilderPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showBuilder, setShowBuilder] = useState(false);
   const [isAddMenuModalOpen, setIsAddMenuModalOpen] = useState(false);
-  
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -2177,7 +2177,7 @@ export default function MenuBuilderPage() {
 
   return (
     <div className="fixed inset-0 z-40 bg-background flex animate-in fade-in duration-500">
-      <BuilderSidebar onClose={handleClose} onAddMenu={() => setIsAddMenuModalOpen(true)} />
+      <BuilderSidebar />
       <MenuBuilderMainPage
         onClose={handleClose}
         isAddMenuModalOpen={isAddMenuModalOpen}
