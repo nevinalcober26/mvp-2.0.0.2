@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
@@ -762,7 +763,7 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
         if(item?.variationGroups?.[0]?.multiple) {
             setSelectedVariations([]);
         } else {
-            setSelectedVariation(item?.variationGroups?.[0]?.options[0]?.value || null);
+            setSelectedOption(item?.variationGroups?.[0]?.options[0]?.value || null);
         }
     }, [item]);
 
@@ -861,7 +862,7 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
                                         ))}
                                     </div>
                                 ) : (
-                                    <RadioGroup value={selectedVariation ?? ''} onValueChange={setSelectedVariation}>
+                                    <RadioGroup value={selectedOption ?? ''} onValueChange={setSelectedOption}>
                                         <div className="space-y-2">
                                             {mainVariationGroup.options.map((v, i) => (
                                             <div key={v.id} className="flex items-center justify-between border-b last:border-b-0 border-dashed pb-3 last:pb-0">
@@ -1464,7 +1465,7 @@ const QrPreviewModal = ({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChang
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-xs text-center p-0 overflow-hidden rounded-2xl">
                 <DialogHeader className="bg-primary/5 p-6 pb-4">
-                    <DialogTitle className="sr-only">Scan to Preview</DialogTitle>
+                     <DialogTitle className="sr-only">Scan to Preview</DialogTitle>
                     <div className="mx-auto h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
                         <QrCode className="h-6 w-6 text-primary" />
                     </div>
@@ -2011,7 +2012,6 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       <Dialog open={posFlowStep === 'customize'} onOpenChange={(open) => !open && setPosFlowStep('')}>
         <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
            <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex gap-4">
-            <DialogTitle className="sr-only">Manage Menu</DialogTitle>
             <div className="flex items-center gap-2 flex-1">
               <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setPosFlowStep('')}>
                 <ArrowLeft className="h-5 w-5" />
@@ -2169,7 +2169,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       <AlertDialog open={isConfirmingPublish} onOpenChange={setIsConfirmingPublish}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to publish this menu?</AlertDialogTitle>
+            <DialogTitle>Are you sure you want to publish this menu?</DialogTitle>
             <AlertDialogDescription>
               Publishing this menu will make it the live version for your customers. Other active menus will be set to offline.
             </AlertDialogDescription>
@@ -2183,7 +2183,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
        <AlertDialog open={!!deleteConfirmation} onOpenChange={() => setDeleteConfirmation(null)}>
         <AlertDialogContent>
             <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <DialogTitle>Are you absolutely sure?</DialogTitle>
                 <AlertDialogDescription>
                     This action cannot be undone. This will permanently delete the menu: <strong>{deleteConfirmation?.name}</strong>.
                 </AlertDialogDescription>
@@ -2246,3 +2246,4 @@ export default function MenuBuilderPage() {
     </div>
   );
 }
+
