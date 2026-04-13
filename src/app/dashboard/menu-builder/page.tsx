@@ -744,8 +744,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
 
 const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
     const [quantity, setQuantity] = useState(1);
-    const [selectedOption, setSelectedOption] = useState<string | null>(null);
-    const [selectedVariations, setSelectedVariations] = useState<string[]>([]);
+    const [selections, setSelections] = useState<Record<string, string | string[]>>({});
 
     const allergenIcons: Record<string, React.ElementType> = {
         'Gluten': Wheat,
@@ -760,13 +759,40 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
 
     useEffect(() => {
         setQuantity(1);
-        if(item?.variationGroups?.[0]?.multiple) {
-            setSelectedVariations([]);
+        if (item?.variationGroups) {
+            const initialSelections: Record<string, string | string[]> = {};
+            item.variationGroups.forEach(group => {
+                if (group.required && !group.multiple && group.options.length > 0) {
+                    initialSelections[group.id] = group.options[0].value;
+                } else if (group.multiple) {
+                    initialSelections[group.id] = [];
+                } else {
+                    initialSelections[group.id] = '';
+                }
+            });
+            setSelections(initialSelections);
         } else {
-            setSelectedOption(item?.variationGroups?.[0]?.options[0]?.value || null);
+            setSelections({});
         }
     }, [item]);
 
+    const handleSelectionChange = (groupId: string, value: string, isMultiple: boolean) => {
+        setSelections(prev => {
+            const newSelections = { ...prev };
+            if (isMultiple) {
+                const currentSelection = (newSelections[groupId] as string[]) || [];
+                if (currentSelection.includes(value)) {
+                    newSelections[groupId] = currentSelection.filter(v => v !== value);
+                } else {
+                    newSelections[groupId] = [...currentSelection, value];
+                }
+            } else {
+                newSelections[groupId] = value;
+            }
+            return newSelections;
+        });
+    };
+    
     const totalKcal = useMemo(() => {
         if (!item?.nutrition) return 0;
         const { protein = 0, carbs = 0, carbohydrates = 0, fat = 0 } = item.nutrition;
@@ -783,7 +809,7 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
         );
     }
 
-    const mainVariationGroup = item.variationGroups?.[0];
+    const totalPrice = item.price * quantity;
 
     return (
         <div className="w-full max-w-[340px] h-[720px] bg-gray-100 rounded-[32px] shadow-2xl p-3 border-[6px] border-black overflow-hidden flex flex-col">
@@ -831,43 +857,40 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
                         </Card>
                     )}
 
-                    {mainVariationGroup && (
-                        <Card className="bg-gray-50 rounded-xl">
+                    {item.variationGroups && item.variationGroups.map(group => (
+                        <Card key={group.id} className="bg-gray-50 rounded-xl">
                             <CardHeader className="p-3">
-                                <h3 className="font-bold">{mainVariationGroup.name}</h3>
+                                <h3 className="font-bold">{group.name}</h3>
                                 <p className="text-sm text-gray-500">
-                                  {mainVariationGroup.multiple ? "Select one or more options" : "Select one option"}{' '}
-                                  {mainVariationGroup.required && <span className="text-red-500 font-semibold">(Required)</span>}
+                                  {group.multiple ? "Select one or more options" : "Select one option"}{' '}
+                                  {group.required && <span className="text-red-500 font-semibold">(Required)</span>}
                                 </p>
                             </CardHeader>
                             <CardContent className="p-3 pt-0">
-                                {mainVariationGroup.multiple ? (
+                                {group.multiple ? (
                                     <div className="space-y-2">
-                                        {mainVariationGroup.options.map((v, i) => (
-                                            <div key={v.id} className="flex items-center justify-between border-b last:border-b-0 border-dashed pb-3 last:pb-0">
-                                                <Label htmlFor={`preview-opt-${i}`} className="text-base font-medium text-gray-700 flex-1 cursor-pointer">{v.value}</Label>
+                                        {group.options.map((opt, i) => (
+                                            <div key={opt.id} className="flex items-center justify-between border-b last:border-b-0 border-dashed pb-3 last:pb-0">
+                                                <Label htmlFor={`preview-opt-${group.id}-${i}`} className="text-base font-medium text-gray-700 flex-1 cursor-pointer">{opt.value}</Label>
                                                 <Checkbox
-                                                    id={`preview-opt-${i}`}
-                                                    checked={selectedVariations.includes(v.value)}
-                                                    onCheckedChange={(checked) => {
-                                                        if (checked) {
-                                                            setSelectedVariations(prev => [...prev, v.value]);
-                                                        } else {
-                                                            setSelectedVariations(prev => prev.filter(sv => sv !== v.value));
-                                                        }
-                                                    }}
+                                                    id={`preview-opt-${group.id}-${i}`}
+                                                    checked={(selections[group.id] as string[])?.includes(opt.value)}
+                                                    onCheckedChange={() => handleSelectionChange(group.id, opt.value, true)}
                                                     className="h-5 w-5 text-teal-500 border-gray-300 data-[state=checked]:border-teal-500 data-[state=checked]:bg-teal-500"
                                                 />
                                             </div>
                                         ))}
                                     </div>
                                 ) : (
-                                    <RadioGroup value={selectedOption ?? ''} onValueChange={setSelectedOption}>
+                                    <RadioGroup 
+                                        value={selections[group.id] as string || ''}
+                                        onValueChange={(value) => handleSelectionChange(group.id, value, false)}
+                                    >
                                         <div className="space-y-2">
-                                            {mainVariationGroup.options.map((v, i) => (
-                                            <div key={v.id} className="flex items-center justify-between border-b last:border-b-0 border-dashed pb-3 last:pb-0">
-                                                <Label htmlFor={`preview-opt-${i}`} className="text-base font-medium text-gray-700 flex-1 cursor-pointer">{v.value}</Label>
-                                                <RadioGroupItem value={v.value} id={`preview-opt-${i}`} className="h-5 w-5 text-teal-500 border-gray-300 data-[state=checked]:border-teal-500" />
+                                            {group.options.map((opt, i) => (
+                                            <div key={opt.id} className="flex items-center justify-between border-b last:border-b-0 border-dashed pb-3 last:pb-0">
+                                                <Label htmlFor={`preview-opt-${group.id}-${i}`} className="text-base font-medium text-gray-700 flex-1 cursor-pointer">{opt.value}</Label>
+                                                <RadioGroupItem value={opt.value} id={`preview-opt-${group.id}-${i}`} className="h-5 w-5 text-teal-500 border-gray-300 data-[state=checked]:border-teal-500" />
                                             </div>
                                             ))}
                                         </div>
@@ -875,7 +898,7 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
                                 )}
                             </CardContent>
                         </Card>
-                    )}
+                    ))}
 
                     <Card className="bg-gray-50 rounded-xl">
                         <CardHeader className="flex-row items-center gap-2 space-y-0 p-3">
@@ -896,11 +919,12 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
                     <span className="font-bold text-lg text-gray-800">{quantity}</span>
                     <Button size="icon" variant="ghost" className="h-9 w-9 text-gray-700" onClick={() => setQuantity(q => q + 1)}><Plus className="h-5 w-5" /></Button>
                 </div>
-                <Button className="flex-1 h-12 text-white font-bold text-base bg-teal-500 hover:bg-teal-600">Add • AED {(item.price * quantity).toFixed(2)}</Button>
+                <Button className="flex-1 h-12 text-white font-bold text-base bg-teal-500 hover:bg-teal-600">Add • AED {totalPrice.toFixed(2)}</Button>
             </div>
         </div>
     );
 };
+
 
 const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => {
 
