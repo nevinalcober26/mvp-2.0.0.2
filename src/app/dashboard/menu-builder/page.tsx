@@ -8,11 +8,10 @@ import { MenuBuilderPreloader } from '@/components/dashboard/menu-builder/preloa
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { EMenuIcon } from '@/components/dashboard/app-sidebar';
 import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, ArrowRight, Check, Flame, ChevronRight, ShoppingCart, Edit, ImageIcon, GalleryHorizontal, Upload, QrCode, ExternalLink, Eye, HelpCircle } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,7 +20,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle as AlertDialogTitleComponent,
+  AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator, SelectGroup, SelectLabel } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
@@ -31,7 +30,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import { MenuItemCard, type MenuItem as BaseMenuItem } from '@/app/mobile/menu/menu-item-card';
 import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetHeader, SheetFooter, SheetDescription, SheetTitle } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetDescription } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -743,8 +742,8 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                                       {group.options.map((option, optionIndex) => (
                                           <div key={option.id} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end border-t pt-4">
                                               <Label className="font-normal md:col-span-1">{option.value}</Label>
-                                              <FormItem>
-                                                <FormLabel>Price Rule</FormLabel>
+                                              <div className="space-y-1">
+                                                <Label>Price Rule</Label>
                                                 <Select
                                                     value={option.priceMode}
                                                     onValueChange={(value) => {
@@ -760,9 +759,9 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                                                         <SelectItem value="override">Override Price</SelectItem>
                                                     </SelectContent>
                                                 </Select>
-                                              </FormItem>
-                                              <FormItem>
-                                                <FormLabel>Value (AED)</FormLabel>
+                                              </div>
+                                              <div className="space-y-1">
+                                                <Label>Value (AED)</Label>
                                                 <Input
                                                     type="number"
                                                     placeholder='0.00'
@@ -773,15 +772,15 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                                                         handleVariationGroupsChange(newGroups);
                                                     }}
                                                 />
-                                              </FormItem>
-                                              <FormItem className="flex flex-col items-center justify-center gap-2">
-                                                  <FormLabel>Hidden</FormLabel>
+                                              </div>
+                                              <div className="flex flex-col items-center justify-center gap-2">
+                                                  <Label>Hidden</Label>
                                                   <Switch checked={option.hidden} onCheckedChange={(checked) => {
                                                       const newGroups = [...localVariationGroups];
                                                       newGroups[groupIndex].options[optionIndex].hidden = checked;
                                                       handleVariationGroupsChange(newGroups);
                                                   }}/>
-                                              </FormItem>
+                                              </div>
                                           </div>
                                       ))}
                                     </div>
@@ -1525,7 +1524,7 @@ const AddSectionSheet = ({
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
             <SheetContent className="w-full max-w-[95vw] sm:max-w-[90vw] lg:max-w-[80vw] p-0 flex flex-col">
                 <SheetHeader className="p-6 border-b shrink-0">
-                    <SheetTitle className="text-xl">Create New Section: {initialData?.name}</SheetTitle>
+                    <DialogTitle className="text-xl">Create New Section: {initialData?.name}</DialogTitle>
                     <SheetDescription>{initialData?.description || 'Build a new section by adding and customizing products from your library.'}</SheetDescription>
                 </SheetHeader>
                 <PanelGroup direction="horizontal" className="flex-1 overflow-hidden">
@@ -1591,10 +1590,10 @@ const AddSectionSheet = ({
                         <ItemPreviewer item={selectedItem} />
                     </Panel>
                 </PanelGroup>
-                <SheetFooter className="p-6 border-t shrink-0">
+                <DialogFooter className="p-6 border-t shrink-0">
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
                     <Button type="button" onClick={handleSubmit}>Create Section</Button>
-                </SheetFooter>
+                </DialogFooter>
             </SheetContent>
         </Sheet>
     );
@@ -2403,7 +2402,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       <AlertDialog open={isConfirmingPublish} onOpenChange={setIsConfirmingPublish}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitleComponent>Are you sure you want to publish this menu?</AlertDialogTitleComponent>
+            <AlertDialogTitle>Are you sure you want to publish this menu?</AlertDialogTitle>
             <AlertDialogDescription>
               Publishing this menu will make it the live version for your customers. Other active menus will be set to offline.
             </AlertDialogDescription>
@@ -2417,7 +2416,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
        <AlertDialog open={!!deleteConfirmation} onOpenChange={() => setDeleteConfirmation(null)}>
         <AlertDialogContent>
             <AlertDialogHeader>
-                <AlertDialogTitleComponent>Are you absolutely sure?</AlertDialogTitleComponent>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                 <AlertDialogDescription>
                     This action cannot be undone. This will permanently delete the menu: <strong>{deleteConfirmation?.name}</strong>.
                 </AlertDialogDescription>
