@@ -18,9 +18,7 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle as AlertDialogTitleComponent,
+  AlertDialogHeader as AlertDialogTitleComponent,
 } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator, SelectGroup, SelectLabel } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
@@ -30,7 +28,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import { MenuItemCard, type MenuItem as BaseMenuItem } from '@/app/mobile/menu/menu-item-card';
 import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetHeader, SheetDescription, SheetFooter } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetDescription, SheetFooter, SheetTitle } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -41,7 +39,7 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -571,6 +569,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
     );
 
     return (
+      <Form>
         <div className="p-6 space-y-6">
             <div>
                 <Label>Product Image</Label>
@@ -903,6 +902,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                 )}
             </Card>
         </div>
+      </Form>
     );
 };
 
@@ -1246,7 +1246,7 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave, onOpenEdit
                   <>
                     <SheetHeader className="p-6 border-b shrink-0">
                         <div className="flex items-center gap-2">
-                            <DialogTitle>Manage: {category.name} ({items.length} items)</DialogTitle>
+                            <SheetTitle>Manage: {category.name} ({items.length} items)</SheetTitle>
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
@@ -1344,6 +1344,10 @@ const addSectionSchema = z.object({
     externalLink: z.string().url().optional().or(z.literal('')),
 });
 type AddSectionFormValues = z.infer<typeof addSectionSchema>;
+
+const editSectionSchema = addSectionSchema.extend({ id: z.string() });
+type EditSectionFormValues = z.infer<typeof editSectionSchema>;
+
 
 const AddSectionDetailsDialog = ({ isOpen, onOpenChange, onConfirm }: { isOpen: boolean; onOpenChange: (open: boolean) => void; onConfirm: (data: AddSectionFormValues) => void; }) => {
   const form = useForm<AddSectionFormValues>({
@@ -1538,7 +1542,7 @@ const AddSectionSheet = ({
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
             <SheetContent className="w-full max-w-[95vw] sm:max-w-[90vw] lg:max-w-[80vw] p-0 flex flex-col">
                 <SheetHeader className="p-6 border-b shrink-0">
-                    <DialogTitle className="text-xl">Create New Section: {initialData?.name}</DialogTitle>
+                    <SheetTitle className="text-xl">Create New Section: {initialData?.name}</SheetTitle>
                     <SheetDescription>{initialData?.description || 'Build a new section by adding and customizing products from your library.'}</SheetDescription>
                 </SheetHeader>
                 <PanelGroup direction="horizontal" className="flex-1 overflow-hidden">
@@ -1734,7 +1738,7 @@ const QrPreviewModal = ({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChang
 
 const EditSectionDetailsDialog = ({ isOpen, onOpenChange, onConfirm, section }: { isOpen: boolean; onOpenChange: (open: boolean) => void; onConfirm: (data: EditSectionFormValues) => void; section: any | null; }) => {
   const form = useForm<EditSectionFormValues>({
-    resolver: zodResolver(addSectionSchema), // Note: Using addSectionSchema as it's identical
+    resolver: zodResolver(editSectionSchema),
     defaultValues: { id: '', name: '', description: '', imageUrl: '', enableSpecial: false },
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -2262,7 +2266,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
 
       <Dialog open={isAddMenuModalOpen} onOpenChange={setIsAddMenuModalOpen}>
         <DialogContent className="sm:max-w-2xl">
-          <DialogTitle className="sr-only">Add new menu</DialogTitle>
+        <DialogTitle className="sr-only">Add new menu</DialogTitle>
           <DialogHeader>
             <DialogTitle className="text-center text-2xl font-bold">How would you like to build your menu?</DialogTitle>
             <DialogDescription className="text-center">
@@ -2581,12 +2585,10 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       />
       <AlertDialog open={isConfirmingPublish} onOpenChange={setIsConfirmingPublish}>
         <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitleComponent>Are you sure you want to publish this menu?</AlertDialogTitleComponent>
-            <AlertDialogDescription>
-              Publishing this menu will make it the live version for your customers. Other active menus will be set to offline.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+          <AlertDialogTitleComponent>Are you sure you want to publish this menu?</AlertDialogTitleComponent>
+          <AlertDialogDescription>
+            Publishing this menu will make it the live version for your customers. Other active menus will be set to offline.
+          </AlertDialogDescription>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmPublish}>Publish</AlertDialogAction>
@@ -2595,12 +2597,10 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       </AlertDialog>
        <AlertDialog open={!!deleteConfirmation} onOpenChange={() => setDeleteConfirmation(null)}>
         <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitleComponent>Are you absolutely sure?</AlertDialogTitleComponent>
-                <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete the menu: <strong>{deleteConfirmation?.name}</strong>.
-                </AlertDialogDescription>
-            </AlertDialogHeader>
+            <AlertDialogTitleComponent>Are you absolutely sure?</AlertDialogTitleComponent>
+            <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the menu: <strong>{deleteConfirmation?.name}</strong>.
+            </AlertDialogDescription>
             <AlertDialogFooter>
                 <AlertDialogCancel onClick={() => setDeleteConfirmation(null)}>Cancel</AlertDialogCancel>
                 <AlertDialogAction
@@ -2618,6 +2618,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
         </AlertDialogContent>
       </AlertDialog>
       <QrPreviewModal isOpen={isQrModalOpen} onOpenChange={setIsQrModalOpen} />
+      {posFlowStep === 'customize' && <FloatingActionMenu onQrClick={() => setIsQrModalOpen(true)} />}
     </>
   );
 };
