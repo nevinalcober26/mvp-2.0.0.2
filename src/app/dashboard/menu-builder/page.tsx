@@ -234,6 +234,19 @@ const getImageUrl = (id: string) => {
     return image?.imageUrl || 'https://picsum.photos/seed/placeholder/400/400';
 };
 
+const mapGroupToProductVariation = (group: VariationGroup): ProductVariationGroup => {
+  return {
+    ...group,
+    options: group.options.map(opt => ({
+        id: opt.id,
+        value: opt.value,
+        priceMode: 'add',
+        priceValue: opt.regularPrice || 0,
+        hidden: false,
+    }))
+  };
+};
+
 export type VariationOptionOverride = {
   id: string; // from VariationOption
   value: string;
@@ -257,18 +270,6 @@ interface MenuItem extends BaseMenuItem {
   properties?: string[];
 }
 
-const mapGroupToProductVariation = (group: VariationGroup): ProductVariationGroup => {
-  return {
-    ...group,
-    options: group.options.map(opt => ({
-        id: opt.id,
-        value: opt.value,
-        priceMode: 'add',
-        priceValue: opt.regularPrice || 0,
-        hidden: false,
-    }))
-  };
-};
 
 const mockMenuItems: MenuItem[] = [
     {
@@ -1599,7 +1600,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
  }) => {
   const router = useRouter();
   const { toast } = useToast();
-
+  const [activeTab, setActiveTab] = useState('');
   const [posFlowStep, setPosFlowStep] = useState<'select' | 'sync' | 'customize' | ''>('');
   const [selectedPos, setSelectedPos] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
@@ -1621,7 +1622,6 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ index: number; name: string } | null>(null);
   const [isAddSectionDetailsModalOpen, setIsAddSectionDetailsModalOpen] = useState(false);
   const [newSectionDetails, setNewSectionDetails] = useState<Partial<AddSectionFormValues> | null>(null);
-  const [activeTab, setActiveTab] = useState('');
 
   const [connectedPos, setConnectedPos] = useState<PosConnection[]>([]);
 
@@ -2116,6 +2116,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       <Dialog open={posFlowStep === 'customize'} onOpenChange={(open) => !open && setPosFlowStep('')}>
         <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
            <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex gap-4">
+            <DialogTitle className="sr-only">Customize Menu</DialogTitle>
             <div className="flex items-center gap-2 flex-1">
               <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setPosFlowStep('')}>
                 <ArrowLeft className="h-5 w-5" />
@@ -2273,7 +2274,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       <AlertDialog open={isConfirmingPublish} onOpenChange={setIsConfirmingPublish}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <DialogTitle>Are you sure you want to publish this menu?</DialogTitle>
+            <AlertDialogTitle>Are you sure you want to publish this menu?</AlertDialogTitle>
             <AlertDialogDescription>
               Publishing this menu will make it the live version for your customers. Other active menus will be set to offline.
             </AlertDialogDescription>
