@@ -62,6 +62,9 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import NextLink from 'next/link';
 import { Search } from 'lucide-react';
+import type { VariationGroup } from '@/app/dashboard/catalog/variations/types';
+import { mockCategories, mockVariationGroups, mockComboGroupNames } from '@/lib/mock-data-store';
+
 
 const BuilderSidebar = () => {
     const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
@@ -253,6 +256,19 @@ interface MenuItem extends BaseMenuItem {
   variationGroups?: ProductVariationGroup[];
   properties?: string[];
 }
+
+const mapGroupToProductVariation = (group: VariationGroup): ProductVariationGroup => {
+  return {
+    ...group,
+    options: group.options.map(opt => ({
+        id: opt.id,
+        value: opt.value,
+        priceMode: 'add',
+        priceValue: opt.regularPrice || 0,
+        hidden: false,
+    }))
+  };
+};
 
 const mockMenuItems: MenuItem[] = [
     {
@@ -1553,7 +1569,6 @@ const QrPreviewModal = ({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChang
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-xs text-center p-0 overflow-hidden rounded-2xl">
-                 <DialogTitle className="sr-only">Scan to Preview</DialogTitle>
                 <DialogHeader className="bg-primary/5 p-6 pb-4">
                     <div className="mx-auto h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
                         <QrCode className="h-6 w-6 text-primary" />
@@ -2101,7 +2116,6 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       <Dialog open={posFlowStep === 'customize'} onOpenChange={(open) => !open && setPosFlowStep('')}>
         <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
            <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex gap-4">
-            <DialogTitle className="sr-only">Customize Menu</DialogTitle>
             <div className="flex items-center gap-2 flex-1">
               <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setPosFlowStep('')}>
                 <ArrowLeft className="h-5 w-5" />
@@ -2336,16 +2350,3 @@ export default function MenuBuilderPage() {
     </div>
   );
 }
-
-const mapGroupToProductVariation = (group: VariationGroup): ProductVariationGroup => {
-  return {
-    ...group,
-    options: group.options.map(opt => ({
-        id: opt.id,
-        value: opt.value,
-        priceMode: 'add',
-        priceValue: opt.regularPrice || 0,
-        hidden: false,
-    }))
-  };
-};
