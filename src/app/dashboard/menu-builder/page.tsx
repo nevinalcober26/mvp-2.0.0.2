@@ -20,17 +20,18 @@ import {
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
-  AlertDialogTitle as AlertDialogTitleComponent,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator, SelectGroup, SelectLabel } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent, KeyboardSensor, sortableKeyboardCoordinates } from '@dnd-kit/core';
+import { DndContext, closestCenter, useSensor, useSensors, DragEndEvent, PointerSensor, KeyboardSensor, sortableKeyboardCoordinates } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import { MenuItemCard, type MenuItem as BaseMenuItem } from '@/app/mobile/menu/menu-item-card';
 import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetFooter, SheetDescription } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -61,7 +62,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import NextLink from 'next/link';
 import { Search } from 'lucide-react';
-import type { VariationGroup } from '@/app/dashboard/catalog/variations/types';
+import type { VariationGroup, ProductVariationGroup } from '@/app/dashboard/catalog/variations/types';
 import { mockCategories, mockVariationGroups, mockComboGroupNames } from '@/lib/mock-data-store';
 import { getCategoryNameOptions } from '@/app/dashboard/categories/utils';
 import dynamic from 'next/dynamic';
@@ -1248,7 +1249,7 @@ const CategoryItemsSheet = ({ category, isOpen, onOpenChange, onSave }: any) => 
                 ) : (
                   <>
                     <SheetHeader className="p-6 border-b shrink-0">
-                        <SheetTitle>Manage: {category.name} ({items.length} items)</SheetTitle>
+                        <DialogTitle>Manage: {category.name} ({items.length} items)</DialogTitle>
                         <SheetDescription>Drag to reorder, click a row to edit details, and toggle availability.</SheetDescription>
                     </SheetHeader>
                     <PanelGroup direction="horizontal" className="flex-1 overflow-hidden">
@@ -1527,7 +1528,7 @@ const AddSectionSheet = ({
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
             <SheetContent className="w-full max-w-[95vw] sm:max-w-[90vw] lg:max-w-[80vw] p-0 flex flex-col">
                 <SheetHeader className="p-6 border-b shrink-0">
-                    <SheetTitle className="text-xl">Create New Section: {initialData?.name}</SheetTitle>
+                    <DialogTitle className="text-xl">Create New Section: {initialData?.name}</DialogTitle>
                     <SheetDescription>{initialData?.description || 'Build a new section by adding and customizing products from your library.'}</SheetDescription>
                 </SheetHeader>
                 <PanelGroup direction="horizontal" className="flex-1 overflow-hidden">
@@ -1700,7 +1701,6 @@ const QrPreviewModal = ({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChang
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-xs text-center p-0 overflow-hidden rounded-2xl">
                 <DialogHeader className="bg-primary/5 p-6 pb-4">
-                    <DialogTitle className="sr-only">QR Code Preview</DialogTitle>
                     <div className="mx-auto h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
                         <QrCode className="h-6 w-6 text-primary" />
                     </div>
@@ -2093,6 +2093,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
 
       <Dialog open={isAddMenuModalOpen} onOpenChange={setIsAddMenuModalOpen}>
         <DialogContent className="sm:max-w-2xl">
+        <DialogTitle className="sr-only">Add new menu</DialogTitle>
           <DialogHeader>
             <DialogTitle className="text-center text-2xl font-bold">How would you like to build your menu?</DialogTitle>
             <DialogDescription className="text-center">
@@ -2133,6 +2134,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
 
       <Dialog open={posFlowStep === 'select'} onOpenChange={() => setPosFlowStep('')}>
         <DialogContent>
+        <DialogTitle className="sr-only">Import from POS</DialogTitle>
           <DialogHeader>
             <DialogTitle>Import from POS</DialogTitle>
             <DialogDescription>
@@ -2209,6 +2211,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
 
       <Dialog open={posFlowStep === 'sync'}>
         <DialogContent>
+        <DialogTitle className="sr-only">Syncing</DialogTitle>
           <DialogHeader>
               <DialogTitle className="text-center">{isSyncComplete ? 'Sync Complete!' : 'Syncing Menu from POS'}</DialogTitle>
               <DialogDescription className="text-center">
@@ -2245,7 +2248,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
 
       <Dialog open={posFlowStep === 'customize'} onOpenChange={(open) => !open && setPosFlowStep('')}>
         <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
-          <DialogTitle className="sr-only">{editingMenuName || 'Menu Editor'}</DialogTitle>
+        <DialogTitle className="sr-only">{editingMenuName || 'Menu Editor'}</DialogTitle>
           <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex gap-4">
             <div className="flex items-center gap-2 flex-1">
               <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setPosFlowStep('')}>
@@ -2403,7 +2406,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       <AlertDialog open={isConfirmingPublish} onOpenChange={setIsConfirmingPublish}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitleComponent>Are you sure you want to publish this menu?</AlertDialogTitleComponent>
+            <AlertDialogTitle>Are you sure you want to publish this menu?</AlertDialogTitle>
             <AlertDialogDescription>
               Publishing this menu will make it the live version for your customers. Other active menus will be set to offline.
             </AlertDialogDescription>
@@ -2417,7 +2420,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
        <AlertDialog open={!!deleteConfirmation} onOpenChange={() => setDeleteConfirmation(null)}>
         <AlertDialogContent>
             <AlertDialogHeader>
-                <AlertDialogTitleComponent>Are you absolutely sure?</AlertDialogTitleComponent>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                 <AlertDialogDescription>
                     This action cannot be undone. This will permanently delete the menu: <strong>{deleteConfirmation?.name}</strong>.
                 </AlertDialogDescription>
@@ -2480,3 +2483,5 @@ export default function MenuBuilderPage() {
     </div>
   );
 }
+
+    
