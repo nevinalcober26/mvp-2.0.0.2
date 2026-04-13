@@ -1399,8 +1399,8 @@ const AddSectionSheet = ({
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
             <SheetContent className="w-full max-w-[95vw] sm:max-w-[90vw] lg:max-w-[80vw] p-0 flex flex-col">
                 <SheetHeader className="p-6 border-b shrink-0">
-                    <SheetTitle className="text-xl">Create a New Menu Section</SheetTitle>
-                    <SheetDescription>Build a new section by adding and customizing products from your library.</SheetDescription>
+                    <SheetTitle className="text-xl">Create New Section: {initialData?.name}</SheetTitle>
+                    <SheetDescription>{initialData?.description || 'Build a new section by adding and customizing products from your library.'}</SheetDescription>
                 </SheetHeader>
                 <PanelGroup direction="horizontal" className="flex-1 overflow-hidden">
                     <Panel defaultSize={20} minSize={15} className="flex flex-col overflow-hidden border-r bg-muted/30">
@@ -1572,11 +1572,10 @@ const QrPreviewModal = ({ isOpen, onOpenChange }: { isOpen: boolean; onOpenChang
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-xs text-center p-0 overflow-hidden rounded-2xl">
                 <DialogHeader className="bg-primary/5 p-6 pb-4">
-                     <DialogTitle className="sr-only">QR Code Preview</DialogTitle>
                     <div className="mx-auto h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
                         <QrCode className="h-6 w-6 text-primary" />
                     </div>
-                    <h2 className="pt-2">Scan to Preview</h2>
+                    <DialogTitle className="pt-2">Scan to Preview</DialogTitle>
                     <DialogDescription>
                         Use your phone's camera to see your menu live.
                     </DialogDescription>
@@ -2119,7 +2118,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       <Dialog open={posFlowStep === 'customize'} onOpenChange={(open) => !open && setPosFlowStep('')}>
         <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
            <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex gap-4">
-            <h2 className="sr-only">Manage Menu</h2>
+            <DialogTitle className="sr-only">Manage Menu</DialogTitle>
             <div className="flex items-center gap-2 flex-1">
               <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setPosFlowStep('')}>
                 <ArrowLeft className="h-5 w-5" />
