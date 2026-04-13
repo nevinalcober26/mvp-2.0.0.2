@@ -25,8 +25,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator, SelectGroup, SelectLabel } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
-import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent, KeyboardSensor } from '@dnd-kit/core';
+import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import { MenuItemCard, type MenuItem as BaseMenuItem } from '@/app/mobile/menu/menu-item-card';
@@ -496,6 +496,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
     const [localVariationGroups, setLocalVariationGroups] = useState<ProductVariationGroup[]>([]);
     const [localNutrition, setLocalNutrition] = useState<Record<string, number>>({});
     const [isNutritionEnabled, setIsNutritionEnabled] = useState(false);
+    const [editingGroupName, setEditingGroupName] = useState<{ id: string; name: string } | null>(null);
 
     useEffect(() => {
         if (item) {
@@ -560,6 +561,16 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
             handleUpdate('nutrition', undefined);
         } else if (item && item.nutrition === undefined) {
             handleUpdate('nutrition', {});
+        }
+    };
+
+    const handleGroupNameUpdate = () => {
+        if (editingGroupName && item) {
+            const newGroups = localVariationGroups.map(g =>
+                g.id === editingGroupName.id ? { ...g, name: editingGroupName.name } : g
+            );
+            handleVariationGroupsChange(newGroups);
+            setEditingGroupName(null);
         }
     };
 
@@ -690,9 +701,23 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                         <Collapsible key={group.id} className="border rounded-lg bg-muted/30">
                             <div className="flex items-center p-2">
                                 <CollapsibleTrigger asChild>
-                                    <Button variant="ghost" className="flex-1 justify-start gap-2">
+                                    <Button variant="ghost" className="flex-1 justify-start gap-2 h-auto py-1">
                                         <ChevronRight className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-90" />
-                                        <span className="font-semibold">{group.name}</span>
+                                        {editingGroupName?.id === group.id ? (
+                                            <Input
+                                                value={editingGroupName.name}
+                                                onChange={(e) => setEditingGroupName({ ...editingGroupName, name: e.target.value })}
+                                                onBlur={handleGroupNameUpdate}
+                                                onKeyDown={(e) => { if (e.key === 'Enter') handleGroupNameUpdate(); if (e.key === 'Escape') setEditingGroupName(null); }}
+                                                autoFocus
+                                                className="h-7 text-base"
+                                                onClick={(e) => e.stopPropagation()}
+                                            />
+                                        ) : (
+                                            <span className="font-semibold text-base" onDoubleClick={() => setEditingGroupName({ id: group.id, name: group.name })}>
+                                                {group.name}
+                                            </span>
+                                        )}
                                     </Button>
                                 </CollapsibleTrigger>
                                 <Button
@@ -735,33 +760,47 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
                                     </div>
                                     <div className="space-y-4">
                                       {group.options.map((option, optionIndex) => (
-                                          <div key={option.id} className="grid grid-cols-1 md:grid-cols-[1fr_120px_120px] gap-2 items-end border-t pt-4">
-                                              <Label className="font-normal md:col-span-3">{option.value}</Label>
-                                              <Select
-                                                  value={option.priceMode}
-                                                  onValueChange={(value) => {
+                                          <div key={option.id} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end border-t pt-4">
+                                              <Label className="font-normal md:col-span-1">{option.value}</Label>
+                                              <FormItem>
+                                                <FormLabel>Price Rule</FormLabel>
+                                                <Select
+                                                    value={option.priceMode}
+                                                    onValueChange={(value) => {
+                                                        const newGroups = [...localVariationGroups];
+                                                        newGroups[groupIndex].options[optionIndex].priceMode = value as any;
+                                                        handleVariationGroupsChange(newGroups);
+                                                    }}
+                                                >
+                                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="add">Add Price</SelectItem>
+                                                        <SelectItem value="subtract">Subtract Price</SelectItem>
+                                                        <SelectItem value="override">Override Price</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                              </FormItem>
+                                              <FormItem>
+                                                <FormLabel>Value (AED)</FormLabel>
+                                                <Input
+                                                    type="number"
+                                                    placeholder='0.00'
+                                                    value={option.priceValue}
+                                                    onChange={(e) => {
+                                                        const newGroups = [...localVariationGroups];
+                                                        newGroups[groupIndex].options[optionIndex].priceValue = parseFloat(e.target.value) || 0;
+                                                        handleVariationGroupsChange(newGroups);
+                                                    }}
+                                                />
+                                              </FormItem>
+                                              <FormItem className="flex flex-col items-center justify-center gap-2">
+                                                  <FormLabel>Hidden</FormLabel>
+                                                  <Switch checked={option.hidden} onCheckedChange={(checked) => {
                                                       const newGroups = [...localVariationGroups];
-                                                      newGroups[groupIndex].options[optionIndex].priceMode = value as any;
+                                                      newGroups[groupIndex].options[optionIndex].hidden = checked;
                                                       handleVariationGroupsChange(newGroups);
-                                                  }}
-                                              >
-                                                  <SelectTrigger><SelectValue /></SelectTrigger>
-                                                  <SelectContent>
-                                                      <SelectItem value="add">Add Price</SelectItem>
-                                                      <SelectItem value="subtract">Subtract Price</SelectItem>
-                                                      <SelectItem value="override">Override Price</SelectItem>
-                                                  </SelectContent>
-                                              </Select>
-                                              <Input
-                                                  type="number"
-                                                  placeholder='0.00'
-                                                  value={option.priceValue}
-                                                  onChange={(e) => {
-                                                      const newGroups = [...localVariationGroups];
-                                                      newGroups[groupIndex].options[optionIndex].priceValue = parseFloat(e.target.value) || 0;
-                                                      handleVariationGroupsChange(newGroups);
-                                                  }}
-                                              />
+                                                  }}/>
+                                              </FormItem>
                                           </div>
                                       ))}
                                     </div>
@@ -1750,7 +1789,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
     }
   }, []);
 
-  const sensors = useSensors(useSensor(PointerSensor));
+  const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
 
   const [previewCart, setPreviewCart] = useState<Record<string, number>>({});
   const [isCartAnimating, setIsCartAnimating] = useState(false);
@@ -2224,7 +2263,6 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       <Dialog open={posFlowStep === 'customize'} onOpenChange={(open) => !open && setPosFlowStep('')}>
         <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
           <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex gap-4">
-            <DialogTitle className="sr-only">Customize Menu</DialogTitle>
             <div className="flex items-center gap-2 flex-1">
               <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setPosFlowStep('')}>
                 <ArrowLeft className="h-5 w-5" />
@@ -2358,7 +2396,6 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
               </div>
             </div>
           </div>
-          <FloatingActionMenu onQrClick={() => setIsQrModalOpen(true)} />
         </DialogContent>
       </Dialog>
       <CategoryItemsSheet
@@ -2382,7 +2419,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       <AlertDialog open={isConfirmingPublish} onOpenChange={setIsConfirmingPublish}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <DialogTitle>Are you sure you want to publish this menu?</DialogTitle>
+            <AlertDialogTitle>Are you sure you want to publish this menu?</AlertDialogTitle>
             <AlertDialogDescription>
               Publishing this menu will make it the live version for your customers. Other active menus will be set to offline.
             </AlertDialogDescription>
