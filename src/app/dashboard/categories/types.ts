@@ -1,3 +1,4 @@
+
 import type { UniqueIdentifier } from '@dnd-kit/core';
 
 export type ScheduleRule = {
@@ -13,6 +14,7 @@ export type CategoryBase = {
   description?: string;
   schedules?: ScheduleRule[];
   status: 'Published' | 'Draft';
+  imageUrl?: string;
   // display
   displayFullwidth?: boolean;
   hiddenTitle?: boolean;

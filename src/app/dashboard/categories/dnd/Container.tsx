@@ -27,7 +27,7 @@ type ContainerProps = {
   onScheduleClick: (item: Item | Column) => void;
   onAddItem: (containerId: UniqueIdentifier) => void;
   onDeleteItem: (id: UniqueIdentifier, isColumn?: boolean) => void;
-  onUpdateColumn: (id: UniqueIdentifier, name: string) => void;
+  onOpenColumnDialog: (column: Column) => void;
   activeId: UniqueIdentifier | null;
   overId: UniqueIdentifier | null;
   activeElementType?: 'container' | 'item';
@@ -58,7 +58,7 @@ const isIdWithinContainer = (
     return false;
   };
 
-export function Container({ id, label, items, columnData, onEditClick, onScheduleClick, onAddItem, onDeleteItem, onUpdateColumn, activeId, overId, activeElementType, isAnyDrawerOpen }: ContainerProps) {
+export function Container({ id, label, items, columnData, onEditClick, onScheduleClick, onAddItem, onDeleteItem, onOpenColumnDialog, activeId, overId, activeElementType, isAnyDrawerOpen }: ContainerProps) {
   const { setNodeRef: setSortableNodeRef, transform, transition, attributes, listeners } = useSortable({ id, data: { type: 'container', item: columnData } });
   const { setNodeRef: setDroppableNodeRef, isOver } = useDroppable({
     id: id,
@@ -67,37 +67,6 @@ export function Container({ id, label, items, columnData, onEditClick, onSchedul
         accepts: ['item']
     }
   });
-
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedLabel, setEditedLabel] = useState(label);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    setEditedLabel(label);
-  }, [label]);
-
-  useEffect(() => {
-    if (isEditing) {
-      inputRef.current?.focus();
-      inputRef.current?.select();
-    }
-  }, [isEditing]);
-
-  const handleSave = () => {
-    if (editedLabel.trim() && editedLabel.trim() !== label) {
-        onUpdateColumn(id, editedLabel.trim());
-    }
-    setIsEditing(false);
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Enter') {
-          handleSave();
-      } else if (e.key === 'Escape') {
-          setEditedLabel(label); // Revert changes
-          setIsEditing(false);
-      }
-  }
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -143,21 +112,10 @@ export function Container({ id, label, items, columnData, onEditClick, onSchedul
                   <div className="cursor-grab p-1" {...attributes} {...listeners}>
                     <GripVertical className="h-5 w-5 text-muted-foreground" />
                   </div>
-                  {isEditing ? (
-                    <Input
-                        ref={inputRef}
-                        value={editedLabel}
-                        onChange={(e) => setEditedLabel(e.target.value)}
-                        onBlur={handleSave}
-                        onKeyDown={handleKeyDown}
-                        className="h-9 font-semibold text-lg"
-                    />
-                  ) : (
-                    <div onDoubleClick={() => setIsEditing(true)} className="cursor-pointer truncate">
-                        <CardTitle>{label}</CardTitle>
-                        {totalDescendants > 0 && <p className="text-xs text-muted-foreground">{totalDescendants} item{totalDescendants > 1 ? 's' : ''} total</p>}
-                    </div>
-                  )}
+                  <div onDoubleClick={() => onOpenColumnDialog(columnData)} className="cursor-pointer truncate">
+                      <CardTitle>{label}</CardTitle>
+                      {totalDescendants > 0 && <p className="text-xs text-muted-foreground">{totalDescendants} item{totalDescendants > 1 ? 's' : ''} total</p>}
+                  </div>
                 </div>
 
                 <DropdownMenu>

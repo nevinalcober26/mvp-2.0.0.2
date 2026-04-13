@@ -39,6 +39,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { CategoryDetailsDialog, type CategoryColumnFormValues } from './category-details-dialog';
 
 
 // Helper functions to find items and columns
@@ -89,6 +90,10 @@ export default function CategoriesPage() {
 
     // Delete confirmation dialog state
     const [deleteTarget, setDeleteTarget] = useState<{ id: UniqueIdentifier, isColumn: boolean } | null>(null);
+
+    // Column Details Dialog state
+    const [editingColumn, setEditingColumn] = useState<Column | null>(null);
+    const [isColumnDialogOpen, setIsColumnDialogOpen] = useState(false);
 
     const { toast } = useToast();
 
@@ -196,12 +201,23 @@ export default function CategoriesPage() {
         }));
     };
     
-    const handleUpdateColumn = (id: UniqueIdentifier, name: string) => {
-        setBoard(produce(board, draft => {
-            const col = findColumn(draft, id);
-            if (col) col.name = name;
+    const handleOpenColumnDialog = useCallback((column: Column) => {
+        setEditingColumn(column);
+        setIsColumnDialogOpen(true);
+    }, []);
+
+    const handleUpdateColumnDetails = useCallback((updatedData: CategoryColumnFormValues) => {
+        setBoard(produce(draft => {
+            const column = draft.find(c => c.id.toString() === updatedData.id);
+            if (column) {
+                column.name = updatedData.name;
+                column.description = updatedData.description;
+                column.imageUrl = updatedData.imageUrl || undefined;
+                column.enableSpecial = updatedData.enableSpecial;
+            }
         }));
-    };
+        toast({ title: "Category Column Updated", description: `"${updatedData.name}" has been updated.` });
+    }, [toast]);
 
     const handleOpenAddSheet = (parentId: UniqueIdentifier | 'new-column' = 'none') => {
         resetDragState();
@@ -419,7 +435,7 @@ export default function CategoriesPage() {
                                   onScheduleClick={handleScheduleCategory}
                                   onAddItem={handleOpenAddSheet}
                                   onDeleteItem={confirmDeleteItem}
-                                  onUpdateColumn={handleUpdateColumn}
+                                  onOpenColumnDialog={handleOpenColumnDialog}
                                   activeId={activeId}
                                   overId={overId}
                                   activeElementType={activeElement || undefined}
@@ -442,7 +458,7 @@ export default function CategoriesPage() {
                 
                 <DragOverlay>
                     {activeElement === 'container' && activeColumn ? (
-                        <Container id={activeColumn.id} label={activeColumn.name} items={activeColumn.items} columnData={activeColumn} onEditClick={()=>{}} onScheduleClick={()=>{}} onAddItem={()=>{}} onDeleteItem={()=>{}} onUpdateColumn={()=>{}} activeId={null} overId={null} isAnyDrawerOpen={isAnyDrawerOpen} />
+                        <Container id={activeColumn.id} label={activeColumn.name} items={activeColumn.items} columnData={activeColumn} onEditClick={()=>{}} onScheduleClick={()=>{}} onAddItem={()=>{}} onDeleteItem={()=>{}} onOpenColumnDialog={()=>{}} activeId={null} overId={null} isAnyDrawerOpen={isAnyDrawerOpen} />
                     ) : null}
                     {activeElement === 'item' && activeItem ? (
                         <ItemComponent id={activeItem.id} name={activeItem.name} attributes={{}} listeners={{}} />
@@ -454,6 +470,7 @@ export default function CategoriesPage() {
         <AddCategorySheet open={isAddSheetOpen} onOpenChange={setIsAddSheetOpen} onAddCategory={handleAddCategory} board={board} initialParentId={initialParentId} />
         <CategorySheet open={isEditSheetOpen} onOpenChange={setIsEditSheetOpen} category={selectedCategory} board={board} onUpdateCategory={handleUpdateCategory} />
         <CategoryScheduleSheet open={isScheduleSheetOpen} onOpenChange={setIsScheduleSheetOpen} category={selectedCategory} onSave={handleSaveSchedule} />
+        <CategoryDetailsDialog isOpen={isColumnDialogOpen} onOpenChange={setIsColumnDialogOpen} category={editingColumn} onUpdate={handleUpdateColumnDetails} />
         
         <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
             <AlertDialogContent>
