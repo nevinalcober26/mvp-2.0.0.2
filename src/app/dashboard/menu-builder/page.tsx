@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, ArrowRight, Check, ChevronRight, ShoppingCart, Edit, ImageIcon, GalleryHorizontal, Upload, Flame } from 'lucide-react';
+import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, ArrowRight, Check, ChevronRight, ShoppingCart, Edit, ImageIcon, GalleryHorizontal, Upload, Flame, QrCode, ExternalLink } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
@@ -1213,30 +1213,13 @@ const AddSectionSheet = ({
     const sensors = useSensors(useSensor(PointerSensor));
     const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
 
-    const form = useForm<AddSectionFormValues>({
-        resolver: zodResolver(addSectionSchema),
-        defaultValues: {
-            name: '',
-            description: '',
-        },
-    });
-
     useEffect(() => {
         if (isOpen) {
-            form.reset({
-                name: initialData?.name || '',
-                description: initialData?.description || '',
-                imageUrl: initialData?.imageUrl || '',
-                enableSpecial: initialData?.enableSpecial || false,
-                specialTagName: '',
-                enableCategoryLink: false,
-                externalLink: '',
-            });
             setAddedProducts([]);
             setSearchQuery('');
             setSelectedItem(null);
         }
-    }, [isOpen, form, initialData]);
+    }, [isOpen, initialData]);
 
     const availableProducts = useMemo(() => {
         const addedIds = new Set(addedProducts.map(p => p.id));
@@ -1298,9 +1281,11 @@ const AddSectionSheet = ({
         setSelectedItem(item);
     };
 
-    const onSubmit = (data: AddSectionFormValues) => {
-        onAddSection(data, addedProducts.map(p => p.id));
-        onOpenChange(false);
+    const handleSubmit = () => {
+        if (initialData) {
+            onAddSection(initialData as AddSectionFormValues, addedProducts.map(p => p.id));
+            onOpenChange(false);
+        }
     };
 
     const SortableAddedProductRow = ({ product, isSelected, onClick }: { product: MenuItem; isSelected: boolean; onClick: () => void; }) => {
@@ -1326,41 +1311,37 @@ const AddSectionSheet = ({
             <SheetContent className="w-full max-w-[95vw] sm:max-w-[90vw] lg:max-w-[80vw] p-0 flex flex-col">
                 <SheetHeader className="p-6 border-b shrink-0">
                     <SheetTitle className="text-xl">Create a New Menu Section</SheetTitle>
-                    <SheetDescription>Build a new section by adding and customizing products.</SheetDescription>
+                    <SheetDescription>Build a new section by adding and customizing products from your library.</SheetDescription>
                 </SheetHeader>
                 <PanelGroup direction="horizontal" className="flex-1 overflow-hidden">
                     <Panel defaultSize={20} minSize={15} className="flex flex-col overflow-hidden border-r bg-muted/30">
-                        <Form {...form}>
-                           <form onSubmit={form.handleSubmit(onSubmit)} id="add-section-form" className="flex-1 flex flex-col overflow-hidden">
-                              <div className="p-4 border-b shrink-0">
-                                  <h3 className="font-semibold mb-2">Available Products ({availableProducts.length})</h3>
-                                  <div className="relative">
-                                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                      <Input placeholder="Search all products..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
-                                  </div>
+                          <div className="p-4 border-b shrink-0">
+                              <h3 className="font-semibold mb-2">Available Products ({availableProducts.length})</h3>
+                              <div className="relative">
+                                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                  <Input placeholder="Search all products..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
                               </div>
-                              <ScrollArea className="flex-1 p-2">
-                                  {availableProducts.map(product => (
-                                      <div key={product.id} className="flex items-center gap-2 p-2 rounded-md hover:bg-muted">
-                                          <Image src={product.image || 'https://picsum.photos/seed/placeholder/100/100'} alt={product.name} width={40} height={40} className="rounded object-cover" />
-                                          <div className="flex-1">
-                                              <p className="text-sm font-semibold line-clamp-1">{product.name}</p>
-                                              <p className="text-xs text-muted-foreground">AED {product.price.toFixed(2)}</p>
-                                          </div>
-                                          <Button type="button" size="icon" variant="ghost" className="h-8 w-8 text-primary" onClick={() => handleAddProduct(product)}>
-                                              <Plus className="h-4 w-4" />
-                                          </Button>
+                          </div>
+                          <ScrollArea className="flex-1 p-2">
+                              {availableProducts.map(product => (
+                                  <div key={product.id} className="flex items-center gap-2 p-2 rounded-md hover:bg-muted">
+                                      <Image src={product.image || 'https://picsum.photos/seed/placeholder/100/100'} alt={product.name} width={40} height={40} className="rounded object-cover" />
+                                      <div className="flex-1">
+                                          <p className="text-sm font-semibold line-clamp-1">{product.name}</p>
+                                          <p className="text-xs text-muted-foreground">AED {product.price.toFixed(2)}</p>
                                       </div>
-                                  ))}
-                                  {availableProducts.length === 0 && <p className="text-sm text-center text-muted-foreground p-8">No available products found.</p>}
-                              </ScrollArea>
-                          </form>
-                        </Form>
+                                      <Button type="button" size="icon" variant="ghost" className="h-8 w-8 text-primary" onClick={() => handleAddProduct(product)}>
+                                          <Plus className="h-4 w-4" />
+                                      </Button>
+                                  </div>
+                              ))}
+                              {availableProducts.length === 0 && <p className="text-sm text-center text-muted-foreground p-8">No available products found.</p>}
+                          </ScrollArea>
                     </Panel>
                     <PanelResizeHandle className="w-1.5 bg-muted hover:bg-border transition-colors data-[resize-handle-state=drag]:bg-primary" />
                     <Panel defaultSize={20} minSize={15} className="flex flex-col overflow-hidden border-r">
                          <div className="p-4 border-b shrink-0">
-                            <h3 className="font-semibold">Items in {form.getValues('name') || 'New Section'} ({addedProducts.length})</h3>
+                            <h3 className="font-semibold">Items in {initialData?.name || 'New Section'} ({addedProducts.length})</h3>
                             <p className="text-xs text-muted-foreground">Drag to reorder items</p>
                         </div>
                         <ScrollArea className="flex-1 p-2">
@@ -1394,7 +1375,7 @@ const AddSectionSheet = ({
                 </PanelGroup>
                 <SheetFooter className="p-6 border-t shrink-0">
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-                    <Button type="submit" form="add-section-form">Create Section</Button>
+                    <Button type="button" onClick={handleSubmit}>Create Section</Button>
                 </SheetFooter>
             </SheetContent>
         </Sheet>
@@ -1435,6 +1416,51 @@ const SortableProductRow = ({ item, isSelected, onAvailabilityChange, onRowClick
             </TableCell>
         </TableRow>
     );
+};
+
+const FloatingActionMenu = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="fixed bottom-8 right-8 z-50">
+      <div className="relative flex flex-col items-center gap-4">
+        {/* Secondary Buttons (visible when open) */}
+        <div className={cn("flex flex-col items-center gap-4 transition-all duration-300 ease-in-out", isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none")}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="icon" className="h-14 w-14 rounded-2xl bg-white shadow-lg border-gray-200 hover:bg-gray-50">
+                <QrCode className="h-7 w-7 text-primary" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left" className="bg-gray-800 text-white border-0">
+              <p>Mobile QR Preview</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="icon" className="h-14 w-14 rounded-2xl bg-white shadow-lg border-gray-200 hover:bg-gray-50">
+                <ExternalLink className="h-6 w-6 text-primary" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left" className="bg-gray-800 text-white border-0">
+              <p>Open Live Preview</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+        
+        {/* Main FAB */}
+        <Button
+          size="icon"
+          className="h-16 w-16 rounded-2xl bg-primary text-white shadow-xl transition-all duration-300 hover:scale-105 active:scale-100"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <Sparkles className={cn("absolute h-8 w-8 transition-all duration-300", isOpen ? "rotate-45 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100")} />
+          <X className={cn("absolute h-8 w-8 transition-all duration-300", isOpen ? "rotate-0 scale-100 opacity-100" : "-rotate-45 scale-0 opacity-0")} />
+        </Button>
+      </div>
+    </div>
+  );
 };
 
 const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpen }: {
@@ -2087,6 +2113,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
               </div>
             </div>
           </div>
+          <FloatingActionMenu />
         </DialogContent>
       </Dialog>
       <CategoryItemsSheet
