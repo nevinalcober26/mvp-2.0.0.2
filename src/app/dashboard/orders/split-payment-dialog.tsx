@@ -23,6 +23,7 @@ import {
   Plus,
   Circle,
   Check,
+  ArrowRight,
 } from 'lucide-react';
 import type { Order, OrderItem, Payment } from './types';
 import { cn } from '@/lib/utils';
@@ -117,7 +118,7 @@ const SplitEquallyView = ({
         <div className="text-right pb-2">
           <p className="text-sm text-muted-foreground">Amount per person</p>
           <p className="text-2xl font-bold font-mono">
-            ${amountPerPerson.toFixed(2)}
+            AED {amountPerPerson.toFixed(2)}
           </p>
         </div>
       </div>
@@ -128,7 +129,7 @@ const SplitEquallyView = ({
             <Card key={index} className="p-4 flex justify-between items-center bg-card">
               <p className="font-semibold">Payer {index + 1}</p>
               <p className="font-mono font-semibold">
-                ${amountPerPerson.toFixed(2)}
+                AED {amountPerPerson.toFixed(2)}
               </p>
             </Card>
           ))}
@@ -153,8 +154,12 @@ const DefineGroupStep = ({ onContinue, onBack }: { onContinue: (peopleCount: num
     const [peopleCount, setPeopleCount] = useState(2);
     return (
         <>
-            <DialogHeader className="text-center pt-4">
-                <DialogTitle className="text-xl">How many people are splitting?</DialogTitle>
+            <DialogHeader className="text-center pt-4 items-center">
+                <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center border-4 border-primary/20">
+                    <Users className="h-7 w-7 text-primary" />
+                </div>
+                <DialogTitle className="text-xl pt-2">How many people are splitting?</DialogTitle>
+                <DialogDescription>Set the number of guests who will be paying.</DialogDescription>
             </DialogHeader>
             <div className="py-8 flex justify-center items-center gap-4">
                 <Button variant="outline" size="icon" className="h-14 w-14 rounded-full" onClick={() => setPeopleCount(c => Math.max(2, c - 1))} disabled={peopleCount <= 2}>
@@ -167,7 +172,7 @@ const DefineGroupStep = ({ onContinue, onBack }: { onContinue: (peopleCount: num
             </div>
             <DialogFooter>
                  <Button variant="ghost" onClick={onBack}>Back</Button>
-                <Button onClick={() => onContinue(peopleCount)}>Continue</Button>
+                <Button onClick={() => onContinue(peopleCount)}>Continue <ArrowRight className="h-4 w-4 ml-2" /></Button>
             </DialogFooter>
         </>
     )
@@ -175,7 +180,7 @@ const DefineGroupStep = ({ onContinue, onBack }: { onContinue: (peopleCount: num
 
 type ItemAssignments = Record<string, { [personIndex: number]: number }>;
 
-const AssignItemsStep = ({ order, peopleCount, onContinue }: { order: Order; peopleCount: number; onContinue: (assignments: ItemAssignments) => void }) => {
+const AssignItemsStep = ({ order, peopleCount, onContinue, onBack }: { order: Order; peopleCount: number; onContinue: (assignments: ItemAssignments) => void; onBack: () => void }) => {
     const { toast } = useToast();
     const [currentPersonIndex, setCurrentPersonIndex] = useState(0);
     const [assignments, setAssignments] = useState<ItemAssignments>({});
@@ -191,6 +196,19 @@ const AssignItemsStep = ({ order, peopleCount, onContinue }: { order: Order; peo
     };
     
     const handleNextPerson = () => {
+        // Validation: check if any item quantity is over-assigned for the current person
+        for (const item of order.items) {
+            const totalAssigned = Object.values(assignments[item.id] || {}).reduce((s, q) => s + q, 0);
+            if (totalAssigned > item.quantity) {
+                 toast({
+                    variant: 'destructive',
+                    title: 'Over-assigned Item',
+                    description: `You have assigned more ${item.name} than are on the bill.`
+                });
+                return;
+            }
+        }
+
         const isMovingToLastPerson = currentPersonIndex === peopleCount - 2;
 
         if (isMovingToLastPerson) {
@@ -207,7 +225,7 @@ const AssignItemsStep = ({ order, peopleCount, onContinue }: { order: Order; peo
              });
              setAssignments(newAssignments);
              if (itemsAssigned) {
-                 toast({ title: "Remaining item(s) assigned automatically." });
+                 toast({ title: "Remaining items automatically assigned to the last person." });
              }
         }
         setCurrentPersonIndex(p => p + 1);
@@ -225,27 +243,37 @@ const AssignItemsStep = ({ order, peopleCount, onContinue }: { order: Order; peo
     return (
         <>
             <DialogHeader>
-                <DialogTitle>Assign Items for Person {currentPersonIndex + 1} of {peopleCount}</DialogTitle>
+                <div className="flex items-center justify-center gap-2 mb-4">
+                    {Array.from({ length: peopleCount }).map((_, index) => (
+                        <div key={index} className={cn(
+                            "h-2 flex-1 rounded-full",
+                            index === currentPersonIndex ? "bg-primary" : "bg-muted"
+                        )} />
+                    ))}
+                </div>
+                <DialogTitle className="text-xl">Assign Items for Person {currentPersonIndex + 1}</DialogTitle>
+                <DialogDescription>Select the items this person is paying for.</DialogDescription>
             </DialogHeader>
-            <ScrollArea className="h-96 my-4 pr-4">
-                <div className="space-y-4">
+            <ScrollArea className="h-96 my-4 pr-4 -mr-4">
+                <div className="space-y-3">
                 {order.items.map(item => {
-                    const totalAssigned = Object.values(assignments[item.id] || {}).reduce((s, q) => s + q, 0);
+                    const totalAssignedForAllPeople = Object.values(assignments[item.id] || {}).reduce((s, q) => s + q, 0);
                     const assignedToCurrent = (assignments[item.id] || {})[currentPersonIndex] || 0;
-                    const availableForCurrent = item.quantity - totalAssigned + assignedToCurrent;
-
+                    const maxAssignableToCurrent = item.quantity - totalAssignedForAllPeople + assignedToCurrent;
+                    const isFullyAssigned = totalAssignedForAllPeople >= item.quantity;
+                    
                     return (
-                        <div key={item.id} className="p-4 border rounded-lg flex items-center justify-between">
+                        <div key={item.id} className={cn("p-4 border rounded-lg flex items-center justify-between transition-opacity", isFullyAssigned && assignedToCurrent === 0 && "opacity-40")}>
                             <div className="space-y-1">
                                 <p className="font-semibold">{item.name}</p>
-                                <p className="text-sm text-muted-foreground">{item.quantity} total @ ${item.price.toFixed(2)}</p>
+                                <p className="text-sm text-muted-foreground">{item.quantity} total @ AED {item.price.toFixed(2)}</p>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleAssignmentChange(item.id, Math.max(0, assignedToCurrent - 1))} disabled={assignedToCurrent === 0}>
                                     <Minus className="h-4 w-4"/>
                                 </Button>
-                                <span className="font-bold w-6 text-center">{assignedToCurrent}</span>
-                                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleAssignmentChange(item.id, Math.min(availableForCurrent, assignedToCurrent + 1))} disabled={assignedToCurrent >= availableForCurrent}>
+                                <span className="font-bold w-6 text-center text-lg">{assignedToCurrent}</span>
+                                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleAssignmentChange(item.id, Math.min(maxAssignableToCurrent, assignedToCurrent + 1))} disabled={assignedToCurrent >= maxAssignableToCurrent}>
                                     <Plus className="h-4 w-4"/>
                                 </Button>
                             </div>
@@ -255,15 +283,15 @@ const AssignItemsStep = ({ order, peopleCount, onContinue }: { order: Order; peo
                 </div>
             </ScrollArea>
              <div className="bg-muted p-4 rounded-lg flex justify-between items-center">
-                <span className="font-bold">Person Total</span>
-                <span className="font-bold font-mono text-lg">${personSubtotal.toFixed(2)}</span>
+                <span className="font-bold text-lg">Person {currentPersonIndex + 1}'s Total</span>
+                <span className="font-bold font-mono text-xl">AED {personSubtotal.toFixed(2)}</span>
             </div>
             <DialogFooter>
-                <Button variant="ghost" onClick={() => setCurrentPersonIndex(p => Math.max(0, p - 1))} disabled={currentPersonIndex === 0}>Back</Button>
+                <Button variant="ghost" onClick={() => currentPersonIndex > 0 ? setCurrentPersonIndex(p => p - 1) : onBack()}>Back</Button>
                 {isLastPerson ? (
-                     <Button onClick={() => onContinue(assignments)}>View Summary</Button>
+                     <Button onClick={() => onContinue(assignments)}>View Summary <ArrowRight className="h-4 w-4 ml-2" /></Button>
                 ) : (
-                    <Button onClick={handleNextPerson}>Next Person</Button>
+                    <Button onClick={handleNextPerson}>Next Person <ArrowRight className="h-4 w-4 ml-2" /></Button>
                 )}
             </DialogFooter>
         </>
@@ -314,36 +342,48 @@ const SummaryStep = ({ order, peopleCount, assignments, onBack, onConfirmSplit, 
                     payment: {
                         amount: personTotal.toFixed(2),
                         guestName: `Person ${Number(personIdxStr) + 1}`,
-                        status: 'Pending',
+                        status: 'Pending' as const,
                         transactionId: `split_item_${order.orderId}_${personIdxStr}_${Date.now()}`,
                         items: data.items,
                         taxBreakdown: { subtotal: personSubtotal, serviceCharge: personService, vat: personTax }
-                    } as Payment,
+                    },
                 };
             });
     }, [assignments, peopleCount, order]);
 
     return (
         <>
-            <DialogHeader>
-                <DialogTitle>Payment Summary</DialogTitle>
+            <DialogHeader className="text-center">
+                <DialogTitle className="text-xl">Final Bill Summary</DialogTitle>
                 <DialogDescription>Review the split before confirming. Each person can now pay their share.</DialogDescription>
             </DialogHeader>
-            <ScrollArea className="h-[28rem] my-4 pr-4">
+            <ScrollArea className="h-[28rem] my-4 pr-4 -mr-4">
                 <div className="space-y-4">
                     {finalBreakdown.map(p => (
-                        <Card key={p.guestName}>
-                            <CardHeader className="flex flex-row justify-between items-center">
-                                <CardTitle>{p.guestName}</CardTitle>
-                                <span className="text-xl font-bold font-mono">${p.total.toFixed(2)}</span>
+                        <Card key={p.guestName} className="overflow-hidden">
+                            <CardHeader className="flex flex-row justify-between items-center p-4 bg-muted/50">
+                                <CardTitle className="text-base flex items-center gap-2">
+                                  <User className="h-4 w-4 text-muted-foreground" />
+                                  {p.guestName}
+                                </CardTitle>
+                                <span className="text-xl font-bold font-mono">AED {p.total.toFixed(2)}</span>
                             </CardHeader>
-                            <CardContent className="space-y-2">
-                                <div className="text-sm space-y-1">
-                                    <div className="flex justify-between text-muted-foreground"><span>Subtotal:</span><span className="font-mono">${p.taxBreakdown.subtotal.toFixed(2)}</span></div>
-                                    <div className="flex justify-between text-muted-foreground"><span>Service Charge:</span><span className="font-mono">${p.taxBreakdown.serviceCharge.toFixed(2)}</span></div>
-                                    <div className="flex justify-between text-muted-foreground"><span>VAT:</span><span className="font-mono">${p.taxBreakdown.vat.toFixed(2)}</span></div>
+                            <CardContent className="p-4 space-y-4">
+                                <div className="text-sm space-y-2">
+                                  <h4 className="font-semibold text-muted-foreground text-xs uppercase">Items</h4>
+                                  {p.items.map((item, idx) => (
+                                      <div key={idx} className="flex justify-between items-center text-sm">
+                                          <span>{item.quantity}x {item.name}</span>
+                                          <span className="font-mono font-medium">AED {(item.price * item.quantity).toFixed(2)}</span>
+                                      </div>
+                                  ))}
                                 </div>
-                                <Button className="w-full mt-2" disabled>Pay Now (Coming Soon)</Button>
+                                <Separator />
+                                <div className="text-sm space-y-1">
+                                    <div className="flex justify-between text-muted-foreground"><span>Subtotal:</span><span className="font-mono">AED {p.taxBreakdown.subtotal.toFixed(2)}</span></div>
+                                    <div className="flex justify-between text-muted-foreground"><span>Service Charge (10%):</span><span className="font-mono">AED {p.taxBreakdown.serviceCharge.toFixed(2)}</span></div>
+                                    <div className="flex justify-between text-muted-foreground"><span>VAT (5%):</span><span className="font-mono">AED {p.taxBreakdown.vat.toFixed(2)}</span></div>
+                                </div>
                             </CardContent>
                         </Card>
                     ))}
@@ -351,7 +391,7 @@ const SummaryStep = ({ order, peopleCount, assignments, onBack, onConfirmSplit, 
             </ScrollArea>
              <DialogFooter>
                 <Button variant="ghost" onClick={onBack}>Edit Assignments</Button>
-                <Button onClick={() => { onConfirmSplit(finalBreakdown.map(p => p.payment)); onOpenChange(false); }}>Confirm Split</Button>
+                <Button onClick={() => { onConfirmSplit(finalBreakdown.map(p => p.payment)); onOpenChange(false); }}>Confirm & Create Payments</Button>
             </DialogFooter>
         </>
     );
@@ -387,7 +427,7 @@ const SplitByItemView = ({ order, onBack, onUpdateOrder, onOpenChange }: Omit<Sp
     return (
         <>
             {step === 'define' && <DefineGroupStep onBack={onBack} onContinue={handleDefineContinue} />}
-            {step === 'assign' && <AssignItemsStep order={order} peopleCount={peopleCount} onContinue={handleAssignContinue} />}
+            {step === 'assign' && <AssignItemsStep order={order} peopleCount={peopleCount} onContinue={handleAssignContinue} onBack={() => setStep('define')}/>}
             {step === 'summary' && <SummaryStep order={order} peopleCount={peopleCount} assignments={assignments} onBack={() => setStep('assign')} onConfirmSplit={handleConfirmSplit} onOpenChange={onOpenChange} />}
         </>
     )
