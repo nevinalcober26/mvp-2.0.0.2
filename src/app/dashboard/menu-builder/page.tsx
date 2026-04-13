@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EMenuIcon } from '@/components/dashboard/app-sidebar';
-import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, ArrowRight, Check, ChevronRight, ShoppingCart, Edit, ImageIcon, GalleryHorizontal, Upload, Flame, QrCode, ExternalLink, Eye } from 'lucide-react';
+import { List, LayoutGrid, X, Plus, Palette, Database, CheckCircle2, Loader2, GripVertical, Home, Receipt, ArrowLeft, ChevronDown, Wand, RefreshCw, Lock, MoreHorizontal, Trash2, PlusCircle, Plug, Leaf, Package, Rocket, Tag, AlertTriangle, Wheat, Milk, Sprout, Sparkles, Minus, ArrowRight, Check, ChevronRight, ShoppingCart, Edit, ImageIcon, GalleryHorizontal, Upload, Flame, QrCode, ExternalLink, Eye, HelpCircle } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
@@ -242,6 +242,7 @@ interface MenuItem extends BaseMenuItem {
   available?: boolean;
   nutrition?: Record<string, number>;
   variations?: Variation[];
+  multipleVariations?: boolean;
   properties?: string[];
 }
 
@@ -254,6 +255,7 @@ const mockMenuItems: MenuItem[] = [
         category: 'Bestsellers',
         image: getImageUrl('margherita-pizza'),
         isCustomisable: true,
+        multipleVariations: false,
         properties: ['Vegetarian', 'Gluten', 'Dairy'],
         variations: [
             { id: 'var_pm12_1', value: 'Thin Crust', priceMode: 'override', priceValue: 36.00, hidden: false, categoryPage: true, productPage: true },
@@ -274,6 +276,7 @@ const mockMenuItems: MenuItem[] = [
         isCustomisable: true,
         image: getImageUrl('alfredo-pizza'),
         properties: ['Halal'],
+        multipleVariations: false,
         variations: [
             { id: 'var_alfredo_1', value: 'Standard', priceMode: 'override', priceValue: 48.00, hidden: false, categoryPage: true, productPage: true },
             { id: 'var_alfredo_2', value: 'Extra Chicken', priceMode: 'add', priceValue: 8.00, hidden: false, categoryPage: true, productPage: true },
@@ -310,6 +313,7 @@ const mockMenuItems: MenuItem[] = [
         isCustomisable: true,
         image: getImageUrl('hawaiian-pizza'),
         properties: ['Gluten', 'Dairy'],
+        multipleVariations: false,
         variations: [
             { id: 'var_hawaiian_1', value: 'Regular', priceMode: 'override', priceValue: 32.00, hidden: false, categoryPage: true, productPage: true },
             { id: 'var_hawaiian_2', value: 'Extra Pineapple', priceMode: 'add', priceValue: 3.00, hidden: false, categoryPage: true, productPage: true },
@@ -330,6 +334,7 @@ const mockMenuItems: MenuItem[] = [
         isCustomisable: true,
         image: getImageUrl('soft-drink'),
         properties: [],
+        multipleVariations: false,
         variations: [
             { id: 'var_drink_1', value: 'Coca-Cola', priceMode: 'override', priceValue: 3.00, hidden: false, categoryPage: true, productPage: true },
             { id: 'var_drink_2', value: 'Sprite', priceMode: 'override', priceValue: 3.00, hidden: false, categoryPage: true, productPage: true },
@@ -366,6 +371,7 @@ const mockMenuItems: MenuItem[] = [
         category: 'Main Courses',
         image: getImageUrl('ribeye-steak'),
         properties: ['Halal'],
+        multipleVariations: false,
         variations: [
             { id: 'var_steak_1', value: 'Rare', priceMode: 'override', priceValue: 25.00, hidden: false, categoryPage: true, productPage: true },
             { id: 'var_steak_2', value: 'Medium Rare', priceMode: 'override', priceValue: 25.00, hidden: false, categoryPage: true, productPage: true },
@@ -391,6 +397,7 @@ const mockMenuItems: MenuItem[] = [
             carbs: 40,
             sugar: 8
         },
+        multipleVariations: false,
         variations: [
             { id: 'var_cb_1', value: 'Single Patty', priceMode: 'override', priceValue: 35.00, hidden: false, categoryPage: true, productPage: true },
             { id: 'var_cb_2', value: 'Double Patty', priceMode: 'add', priceValue: 10.00, hidden: false, categoryPage: true, productPage: true },
@@ -678,6 +685,28 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg"><Package className="h-5 w-5" /> Variations</CardTitle>
+                     <div className="flex items-center justify-between rounded-lg border p-3 pt-4 mt-2">
+                        <div className="flex items-center gap-2">
+                            <Label htmlFor="multiSelectVariation" className="font-medium">Multi-selection</Label>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <button type="button" onClick={(e) => e.preventDefault()} className='cursor-default'>
+                                            <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                                        </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Enable customers to select multiple variation options.</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </div>
+                        <Switch
+                            id="multiSelectVariation"
+                            checked={item.multipleVariations ?? false}
+                            onCheckedChange={(checked) => handleUpdate('multipleVariations', checked)}
+                        />
+                    </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {localVariations.map((variation, index) => (
@@ -822,6 +851,7 @@ const ItemEditor = ({ item, onUpdate, onImageUpload, onAvailabilityChange }: {
 const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
     const [quantity, setQuantity] = useState(1);
     const [selectedVariation, setSelectedVariation] = useState<string | null>(null);
+    const [selectedVariations, setSelectedVariations] = useState<string[]>([]);
 
     const allergenIcons: Record<string, React.ElementType> = {
         'Gluten': Wheat,
@@ -836,7 +866,11 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
 
     useEffect(() => {
         setQuantity(1);
-        setSelectedVariation(item?.variations?.[0]?.value || null);
+        if(item?.multipleVariations) {
+            setSelectedVariations([]);
+        } else {
+            setSelectedVariation(item?.variations?.[0]?.value || null);
+        }
     }, [item]);
 
     const totalKcal = useMemo(() => {
@@ -905,19 +939,44 @@ const ItemPreviewer = ({ item }: { item: MenuItem | null }) => {
                         <Card className="bg-gray-50 rounded-xl">
                             <CardHeader className="p-3">
                                 <h3 className="font-bold">Flavor</h3>
-                                <p className="text-sm text-gray-500">Select one option <span className="text-red-500 font-semibold">(Required)</span></p>
+                                <p className="text-sm text-gray-500">
+                                  {item.multipleVariations ? "Select one or more options" : "Select one option"}{' '}
+                                  <span className="text-red-500 font-semibold">(Required)</span>
+                                </p>
                             </CardHeader>
                             <CardContent className="p-3 pt-0">
-                                <RadioGroup value={selectedVariation ?? ''} onValueChange={setSelectedVariation}>
+                                {item.multipleVariations ? (
                                     <div className="space-y-2">
                                         {item.variations.map((v, i) => (
-                                        <div key={v.id} className="flex items-center justify-between border-b last:border-b-0 border-dashed pb-3 last:pb-0">
-                                            <Label htmlFor={`preview-opt-${i}`} className="text-base font-medium text-gray-700 flex-1 cursor-pointer">{v.value}</Label>
-                                            <RadioGroupItem value={v.value} id={`preview-opt-${i}`} className="h-5 w-5 text-teal-500 border-gray-300 data-[state=checked]:border-teal-500" />
-                                        </div>
+                                            <div key={v.id} className="flex items-center justify-between border-b last:border-b-0 border-dashed pb-3 last:pb-0">
+                                                <Label htmlFor={`preview-opt-${i}`} className="text-base font-medium text-gray-700 flex-1 cursor-pointer">{v.value}</Label>
+                                                <Checkbox
+                                                    id={`preview-opt-${i}`}
+                                                    checked={selectedVariations.includes(v.value)}
+                                                    onCheckedChange={(checked) => {
+                                                        if (checked) {
+                                                            setSelectedVariations(prev => [...prev, v.value]);
+                                                        } else {
+                                                            setSelectedVariations(prev => prev.filter(sv => sv !== v.value));
+                                                        }
+                                                    }}
+                                                    className="h-5 w-5 text-teal-500 border-gray-300 data-[state=checked]:border-teal-500 data-[state=checked]:bg-teal-500"
+                                                />
+                                            </div>
                                         ))}
                                     </div>
-                                </RadioGroup>
+                                ) : (
+                                    <RadioGroup value={selectedVariation ?? ''} onValueChange={setSelectedVariation}>
+                                        <div className="space-y-2">
+                                            {item.variations.map((v, i) => (
+                                            <div key={v.id} className="flex items-center justify-between border-b last:border-b-0 border-dashed pb-3 last:pb-0">
+                                                <Label htmlFor={`preview-opt-${i}`} className="text-base font-medium text-gray-700 flex-1 cursor-pointer">{v.value}</Label>
+                                                <RadioGroupItem value={v.value} id={`preview-opt-${i}`} className="h-5 w-5 text-teal-500 border-gray-300 data-[state=checked]:border-teal-500" />
+                                            </div>
+                                            ))}
+                                        </div>
+                                    </RadioGroup>
+                                )}
                             </CardContent>
                         </Card>
                     )}
@@ -2050,7 +2109,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       <Dialog open={posFlowStep === 'customize'} onOpenChange={(open) => !open && setPosFlowStep('')}>
         <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none border-none flex flex-col">
            <DialogHeader className="p-4 border-b flex-row items-center justify-between space-y-0 flex gap-4">
-            <DialogTitle className="sr-only">Manage Menu</DialogTitle>
+            <h2 className="sr-only">Manage Menu</h2>
             <div className="flex items-center gap-2 flex-1">
               <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setPosFlowStep('')}>
                 <ArrowLeft className="h-5 w-5" />
@@ -2102,8 +2161,8 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
                     <div className="flex items-center justify-between mb-4">
                       <ArrowLeft className="h-6 w-6 text-gray-800" />
                       <div className="text-center">
-                        <h1 className="text-xl font-bold text-gray-900">Bestsellers</h1>
-                        <p className="text-sm text-teal-600 font-medium">{menuItems.filter(i => i.category === 'Bestsellers').length} items</p>
+                        <h1 className="text-xl font-bold text-gray-900">{activeTab}</h1>
+                        <p className="text-sm text-teal-600 font-medium">{menuItems.filter(i => i.category === activeTab).length} items</p>
                       </div>
                       <Search className="h-6 w-6 text-gray-800" />
                     </div>
@@ -2204,7 +2263,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
       <AlertDialog open={isConfirmingPublish} onOpenChange={setIsConfirmingPublish}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to publish this menu?</AlertDialogTitle>
+            <DialogTitle>Are you sure you want to publish this menu?</DialogTitle>
             <AlertDialogDescription>
               Publishing this menu will make it the live version for your customers. Other active menus will be set to offline.
             </AlertDialogDescription>
