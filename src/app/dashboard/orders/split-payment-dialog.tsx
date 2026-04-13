@@ -24,6 +24,7 @@ import {
   Circle,
   Check,
   ArrowRight,
+  User,
 } from 'lucide-react';
 import type { Order, OrderItem, Payment } from './types';
 import { cn } from '@/lib/utils';
