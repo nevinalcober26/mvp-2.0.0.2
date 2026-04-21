@@ -41,6 +41,9 @@ import {
   Scale,
   RefreshCcw,
   Trophy,
+  FileText,
+  AlertCircle,
+  DollarSign,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -144,6 +147,12 @@ const shiftSummaryData = [
   { name: 'Alex', shift: 'Morning', tables: 12, sales: '$450.75', tips: '$55.20', balances: '$0.00', voids: 0, notes: 'All tables closed.' },
   { name: 'Maria', shift: 'Morning', tables: 10, sales: '$380.20', tips: '$45.50', balances: '$0.00', voids: 1, notes: 'T5 disputed charge.' },
   { name: 'John', shift: 'Afternoon', tables: 14, sales: '$512.50', tips: '$50.10', balances: '$22.50', voids: 0, notes: 'T12 waiting for payment.' },
+];
+
+const leakageLogData = [
+  { id: '#3215', waiter: 'John', type: 'Closed w/o Settlement', amount: 22.50, status: 'Unresolved' },
+  { id: '#3211', waiter: 'David', type: 'Order w/o Payment', amount: 18.30, status: 'Unresolved' },
+  { id: '#3205', waiter: 'Maria', type: 'Tip Discrepancy', amount: 2.50, status: 'Reviewed' },
 ];
 
 export default function StaffPerformancePage() {
@@ -952,14 +961,133 @@ export default function StaffPerformancePage() {
 
             {/* TAB CONTENT: LEAKAGE */}
             {activeTab === 'leakage' && (
-              <div className="py-20 text-center space-y-4 animate-in fade-in duration-500">
-                <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mx-auto">
-                   <ShieldAlert className="h-8 w-8 text-muted-foreground opacity-20" />
+              <div className="space-y-8 animate-in fade-in duration-500">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">Revenue Leakage</h3>
+                    <p className="text-sm text-muted-foreground font-medium">Identify and track potential revenue loss.</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Card className="shadow-lg border-0 bg-white">
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Estimated Leakage</span>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button type="button"><Info className="h-3 w-3 text-muted-foreground opacity-50" /></button>
+                                </TooltipTrigger>
+                                <TooltipContent>Total revenue identified as lost due to operational issues.</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                          <div className="p-1.5 rounded-lg bg-pink-50 text-pink-500">
+                            <DollarSign className="h-4 w-4" />
+                          </div>
+                        </div>
+                        <p className="text-4xl font-black text-gray-900">$40.80</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="shadow-lg border-0 bg-white">
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Tickets Involved</span>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button type="button"><Info className="h-3 w-3 text-muted-foreground opacity-50" /></button>
+                                </TooltipTrigger>
+                                <TooltipContent>The number of unique orders affected by leakage incidents.</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                          <div className="p-1.5 rounded-lg bg-orange-50 text-orange-500">
+                            <FileText className="h-4 w-4" />
+                          </div>
+                        </div>
+                        <p className="text-4xl font-black text-gray-900">2</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="shadow-lg border-0 bg-white">
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Leakage Types</span>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button type="button"><Info className="h-3 w-3 text-muted-foreground opacity-50" /></button>
+                                </TooltipTrigger>
+                                <TooltipContent>Distinct categories of leakage detected in the system.</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                          <div className="p-1.5 rounded-lg bg-green-50 text-green-500">
+                            <AlertCircle className="h-4 w-4" />
+                          </div>
+                        </div>
+                        <p className="text-4xl font-black text-gray-900">2</p>
+                      </CardContent>
+                    </Card>
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900">Revenue Protection</h3>
-                <p className="text-muted-foreground text-sm max-w-xs mx-auto">
-                  Audit trail for voids, refunds, and deleted items per staff member. Coming soon!
-                </p>
+
+                <Card className="shadow-sm border-0 overflow-hidden">
+                  <CardContent className="p-0">
+                    <TooltipProvider>
+                      <Table>
+                        <TableHeader className="bg-gray-50/50">
+                          <TableRow className="border-b">
+                            <TableHead className="px-8 h-14 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Order ID</TableHead>
+                            <TableHead className="h-14 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Waiter</TableHead>
+                            <TableHead className="h-14 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                              <div className="flex items-center gap-1.5">
+                                Leak Type <Info className="h-3 w-3 opacity-40" />
+                              </div>
+                            </TableHead>
+                            <TableHead className="h-14 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                              <div className="flex items-center gap-1.5">
+                                Amount at Risk <Info className="h-3 w-3 opacity-40" />
+                              </div>
+                            </TableHead>
+                            <TableHead className="h-14 px-8 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                Status <Info className="h-3 w-3 opacity-40" />
+                              </div>
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {leakageLogData.map((row) => (
+                            <TableRow key={row.id} className="hover:bg-muted/5 transition-colors h-16">
+                              <TableCell className="px-8 font-bold text-sm text-gray-900">{row.id}</TableCell>
+                              <TableCell className="text-sm font-medium text-gray-600">{row.waiter}</TableCell>
+                              <TableCell className="text-sm font-bold text-gray-900">{row.type}</TableCell>
+                              <TableCell className="text-sm font-bold text-red-500">
+                                ${row.amount.toFixed(2)}
+                              </TableCell>
+                              <TableCell className="px-8 text-right">
+                                <Badge 
+                                  className={cn(
+                                    "text-[10px] font-black px-3 h-6 rounded-full border-0 shadow-none",
+                                    row.status === 'Unresolved' ? "bg-red-500 text-white" : "bg-gray-200 text-gray-700"
+                                  )}
+                                >
+                                  {row.status}
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TooltipProvider>
+                  </CardContent>
+                </Card>
               </div>
             )}
           </div>
