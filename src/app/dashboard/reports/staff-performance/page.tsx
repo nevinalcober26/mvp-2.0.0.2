@@ -128,6 +128,18 @@ const turnoverDetailsData = [
   { name: 'David', tables: 9, avgTurnover: '25m', dwellTime: '60m', splitImpact: '+10m' },
 ];
 
+const balancesAgingData = [
+  { label: '0-10 min', value: '$5.50', status: 'green' },
+  { label: '10-30 min', value: '$0.00', status: 'orange' },
+  { label: '30+ min', value: '$63.30', status: 'pink' },
+];
+
+const balancesTableData = [
+  { name: 'John', outstanding: 22.50, openTables: 1, oldestAge: '45m', recoveredLost: '$50 / $5', risk: 'low' },
+  { name: 'David', outstanding: 40.80, openTables: 2, oldestAge: '1h 15m', recoveredLost: '$20 / $15', risk: 'high' },
+  { name: 'Maria', outstanding: 5.50, openTables: 1, oldestAge: '8m', recoveredLost: '$10 / $0', risk: 'low' },
+];
+
 export default function StaffPerformancePage() {
   const [activeTab, setActiveTab] = useState('ai-overview');
 
@@ -758,8 +770,105 @@ export default function StaffPerformancePage() {
               </div>
             )}
 
+            {/* TAB CONTENT: BALANCES */}
+            {activeTab === 'balances' && (
+              <div className="space-y-8 animate-in fade-in duration-500">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900">Outstanding Balances by Waiter</h3>
+                      <p className="text-sm text-muted-foreground font-medium">Monitor waiters with open balances.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {balancesAgingData.map((bucket) => (
+                      <Card key={bucket.label} className="shadow-sm overflow-hidden border-0 bg-white">
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{bucket.label}</span>
+                              <Info className="h-3 w-3 text-muted-foreground opacity-50" />
+                            </div>
+                            <div className={cn(
+                              "p-1.5 rounded-lg",
+                              bucket.status === 'green' ? "bg-green-50 text-green-500" :
+                              bucket.status === 'orange' ? "bg-orange-50 text-orange-500" :
+                              "bg-pink-50 text-pink-500"
+                            )}>
+                              <Clock className="h-4 w-4" />
+                            </div>
+                          </div>
+                          <p className="text-4xl font-black text-gray-900">{bucket.value}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+
+                <Card className="shadow-sm border-0 overflow-hidden">
+                  <CardContent className="p-0">
+                    <TooltipProvider>
+                      <Table>
+                        <TableHeader className="bg-gray-50/50">
+                          <TableRow className="border-b">
+                            <TableHead className="px-8 h-14 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Waiter</TableHead>
+                            <TableHead className="h-14 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                              <div className="flex items-center gap-1.5">
+                                Outstanding Amount <Info className="h-3 w-3 opacity-40" />
+                              </div>
+                            </TableHead>
+                            <TableHead className="h-14 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                              <div className="flex items-center gap-1.5">
+                                # Open Tables <Info className="h-3 w-3 opacity-40" />
+                              </div>
+                            </TableHead>
+                            <TableHead className="h-14 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                              <div className="flex items-center gap-1.5">
+                                Oldest Balance Age <Info className="h-3 w-3 opacity-40" />
+                              </div>
+                            </TableHead>
+                            <TableHead className="h-14 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                              <div className="flex items-center gap-1.5">
+                                Recovered vs Lost <Info className="h-3 w-3 opacity-40" />
+                              </div>
+                            </TableHead>
+                            <TableHead className="h-14 px-8 text-right"></TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {balancesTableData.map((row) => (
+                            <TableRow 
+                              key={row.name} 
+                              className={cn(
+                                "transition-colors h-16",
+                                row.risk === 'high' ? "bg-red-50/60 hover:bg-red-50" : "hover:bg-muted/5"
+                              )}
+                            >
+                              <TableCell className="px-8 font-bold text-sm text-gray-900">{row.name}</TableCell>
+                              <TableCell className={cn("font-bold text-sm", row.risk === 'high' ? "text-red-600" : "text-red-500")}>
+                                ${row.outstanding.toFixed(2)}
+                              </TableCell>
+                              <TableCell className="text-sm font-semibold text-gray-600">{row.openTables}</TableCell>
+                              <TableCell className="text-sm font-semibold text-gray-600">{row.oldestAge}</TableCell>
+                              <TableCell className="text-sm font-bold text-gray-900">{row.recoveredLost}</TableCell>
+                              <TableCell className="px-8 text-right">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg group-hover:bg-white transition-colors">
+                                  <Eye className="h-4 w-4 text-gray-400" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TooltipProvider>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
             {/* Placeholder for other tabs */}
-            {['balances', 'shift-summary', 'leakage'].includes(activeTab) && (
+            {['shift-summary', 'leakage'].includes(activeTab) && (
               <div className="py-20 text-center space-y-4">
                 <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mx-auto">
                    <Clock className="h-8 w-8 text-muted-foreground opacity-20" />
