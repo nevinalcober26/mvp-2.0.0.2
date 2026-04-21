@@ -39,6 +39,7 @@ import {
   AlertTriangle,
   WalletCards,
   HandCoins,
+  Download,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -55,13 +56,12 @@ import {
   isWithinInterval,
   format,
   addDays,
-  startOfWeek,
-  addWeeks,
 } from 'date-fns';
 
 import type { Order } from '@/app/dashboard/orders/types';
 import { mockOrders, mockBranches } from '@/lib/mock-data-store';
 import { OrdersPageSkeleton } from '@/components/dashboard/skeletons';
+import { useToast } from '@/hooks/use-toast';
 
 type Transaction = {
   id: string;
@@ -174,6 +174,7 @@ export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState('7d');
   const [branchFilter, setBranchFilter] = useState("Bloomsbury's - Ras Al Khaimah");
   const [isComparing, setIsComparing] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     setIsLoading(true);
@@ -367,6 +368,13 @@ export default function AnalyticsPage() {
     return `Visualizing performance for ${branchName} within the ${timeWindow} window. Data is updated in real-time from your linked POS terminals.`;
   }, [branchFilter, timeRange]);
 
+  const handleExport = () => {
+    toast({
+        title: "Export Initiated",
+        description: "Preparing your analytics report for download...",
+    });
+  };
+
   if (isLoading) {
       return <OrdersPageSkeleton view="list"/>
   }
@@ -374,13 +382,19 @@ export default function AnalyticsPage() {
   return (
     <>
       <DashboardHeader />
-      <main className="p-4 sm:p-6 lg:p-8 space-y-8 bg-muted/30 min-h-screen">
+      <main className="p-4 sm:p-6 lg:p-8 space-y-8 bg-muted/30 min-h-screen text-left">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">Analytics</h1>
-            <p className="text-muted-foreground mt-1">
-              Monitor your outlet's real-time performance, track sales trends, and analyze customer payment behavior.
-            </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight text-foreground">Analytics</h1>
+                <p className="text-muted-foreground mt-1">
+                Monitor your outlet's real-time performance, track sales trends, and analyze customer payment behavior.
+                </p>
+            </div>
+            <Button variant="outline" className="gap-2 font-bold" onClick={handleExport}>
+                <Download className="h-4 w-4" />
+                Export Report
+            </Button>
           </div>
 
           <Card className="p-4 mb-8 shadow-sm">
@@ -422,7 +436,7 @@ export default function AnalyticsPage() {
           </div>
           
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
-            <div className="xl:col-span-1">
+            <div className="xl:col-span-1 text-left">
               <Card className="h-full shadow-sm">
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -451,7 +465,7 @@ export default function AnalyticsPage() {
                       <p className="text-4xl font-bold text-foreground mt-1">{successRate}%</p>
                     </div>
                   </ChartContainer>
-                  <div className="w-full mt-6">
+                  <div className="w-full mt-6 text-left">
                     <div className="grid grid-cols-2 gap-x-4 gap-y-2 mb-4">
                       {paymentPulseData.map(item => (
                         <div key={item.name} className="flex items-center text-sm">
@@ -473,7 +487,7 @@ export default function AnalyticsPage() {
               </Card>
             </div>
 
-            <div className="xl:col-span-2">
+            <div className="xl:col-span-2 text-left">
                 <Card className="h-full shadow-sm">
                     <CardHeader>
                          <div className="flex items-center justify-between">
@@ -485,7 +499,7 @@ export default function AnalyticsPage() {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 text-left">
                             <div>
                                 <div className="flex justify-between items-baseline mb-4">
                                     <h3 className="font-semibold text-sm">Volume (Orders)</h3>
@@ -527,7 +541,7 @@ export default function AnalyticsPage() {
                                 </ChartContainer>
                             </div>
                         </div>
-                        <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center gap-3 text-xs text-yellow-800">
+                        <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center gap-3 text-xs text-yellow-800 text-left">
                             <Info className="h-4 w-4 shrink-0" />
                             <p>{dynamicInfoText}</p>
                         </div>
@@ -536,7 +550,7 @@ export default function AnalyticsPage() {
             </div>
           </div>
           
-           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 text-left">
               <Card className="shadow-sm">
                   <CardHeader className="flex flex-row items-start justify-between">
                       <div>
@@ -558,13 +572,13 @@ export default function AnalyticsPage() {
                                   ))}
                               </Pie>
                           </PieChart>
-                          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-left">
                               <p className="text-[10px] font-bold text-muted-foreground uppercase">MOBILE</p>
                               <p className="text-xl font-bold">{osDistributionData[0]?.name || 'N/A'}</p>
                           </div>
                       </ChartContainer>
                       <div>
-                          <ul className="space-y-2 text-sm">
+                          <ul className="space-y-2 text-sm text-left">
                               {osDistributionData.map(item => (
                                   <li key={item.name} className="flex items-center justify-between">
                                       <div className="flex items-center">
@@ -605,7 +619,7 @@ export default function AnalyticsPage() {
                           </div>
                       </ChartContainer>
                       <div>
-                          <ul className="space-y-2 text-sm">
+                          <ul className="space-y-2 text-sm text-left">
                               {webEntryData.map(item => (
                                   <li key={item.name} className="flex items-center justify-between">
                                       <div className="flex items-center">

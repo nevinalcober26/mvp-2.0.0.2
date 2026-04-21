@@ -49,6 +49,9 @@ import {
   MessageSquare,
   Star,
   X,
+  File as FileIcon,
+  Sheet as SheetIcon,
+  Lock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -64,6 +67,18 @@ import {
   ResponsiveContainer,
   Cell as RechartsCell,
 } from 'recharts';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const navigationItems = [
   { id: 'ai-overview', label: 'AI Overview', icon: Wand2 },
@@ -161,7 +176,6 @@ const leakageLogData = [
   { id: '#3205', waiter: 'Maria', type: 'Tip Discrepancy', amount: 2.50, status: 'Reviewed' },
 ];
 
-// Guest Feedback Mock Data
 const guestFeedbackSummary = [
   { name: 'Sarah', avgRating: 5.0, reviewCount: 42, topKeyword: 'Attentive' },
   { name: 'Alex', avgRating: 4.8, reviewCount: 35, topKeyword: 'Quick' },
@@ -177,20 +191,137 @@ const recentReviews = [
   { id: 4, waiter: 'Maria', customer: 'Jessica W.', rating: 5, comment: 'Best dining experience in a long time. Maria is a gem!', date: 'Yesterday' },
 ];
 
+const ExportDialog = ({ open, onOpenChange, onExport }: { open: boolean; onOpenChange: (open: boolean) => void; onExport: (format: "CSV" | "PDF") => void; }) => {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md p-0 overflow-hidden border-0 shadow-2xl rounded-2xl bg-white">
+        <DialogClose asChild>
+          <Button variant="ghost" size="icon" className="absolute top-4 right-4 rounded-full h-10 w-10 bg-black/5 hover:bg-black/10 z-10">
+            <X className="h-5 w-5 text-muted-foreground" />
+          </Button>
+        </DialogClose>
+        <div className="p-8 pt-10 text-center space-y-6">
+          <div className="flex justify-center">
+            <div className="h-16 w-16 rounded-2xl bg-primary flex items-center justify-center shadow-lg">
+              <Download className="h-8 w-8 text-white" />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <DialogTitle className="text-2xl font-bold tracking-tight">Export Staff Report</DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground">Choose your format to generate the report</DialogDescription>
+          </div>
+          <div className="grid grid-cols-2 gap-4 pt-4">
+            <button
+              onClick={() => onExport('CSV')}
+              className="flex flex-col items-center gap-4 p-6 rounded-2xl border-2 border-green-500/10 bg-green-50/50 hover:border-green-500/30 hover:bg-green-50 transition-all group outline-none"
+            >
+              <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-green-500 shadow-md transition-all duration-300 group-hover:scale-110 group-hover:-rotate-6">
+                <SheetIcon className="h-6 w-6 text-white" />
+              </div>
+              <p className="text-sm font-bold text-foreground">Excel / CSV</p>
+            </button>
+            <button
+              onClick={() => onExport('PDF')}
+              className="flex flex-col items-center gap-4 p-6 rounded-2xl border-2 border-red-500/10 bg-red-50/50 hover:border-red-500/30 hover:bg-red-50 transition-all group outline-none"
+            >
+              <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-red-500 shadow-md transition-all duration-300 group-hover:scale-110 group-hover:-rotate-6">
+                <FileText className="h-6 w-6 text-white" />
+              </div>
+              <p className="text-sm font-bold text-foreground">Professional PDF</p>
+            </button>
+          </div>
+          <div className="pt-4 flex items-center justify-center gap-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+            <Lock className="h-3 w-3" /> Secure Export
+            <span className="h-1 w-1 rounded-full bg-border" />
+            <Clock className="h-3 w-3" /> {new Date().toLocaleDateString()}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 export default function StaffPerformancePage() {
   const router = useRouter();
   const { setOpen } = useSidebar();
   const [activeTab, setActiveTab] = useState('ai-overview');
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Auto-collapse sidebar on mount
     setOpen(false);
   }, [setOpen]);
 
   const handleBack = () => {
-    // Re-expand sidebar when going back to dashboard
     setOpen(true);
     router.push('/dashboard');
+  };
+
+  const handleExport = (format: 'CSV' | 'PDF') => {
+    setIsExportDialogOpen(false);
+    
+    // Logic to prepare data based on active tab
+    let data: any[] = [];
+    let headers: string[] = [];
+    let title = "";
+
+    switch (activeTab) {
+      case 'waiter-sales':
+        title = "Waiter Sales Report";
+        headers = ['Waiter', 'Tables', 'Orders', 'Gross Sales', 'Collected', 'Outstanding'];
+        data = waiterSalesData.map(w => [w.name, w.tables, w.orders, `$${w.gross.toFixed(2)}`, `$${w.collected.toFixed(2)}`, `$${w.outstanding.toFixed(2)}`]);
+        break;
+      case 'tips':
+        title = "Staff Gratuity Report";
+        headers = ['Waiter', 'Total Tips', 'Tips Per Table', 'Avg Tip %', 'Ratio'];
+        data = tipsBreakdownData.map(t => [t.name, t.totalTips, t.tipsPerTable, t.avgTipPercent, t.ratio]);
+        break;
+      case 'guest-feedback':
+        title = "Guest Feedback Report";
+        headers = ['Waiter', 'Avg Rating', 'Reviews', 'Top Keyword'];
+        data = guestFeedbackSummary.map(f => [f.name, f.avgRating, f.reviewCount, f.topKeyword]);
+        break;
+      case 'turnover':
+        title = "Table Turnover Report";
+        headers = ['Waiter', 'Tables', 'Avg Turnover', 'Dwell Time', 'Split Impact'];
+        data = turnoverDetailsData.map(t => [t.name, t.tables, t.avgTurnover, t.dwellTime, t.splitImpact]);
+        break;
+      default:
+        // Fallback for overview or other tabs
+        title = "Staff Performance Overview";
+        headers = ['Waiter', 'Gross Sales', 'Tips Earned'];
+        data = waiterSalesData.map((w, i) => [w.name, `$${w.gross.toFixed(2)}`, tipsBreakdownData[i]?.totalTips || '$0.00']);
+    }
+
+    if (format === 'CSV') {
+      const csvContent = [
+        headers.join(','),
+        ...data.map(row => row.join(','))
+      ].join('\n');
+      
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${title.toLowerCase().replace(/ /g, '_')}_${new Date().toISOString().split('T')[0]}.csv`);
+      link.click();
+    } else {
+      const doc = new jsPDF();
+      doc.text(title, 14, 15);
+      autoTable(doc, {
+        head: [headers],
+        body: data,
+        startY: 20,
+        theme: 'striped',
+        headStyles: { fillColor: [24, 180, 166] }
+      });
+      doc.save(`${title.toLowerCase().replace(/ /g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+    }
+
+    toast({
+      title: `${format} Report Generated`,
+      description: `Your ${title} has been downloaded successfully.`,
+    });
   };
 
   const renderStars = (rating: number) => {
@@ -217,7 +348,6 @@ export default function StaffPerformancePage() {
     <>
       <DashboardHeader />
       <main className="flex h-[calc(100vh-4rem)] overflow-hidden bg-muted/30 text-left">
-        {/* Secondary Internal Sidebar */}
         <aside className="w-64 border-r bg-white/50 backdrop-blur-sm p-4 flex flex-col gap-6 shrink-0">
           <div className="flex flex-col gap-4 px-2">
             <Button 
@@ -254,18 +384,24 @@ export default function StaffPerformancePage() {
           </nav>
         </aside>
 
-        {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto p-8">
           <div className="max-w-6xl mx-auto space-y-8">
-            {/* Page Title Section */}
-            <div className="space-y-1">
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900">Staff Performance</h1>
-              <p className="text-muted-foreground text-sm">Real-time staff metrics, payment behavior, and AI insights.</p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <h1 className="text-2xl font-bold tracking-tight text-gray-900">Staff Performance</h1>
+                <p className="text-muted-foreground text-sm">Real-time staff metrics, payment behavior, and AI insights.</p>
+              </div>
+              <Button 
+                variant="outline" 
+                className="gap-2 font-bold bg-white text-gray-700 h-10 px-6 rounded-xl border-gray-200 hover:bg-gray-50"
+                onClick={() => setIsExportDialogOpen(true)}
+              >
+                <Download className="h-4 w-4" />
+                Export Data
+              </Button>
             </div>
 
-            {/* AI Insight Cards Row */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* AI Anomalies */}
               <Card className="relative overflow-hidden border-2 border-transparent bg-white shadow-sm hover:shadow-md transition-shadow">
                 <div className="absolute top-0 left-0 w-1 h-full bg-red-500" />
                 <CardHeader className="pb-2">
@@ -286,7 +422,6 @@ export default function StaffPerformancePage() {
                 </CardContent>
               </Card>
 
-              {/* AI Tip Insights */}
               <Card className="relative overflow-hidden border-2 border-transparent bg-white shadow-sm hover:shadow-md transition-shadow">
                 <div className="absolute top-0 left-0 w-1 h-full bg-[#18B4A6]" />
                 <CardHeader className="pb-2">
@@ -304,7 +439,6 @@ export default function StaffPerformancePage() {
                 </CardContent>
               </Card>
 
-              {/* AI Waiter Score */}
               <Card className="relative overflow-hidden border-2 border-transparent bg-white shadow-sm hover:shadow-md transition-shadow">
                 <div className="absolute top-0 left-0 w-1 h-full bg-blue-500" />
                 <CardHeader className="pb-2">
@@ -326,7 +460,6 @@ export default function StaffPerformancePage() {
               </Card>
             </div>
 
-            {/* TAB CONTENT: AI OVERVIEW */}
             {activeTab === 'ai-overview' && (
               <div className="space-y-8 animate-in fade-in duration-500">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -440,7 +573,6 @@ export default function StaffPerformancePage() {
               </div>
             )}
 
-            {/* TAB CONTENT: WAITER SALES */}
             {activeTab === 'waiter-sales' && (
               <div className="space-y-6 animate-in fade-in duration-500">
                 <Card className="shadow-sm">
@@ -449,9 +581,6 @@ export default function StaffPerformancePage() {
                       <CardTitle className="text-xl font-bold">Waiter Sales Performance</CardTitle>
                       <CardDescription className="text-sm font-medium">Review sales metrics for each waiter.</CardDescription>
                     </div>
-                    <Button variant="outline" size="sm" className="gap-2 font-bold text-xs uppercase tracking-wider">
-                      <Download className="h-4 w-4" /> Export
-                    </Button>
                   </CardHeader>
                   <CardContent className="px-6 pb-6">
                     <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -518,10 +647,8 @@ export default function StaffPerformancePage() {
               </div>
             )}
 
-            {/* TAB CONTENT: TIPS */}
             {activeTab === 'tips' && (
               <div className="space-y-8 animate-in fade-in duration-500">
-                {/* Advanced Metrics Section */}
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-lg font-bold text-gray-900">Advanced Metrics</h3>
@@ -586,7 +713,6 @@ export default function StaffPerformancePage() {
                   </div>
                 </div>
 
-                {/* Top 5 Staff Leaderboard */}
                 <Card className="shadow-sm border-0">
                   <CardHeader className="bg-white border-b py-6 px-8">
                     <CardTitle className="text-xl font-bold text-gray-900">Top 5 Staff by Tips</CardTitle>
@@ -621,7 +747,7 @@ export default function StaffPerformancePage() {
                                 staff.rank === 1 ? "text-lg" : "text-sm"
                               )}>
                                 {staff.name}
-                                {staff.rank === 1 && <Badge className="ml-2 bg-yellow-100 text-yellow-700 border-yellow-200 text-[10px] font-black uppercase h-5">Top Performer</Badge>}
+                                {staff.rank === 1 && <Badge className="ml-2 bg-yellow-100 text-yellow-700 border-yellow-200 text-[10px] font-black uppercase h-5 px-2">Top Performer</Badge>}
                               </div>
                               <p className="text-xs text-muted-foreground">Avg Tip: {staff.avgTip}</p>
                             </div>
@@ -639,16 +765,12 @@ export default function StaffPerformancePage() {
                   </CardContent>
                 </Card>
 
-                {/* Tips Breakdown Table */}
                 <Card className="shadow-sm border-0">
                   <CardHeader className="bg-white border-b py-6 px-8 flex flex-row items-center justify-between">
                     <div className="space-y-1">
                       <CardTitle className="text-xl font-bold text-gray-900">Tips Breakdown</CardTitle>
                       <p className="text-xs text-muted-foreground font-medium">Analyze tip performance for each waiter.</p>
                     </div>
-                    <Button variant="outline" size="sm" className="gap-2 font-bold text-[10px] uppercase tracking-widest h-9 px-4 rounded-lg">
-                      <Download className="h-3.5 w-3.5" /> Export Magic
-                    </Button>
                   </CardHeader>
                   <CardContent className="p-6">
                     <div className="flex mb-6">
@@ -699,7 +821,6 @@ export default function StaffPerformancePage() {
               </div>
             )}
 
-            {/* TAB CONTENT: GUEST FEEDBACK PERFORMANCE */}
             {activeTab === 'guest-feedback' && (
               <div className="space-y-8 animate-in fade-in duration-500">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -713,7 +834,7 @@ export default function StaffPerformancePage() {
                           <Star className="h-4 w-4 fill-current" />
                         </div>
                       </div>
-                      <div className="flex items-end gap-2">
+                      <div className="flex items-end gap-2 text-left">
                         <p className="text-4xl font-black text-gray-900">4.8</p>
                         <div className="mb-1">{renderStars(5)}</div>
                       </div>
@@ -750,7 +871,7 @@ export default function StaffPerformancePage() {
                 </div>
 
                 <Card className="shadow-sm border-0">
-                  <CardHeader className="bg-white border-b py-6 px-8">
+                  <CardHeader className="bg-white border-b py-6 px-8 text-left">
                     <CardTitle className="text-xl font-bold text-gray-900">Waiter Rating Reports</CardTitle>
                     <p className="text-xs text-muted-foreground font-medium">Aggregated customer ratings per staff member.</p>
                   </CardHeader>
@@ -806,7 +927,7 @@ export default function StaffPerformancePage() {
                 </Card>
 
                 <Card className="shadow-sm border-0">
-                  <CardHeader className="bg-white border-b py-6 px-8">
+                  <CardHeader className="bg-white border-b py-6 px-8 text-left">
                     <CardTitle className="text-xl font-bold text-gray-900">Recent Customer Reviews</CardTitle>
                     <p className="text-xs text-muted-foreground font-medium">Categorized by waiter and star system.</p>
                   </CardHeader>
@@ -829,7 +950,7 @@ export default function StaffPerformancePage() {
                               <p className="text-[10px] font-medium text-gray-400 mt-1">{review.date}</p>
                             </div>
                           </div>
-                          <p className="text-sm text-gray-600 leading-relaxed italic">
+                          <p className="text-sm text-gray-600 leading-relaxed italic text-left">
                             "{review.comment}"
                           </p>
                         </div>
@@ -840,7 +961,6 @@ export default function StaffPerformancePage() {
               </div>
             )}
 
-            {/* TAB CONTENT: TURNOVER */}
             {activeTab === 'turnover' && (
               <div className="space-y-8 animate-in fade-in duration-500">
                 <div className="space-y-4">
@@ -896,7 +1016,7 @@ export default function StaffPerformancePage() {
                 </div>
 
                 <Card className="shadow-sm border-0">
-                  <CardHeader className="bg-white border-b py-6 px-8">
+                  <CardHeader className="bg-white border-b py-6 px-8 text-left">
                     <CardTitle className="text-xl font-bold text-gray-900">Average Turnover Time by Waiter</CardTitle>
                   </CardHeader>
                   <CardContent className="p-8">
@@ -940,7 +1060,7 @@ export default function StaffPerformancePage() {
                 </Card>
 
                 <Card className="shadow-sm border-0">
-                  <CardHeader className="bg-white border-b py-6 px-8">
+                  <CardHeader className="bg-white border-b py-6 px-8 text-left">
                     <CardTitle className="text-xl font-bold text-gray-900">Turnover Details</CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
@@ -969,7 +1089,7 @@ export default function StaffPerformancePage() {
                         </TableHeader>
                         <TableBody>
                           {turnoverDetailsData.map((row) => (
-                            <TableRow key={row.name} className="hover:bg-muted/5 transition-colors h-16">
+                            <TableRow key={row.name} className="hover:bg-muted/5 transition-colors h-16 text-left">
                               <TableCell className="px-8 font-bold text-sm text-gray-900">{row.name}</TableCell>
                               <TableCell className="text-sm font-medium text-gray-600">{row.tables}</TableCell>
                               <TableCell className="text-sm font-bold text-gray-900">{row.avgTurnover}</TableCell>
@@ -992,12 +1112,11 @@ export default function StaffPerformancePage() {
               </div>
             )}
 
-            {/* TAB CONTENT: BALANCES */}
             {activeTab === 'balances' && (
               <div className="space-y-8 animate-in fade-in duration-500">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <div>
+                    <div className="text-left">
                       <h3 className="text-xl font-bold text-gray-900">Outstanding Balances by Waiter</h3>
                       <p className="text-sm text-muted-foreground font-medium">Monitor waiters with open balances.</p>
                     </div>
@@ -1008,7 +1127,7 @@ export default function StaffPerformancePage() {
                       <Card key={bucket.label} className="shadow-sm overflow-hidden border-0 bg-white">
                         <CardContent className="p-6">
                           <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-1.5 text-left">
                               <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{bucket.label}</span>
                               <Info className="h-3 w-3 text-muted-foreground opacity-50" />
                             </div>
@@ -1021,7 +1140,7 @@ export default function StaffPerformancePage() {
                               <Clock className="h-4 w-4" />
                             </div>
                           </div>
-                          <p className="text-4xl font-black text-gray-900">{bucket.value}</p>
+                          <p className="text-4xl font-black text-gray-900 text-left">{bucket.value}</p>
                         </CardContent>
                       </Card>
                     ))}
@@ -1063,7 +1182,7 @@ export default function StaffPerformancePage() {
                             <TableRow 
                               key={row.name} 
                               className={cn(
-                                "transition-colors h-16",
+                                "transition-colors h-16 text-left",
                                 row.risk === 'high' ? "bg-red-50/60 hover:bg-red-50" : "hover:bg-muted/5"
                               )}
                             >
@@ -1089,11 +1208,10 @@ export default function StaffPerformancePage() {
               </div>
             )}
 
-            {/* TAB CONTENT: SHIFT SUMMARY */}
             {activeTab === 'shift-summary' && (
               <div className="space-y-6 animate-in fade-in duration-500">
                 <Card className="shadow-sm border-0">
-                  <CardHeader className="bg-white border-b py-6 px-8">
+                  <CardHeader className="bg-white border-b py-6 px-8 text-left">
                     <CardTitle className="text-xl font-bold">Waiter Shift Summary</CardTitle>
                   </CardHeader>
                   <CardContent className="p-8 space-y-6">
@@ -1145,7 +1263,7 @@ export default function StaffPerformancePage() {
                         </TableHeader>
                         <TableBody>
                           {shiftSummaryData.map((row) => (
-                            <TableRow key={row.name} className="hover:bg-muted/5 transition-colors h-14">
+                            <TableRow key={row.name} className="hover:bg-muted/5 transition-colors h-14 text-left">
                               <TableCell className="px-6 font-bold text-sm text-gray-900">{row.name}</TableCell>
                               <TableCell className="text-sm font-medium text-gray-600">{row.shift}</TableCell>
                               <TableCell className="text-sm font-medium text-gray-600">{row.tables}</TableCell>
@@ -1166,11 +1284,10 @@ export default function StaffPerformancePage() {
               </div>
             )}
 
-            {/* TAB CONTENT: LEAKAGE */}
             {activeTab === 'leakage' && (
               <div className="space-y-8 animate-in fade-in duration-500">
                 <div className="space-y-4">
-                  <div>
+                  <div className="text-left">
                     <h3 className="text-xl font-bold text-gray-900">Revenue Leakage</h3>
                     <p className="text-sm text-muted-foreground font-medium">Identify and track potential revenue loss.</p>
                   </div>
@@ -1179,7 +1296,7 @@ export default function StaffPerformancePage() {
                     <Card className="shadow-lg border-0 bg-white">
                       <CardContent className="p-6">
                         <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5 text-left">
                             <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Estimated Leakage</span>
                             <TooltipProvider>
                               <Tooltip>
@@ -1194,14 +1311,14 @@ export default function StaffPerformancePage() {
                             <DollarSign className="h-4 w-4" />
                           </div>
                         </div>
-                        <p className="text-4xl font-black text-gray-900">$40.80</p>
+                        <p className="text-4xl font-black text-gray-900 text-left">$40.80</p>
                       </CardContent>
                     </Card>
 
                     <Card className="shadow-lg border-0 bg-white">
                       <CardContent className="p-6">
                         <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5 text-left">
                             <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Tickets Involved</span>
                             <TooltipProvider>
                               <Tooltip>
@@ -1216,14 +1333,14 @@ export default function StaffPerformancePage() {
                             <FileText className="h-4 w-4" />
                           </div>
                         </div>
-                        <p className="text-4xl font-black text-gray-900">2</p>
+                        <p className="text-4xl font-black text-gray-900 text-left">2</p>
                       </CardContent>
                     </Card>
 
                     <Card className="shadow-lg border-0 bg-white">
                       <CardContent className="p-6">
                         <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5 text-left">
                             <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Leakage Types</span>
                             <TooltipProvider>
                               <Tooltip>
@@ -1238,7 +1355,7 @@ export default function StaffPerformancePage() {
                             <AlertCircle className="h-4 w-4" />
                           </div>
                         </div>
-                        <p className="text-4xl font-black text-gray-900">2</p>
+                        <p className="text-4xl font-black text-gray-900 text-left">2</p>
                       </CardContent>
                     </Card>
                   </div>
@@ -1271,7 +1388,7 @@ export default function StaffPerformancePage() {
                         </TableHeader>
                         <TableBody>
                           {leakageLogData.map((row) => (
-                            <TableRow key={row.id} className="hover:bg-muted/5 transition-colors h-16">
+                            <TableRow key={row.id} className="hover:bg-muted/5 transition-colors h-16 text-left">
                               <TableCell className="px-8 font-bold text-sm text-gray-900">{row.id}</TableCell>
                               <TableCell className="text-sm font-medium text-gray-600">{row.waiter}</TableCell>
                               <TableCell className="text-sm font-bold text-gray-900">{row.type}</TableCell>
@@ -1300,6 +1417,12 @@ export default function StaffPerformancePage() {
           </div>
         </div>
       </main>
+
+      <ExportDialog 
+        open={isExportDialogOpen} 
+        onOpenChange={setIsExportDialogOpen} 
+        onExport={handleExport} 
+      />
     </>
   );
 }

@@ -47,6 +47,8 @@
     "genkit": "^1.20.0",
     "gsap": "^3.12.5",
     "immer": "^10.1.1",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.2",
     "lucide-react": "^0.475.0",
     "next": "15.5.9",
     "react": "^19.2.1",
