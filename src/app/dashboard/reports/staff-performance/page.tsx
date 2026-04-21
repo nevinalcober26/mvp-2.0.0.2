@@ -25,7 +25,6 @@ import {
   Wand2, 
   TrendingUp, 
   ShieldAlert, 
-  Zap, 
   BarChart as BarChartIcon, 
   CircleDollarSign, 
   RotateCcw, 
@@ -44,6 +43,9 @@ import {
   AlertCircle,
   DollarSign,
   ArrowLeft,
+  ChevronRight,
+  ChevronDown,
+  Flame,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -166,7 +168,7 @@ export default function StaffPerformancePage() {
   }, [setOpen]);
 
   const handleBack = () => {
-    // Re-expand sidebar when going back
+    // Re-expand sidebar when going back to dashboard
     setOpen(true);
     router.push('/dashboard');
   };
