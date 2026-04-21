@@ -38,7 +38,8 @@ import {
   Tag,
   Edit,
   Save,
-  Cog
+  Cog,
+  Terminal
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -96,6 +97,7 @@ import {
   type PosConnection,
   type PosStatus,
 } from '@/app/dashboard/integration/pos/types';
+import { GitErrorDialog } from '@/components/dashboard/git-error-dialog';
 
 
 const SUPPORTED_POS = [
@@ -165,6 +167,7 @@ export default function PosIntegrationPage() {
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [isGitErrorDialogOpen, setIsGitErrorDialogOpen] = useState(false);
   
   // Verification List States
   const [searchQuery, setSearchQuery] = useState('');
@@ -678,7 +681,7 @@ export default function PosIntegrationPage() {
                       {getStatusBadge(conn.status)}
                     </div>
                   </CardHeader>
-                  <CardContent className="pt-8 space-y-6">
+                  <CardContent className="pt-8 space-y-6 text-left">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="p-4 rounded-2xl bg-muted/30 border space-y-1">
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none">Operational</p>
@@ -696,11 +699,14 @@ export default function PosIntegrationPage() {
                     </div>
 
                     {conn.status === 'error' && (
-                      <div className="p-4 rounded-2xl bg-destructive/5 border border-destructive/20 flex items-start gap-3 animate-in fade-in zoom-in duration-300">
+                      <div 
+                        className="p-4 rounded-2xl bg-destructive/5 border border-destructive/20 flex items-start gap-3 animate-in fade-in zoom-in duration-300 cursor-pointer hover:bg-destructive/10 transition-colors"
+                        onClick={() => setIsGitErrorDialogOpen(true)}
+                      >
                         <AlertCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
                         <div className="space-y-1">
                           <p className="text-xs font-bold text-destructive">Connection Failed</p>
-                          <p className="text-[10px] leading-tight text-destructive/80 font-medium">Credentials for this terminal have expired. Re-authentication is required to restore sync.</p>
+                          <p className="text-[10px] leading-tight text-destructive/80 font-medium italic underline decoration-dotted">Click to view diagnostic sync log</p>
                         </div>
                       </div>
                     )}
@@ -743,6 +749,15 @@ export default function PosIntegrationPage() {
           )}
         </div>
       </main>
+
+      {/* Git Error Diagnostic Dialog */}
+      <GitErrorDialog 
+        open={isGitErrorDialogOpen}
+        onOpenChange={setIsGitErrorDialogOpen}
+        message="Git: From https://github.com/nevinalcober26/mvp"
+        onShowOutput={() => toast({ title: "Sync Output", description: "OIDC response: 401 Unauthorized for node SIM-4410."})}
+        onOpenLog={() => toast({ title: "Opening Log", description: "Accessing integration version history..."})}
+      />
 
       {/* Connection Settings Drawer */}
       <Sheet open={isSettingsDrawerOpen} onOpenChange={setIsSettingsDrawerOpen}>
@@ -1274,3 +1289,4 @@ export default function PosIntegrationPage() {
     </>
   );
 }
+
