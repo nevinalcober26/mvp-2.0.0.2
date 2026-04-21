@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -479,13 +478,19 @@ export default function StaffPerformancePage() {
                   <CardContent className="p-0">
                     <div className="divide-y">
                       {topStaffTips.map((staff) => (
-                        <div key={staff.name} className="flex items-center justify-between py-5 px-8 hover:bg-muted/5 transition-colors">
+                        <div 
+                          key={staff.name} 
+                          className={cn(
+                            "flex items-center justify-between py-5 px-8 transition-all duration-300",
+                            staff.rank === 1 ? "bg-yellow-50/50 border-y border-yellow-100 shadow-[inset_0_0_20px_rgba(234,179,8,0.05)]" : "hover:bg-muted/5 border-y border-transparent"
+                          )}
+                        >
                           <div className="flex items-center gap-6">
                             <div className="w-8 flex justify-center">
                               {staff.rank <= 3 ? (
                                 <Trophy className={cn(
-                                  "h-6 w-6",
-                                  staff.rank === 1 && "text-yellow-500",
+                                  "transition-all duration-300",
+                                  staff.rank === 1 ? "h-8 w-8 text-yellow-500 drop-shadow-sm" : "h-6 w-6",
                                   staff.rank === 2 && "text-gray-400",
                                   staff.rank === 3 && "text-amber-600"
                                 )} />
@@ -494,12 +499,21 @@ export default function StaffPerformancePage() {
                               )}
                             </div>
                             <div className="text-left">
-                              <p className="font-bold text-gray-900">{staff.name}</p>
+                              <p className={cn(
+                                "font-bold text-gray-900",
+                                staff.rank === 1 ? "text-lg" : "text-sm"
+                              )}>
+                                {staff.name}
+                                {staff.rank === 1 && <Badge className="ml-2 bg-yellow-100 text-yellow-700 border-yellow-200 text-[10px] font-black uppercase h-5">Top Performer</Badge>}
+                              </p>
                               <p className="text-xs text-muted-foreground">Avg Tip: {staff.avgTip}</p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-lg font-black text-gray-900">{staff.total}</p>
+                            <p className={cn(
+                                "font-black text-gray-900",
+                                staff.rank === 1 ? "text-2xl" : "text-lg"
+                              )}>{staff.total}</p>
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{staff.ratio} (Digital/Cash)</p>
                           </div>
                         </div>
