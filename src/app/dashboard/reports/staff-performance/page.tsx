@@ -259,7 +259,7 @@ export default function StaffPerformancePage() {
   const router = useRouter();
   const { setOpen } = useSidebar();
   const [activeTab, setActiveTab] = useState('ai-overview');
-  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [isExportDialogOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<any | null>(null);
   const { toast } = useToast();
 
@@ -273,8 +273,6 @@ export default function StaffPerformancePage() {
   };
 
   const handleExport = (format: 'CSV' | 'PDF') => {
-    setIsExportDialogOpen(false);
-    
     let data: any[] = [];
     let headers: string[] = [];
     let title = "";
@@ -416,7 +414,7 @@ export default function StaffPerformancePage() {
               <Button 
                 variant="outline" 
                 className="gap-2 font-bold bg-white text-gray-700 h-10 px-6 rounded-xl border-gray-200 hover:bg-gray-50"
-                onClick={() => setIsExportDialogOpen(true)}
+                onClick={() => handleExport('PDF')}
               >
                 <Download className="h-4 w-4" />
                 Export Data
@@ -908,6 +906,7 @@ export default function StaffPerformancePage() {
                           <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Average Rating</TableHead>
                           <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Review Count</TableHead>
                           <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Top Feedback</TableHead>
+                          <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-right px-8">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -945,6 +944,16 @@ export default function StaffPerformancePage() {
                                 <Badge variant="outline" className="bg-teal-50 text-teal-700 border-teal-100 font-bold text-[10px] uppercase tracking-wider">
                                   "{staff.topKeyword}"
                                 </Badge>
+                              </TableCell>
+                              <TableCell className="text-right px-8">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8 rounded-lg hover:bg-white transition-colors"
+                                  onClick={() => handleOpenStaffFeedback(staff)}
+                                >
+                                  <Eye className="h-4 w-4 text-gray-400" />
+                                </Button>
                               </TableCell>
                             </TableRow>
                           );
@@ -1448,7 +1457,7 @@ export default function StaffPerformancePage() {
 
       <ExportDialog 
         open={isExportDialogOpen} 
-        onOpenChange={setIsExportDialogOpen} 
+        onOpenChange={(open) => !open && setIsExportDialogOpen} 
         onExport={handleExport} 
       />
 
