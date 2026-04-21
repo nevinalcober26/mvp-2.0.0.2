@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { DashboardHeader } from '@/components/dashboard/header';
+import { useSidebar } from '@/components/ui/sidebar';
 import {
   Card,
   CardContent,
@@ -28,12 +30,9 @@ import {
   CircleDollarSign, 
   RotateCcw, 
   FileWarning, 
-  History, 
+  Clock, 
   Eye, 
   Info,
-  Sparkles,
-  Clock,
-  Activity,
   User,
   Search,
   Download,
@@ -44,6 +43,7 @@ import {
   FileText,
   AlertCircle,
   DollarSign,
+  ArrowLeft,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -156,7 +156,20 @@ const leakageLogData = [
 ];
 
 export default function StaffPerformancePage() {
+  const router = useRouter();
+  const { setOpen } = useSidebar();
   const [activeTab, setActiveTab] = useState('ai-overview');
+
+  useEffect(() => {
+    // Auto-collapse sidebar on mount
+    setOpen(false);
+  }, [setOpen]);
+
+  const handleBack = () => {
+    // Re-expand sidebar when going back
+    setOpen(true);
+    router.push('/dashboard');
+  };
 
   return (
     <>
@@ -164,9 +177,20 @@ export default function StaffPerformancePage() {
       <main className="flex h-[calc(100vh-4rem)] overflow-hidden bg-muted/30 text-left">
         {/* Secondary Internal Sidebar */}
         <aside className="w-64 border-r bg-white/50 backdrop-blur-sm p-4 flex flex-col gap-6 shrink-0">
-          <div className="px-2">
-            <h2 className="text-lg font-bold text-gray-900">Performance</h2>
-            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Staff Analytics</p>
+          <div className="flex flex-col gap-4 px-2">
+            <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-fit -ml-2 text-muted-foreground hover:text-foreground font-bold gap-2"
+                onClick={handleBack}
+            >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+            </Button>
+            <div>
+                <h2 className="text-lg font-bold text-gray-900">Performance</h2>
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Staff Analytics</p>
+            </div>
           </div>
           
           <nav className="flex flex-col gap-1">
