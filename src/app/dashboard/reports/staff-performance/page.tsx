@@ -46,6 +46,8 @@ import {
   ChevronRight,
   ChevronDown,
   Flame,
+  MessageSquare,
+  Star,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -66,6 +68,7 @@ const navigationItems = [
   { id: 'ai-overview', label: 'AI Overview', icon: Wand2 },
   { id: 'waiter-sales', label: 'Waiter Sales', icon: BarChartIcon },
   { id: 'tips', label: 'Tips', icon: CircleDollarSign },
+  { id: 'guest-feedback', label: 'Guest Feedback', icon: MessageSquare },
   { id: 'turnover', label: 'Turnover', icon: RotateCcw },
   { id: 'balances', label: 'Balances', icon: FileWarning },
   { id: 'shift-summary', label: 'Shift Summary', icon: Clock },
@@ -157,6 +160,22 @@ const leakageLogData = [
   { id: '#3205', waiter: 'Maria', type: 'Tip Discrepancy', amount: 2.50, status: 'Reviewed' },
 ];
 
+// Guest Feedback Mock Data
+const guestFeedbackSummary = [
+  { name: 'Sarah', avgRating: 5.0, reviewCount: 42, topKeyword: 'Attentive' },
+  { name: 'Alex', avgRating: 4.8, reviewCount: 35, topKeyword: 'Quick' },
+  { name: 'Maria', avgRating: 4.7, reviewCount: 28, topKeyword: 'Friendly' },
+  { name: 'John', avgRating: 4.5, reviewCount: 31, topKeyword: 'Polite' },
+  { name: 'David', avgRating: 3.9, reviewCount: 15, topKeyword: 'Slow' },
+];
+
+const recentReviews = [
+  { id: 1, waiter: 'Sarah', customer: 'Mark R.', rating: 5, comment: 'Sarah was incredibly attentive and made our anniversary special.', date: '15m ago' },
+  { id: 2, waiter: 'Alex', customer: 'Emily T.', rating: 4, comment: 'Very fast service, though the steak was a bit rare.', date: '1h ago' },
+  { id: 3, waiter: 'David', customer: 'Chris P.', rating: 2, comment: 'Had to wait 20 minutes just to get the bill.', date: '3h ago' },
+  { id: 4, waiter: 'Maria', customer: 'Jessica W.', rating: 5, comment: 'Best dining experience in a long time. Maria is a gem!', date: 'Yesterday' },
+];
+
 export default function StaffPerformancePage() {
   const router = useRouter();
   const { setOpen } = useSidebar();
@@ -171,6 +190,22 @@ export default function StaffPerformancePage() {
     // Re-expand sidebar when going back to dashboard
     setOpen(true);
     router.push('/dashboard');
+  };
+
+  const renderStars = (rating: number) => {
+    return (
+      <div className="flex items-center gap-0.5">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star 
+            key={star} 
+            className={cn(
+              "h-3.5 w-3.5",
+              star <= rating ? "fill-yellow-400 text-yellow-400" : "fill-gray-200 text-gray-200"
+            )} 
+          />
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -653,6 +688,129 @@ export default function StaffPerformancePage() {
                           ))}
                         </TableBody>
                       </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* TAB CONTENT: GUEST FEEDBACK PERFORMANCE */}
+            {activeTab === 'guest-feedback' && (
+              <div className="space-y-8 animate-in fade-in duration-500">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Card className="shadow-sm">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Overall Rating</span>
+                        </div>
+                        <div className="p-1.5 rounded-lg bg-yellow-50 text-yellow-500">
+                          <Star className="h-4 w-4 fill-current" />
+                        </div>
+                      </div>
+                      <div className="flex items-end gap-2">
+                        <p className="text-4xl font-black text-gray-900">4.8</p>
+                        <div className="mb-1">{renderStars(5)}</div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="shadow-sm">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Reviews</span>
+                        </div>
+                        <div className="p-1.5 rounded-lg bg-teal-50 text-teal-500">
+                          <MessageSquare className="h-4 w-4" />
+                        </div>
+                      </div>
+                      <p className="text-4xl font-black text-gray-900">124</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="shadow-sm">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Top Rated Waiter</span>
+                        </div>
+                        <div className="p-1.5 rounded-lg bg-blue-50 text-blue-500">
+                          <Trophy className="h-4 w-4" />
+                        </div>
+                      </div>
+                      <p className="text-2xl font-black text-gray-900">Sarah (5.0)</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <Card className="shadow-sm border-0">
+                  <CardHeader className="bg-white border-b py-6 px-8">
+                    <CardTitle className="text-xl font-bold text-gray-900">Waiter Rating Reports</CardTitle>
+                    <p className="text-xs text-muted-foreground font-medium">Aggregated customer ratings per staff member.</p>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <Table>
+                      <TableHeader className="bg-gray-50/50">
+                        <TableRow>
+                          <TableHead className="px-8 h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Waiter</TableHead>
+                          <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Average Rating</TableHead>
+                          <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Review Count</TableHead>
+                          <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Top Feedback</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {guestFeedbackSummary.map((staff) => (
+                          <TableRow key={staff.name} className="h-16 hover:bg-muted/5 transition-colors">
+                            <TableCell className="px-8 font-bold text-sm text-gray-900">{staff.name}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                <span className="font-bold text-sm">{staff.avgRating.toFixed(1)}</span>
+                                {renderStars(Math.round(staff.avgRating))}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-sm font-medium text-gray-600">{staff.reviewCount} reviews</TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="bg-teal-50 text-teal-700 border-teal-100 font-bold text-[10px] uppercase tracking-wider">
+                                "{staff.topKeyword}"
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-sm border-0">
+                  <CardHeader className="bg-white border-b py-6 px-8">
+                    <CardTitle className="text-xl font-bold text-gray-900">Recent Customer Reviews</CardTitle>
+                    <p className="text-xs text-muted-foreground font-medium">Categorized by waiter and star system.</p>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      {recentReviews.map((review) => (
+                        <div key={review.id} className="p-4 rounded-xl border bg-white flex flex-col gap-3 transition-shadow hover:shadow-md">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center font-bold text-xs">
+                                {review.customer.charAt(0)}
+                              </div>
+                              <div className="text-left">
+                                <p className="text-sm font-bold text-gray-900">{review.customer}</p>
+                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Waiter: {review.waiter}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              {renderStars(review.rating)}
+                              <p className="text-[10px] font-medium text-gray-400 mt-1">{review.date}</p>
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-600 leading-relaxed italic">
+                            "{review.comment}"
+                          </p>
+                        </div>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
