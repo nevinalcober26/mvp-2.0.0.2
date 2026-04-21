@@ -38,6 +38,10 @@ import {
   User,
   Search,
   Download,
+  ZapIcon,
+  Scale,
+  RefreshCcw,
+  Trophy,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -83,6 +87,22 @@ const waiterSalesData = [
   { name: 'David', tables: 9, orders: 10, gross: 290.80, collected: 250.00, outstanding: 40.80, avg: 29.08, split: '50%' },
 ];
 
+const topStaffTips = [
+  { name: 'Sarah', avgTip: '20.1%', total: '$60.80', ratio: '95/5', rank: 1 },
+  { name: 'Alex', avgTip: '18.2%', total: '$55.20', ratio: '80/20', rank: 2 },
+  { name: 'John', avgTip: '15.1%', total: '$50.10', ratio: '70/30', rank: 3 },
+  { name: 'Maria', avgTip: '19.5%', total: '$45.50', ratio: '90/10', rank: 4 },
+  { name: 'David', avgTip: '12.5%', total: '$25.40', ratio: '60/40', rank: 5 },
+];
+
+const tipsBreakdownData = [
+  { name: 'Alex', totalTips: '$55.20', tipsPerTable: '$4.60', avgTipPercent: '18.2%', ratio: '80/20' },
+  { name: 'Maria', totalTips: '$45.50', tipsPerTable: '$4.55', avgTipPercent: '19.5%', ratio: '90/10' },
+  { name: 'John', totalTips: '$50.10', tipsPerTable: '$3.58', avgTipPercent: '15.1%', ratio: '70/30' },
+  { name: 'Sarah', totalTips: '$60.80', tipsPerTable: '$5.53', avgTipPercent: '20.1%', ratio: '95/5' },
+  { name: 'David', totalTips: '$25.40', tipsPerTable: '$2.82', avgTipPercent: '12.5%', ratio: '60/40' },
+];
+
 export default function StaffPerformancePage() {
   const [activeTab, setActiveTab] = useState('ai-overview');
 
@@ -92,7 +112,7 @@ export default function StaffPerformancePage() {
       <main className="flex h-[calc(100vh-4rem)] overflow-hidden bg-muted/30">
         {/* Secondary Internal Sidebar */}
         <aside className="w-64 border-r bg-white/50 backdrop-blur-sm p-4 flex flex-col gap-6 shrink-0">
-          <div className="px-2">
+          <div className="px-2 text-left">
             <h2 className="text-lg font-bold text-gray-900">Performance</h2>
             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Staff Analytics</p>
           </div>
@@ -120,12 +140,12 @@ export default function StaffPerformancePage() {
         <div className="flex-1 overflow-y-auto p-8">
           <div className="max-w-6xl mx-auto space-y-8">
             {/* Page Title Section */}
-            <div className="space-y-1">
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900 text-left">Staff Performance</h1>
-              <p className="text-muted-foreground text-sm text-left">Real-time staff metrics, payment behavior, and AI insights.</p>
+            <div className="space-y-1 text-left">
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900">Staff Performance</h1>
+              <p className="text-muted-foreground text-sm">Real-time staff metrics, payment behavior, and AI insights.</p>
             </div>
 
-            {/* AI Insight Cards Row - Always Visible at the top per design */}
+            {/* AI Insight Cards Row */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* AI Anomalies */}
               <Card className="relative overflow-hidden border-2 border-transparent bg-white shadow-sm hover:shadow-md transition-shadow text-left">
@@ -138,7 +158,7 @@ export default function StaffPerformancePage() {
                       </div>
                       <CardTitle className="text-sm font-bold">AI Anomalies</CardTitle>
                     </div>
-                    <Badge className="bg-red-500 text-white border-0 text-[10px] px-2 h-5">High Risk</Badge>
+                    <Badge className="bg-red-500 text-white border-0 text-[10px] px-2 h-5 font-black uppercase tracking-wider">High Risk</Badge>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -150,11 +170,11 @@ export default function StaffPerformancePage() {
 
               {/* AI Tip Insights */}
               <Card className="relative overflow-hidden border-2 border-transparent bg-white shadow-sm hover:shadow-md transition-shadow text-left">
-                <div className="absolute top-0 left-0 w-1 h-full bg-green-500" />
+                <div className="absolute top-0 left-0 w-1 h-full bg-[#18B4A6]" />
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="p-1.5 rounded-lg bg-green-50 text-green-600">
+                      <div className="p-1.5 rounded-lg bg-teal-50 text-teal-600">
                         <TrendingUp className="h-4 w-4" />
                       </div>
                       <CardTitle className="text-sm font-bold">AI Tip Insights</CardTitle>
@@ -163,7 +183,7 @@ export default function StaffPerformancePage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Tip presets can be optimized to increase earnings. Projected improvement: <span className="text-green-600 font-bold">+8.5%</span>.
+                    Tip presets can be optimized to increase earnings. Projected improvement: <span className="text-teal-600 font-bold">+8.5%</span>.
                   </p>
                 </CardContent>
               </Card>
@@ -193,7 +213,6 @@ export default function StaffPerformancePage() {
             {/* TAB CONTENT: AI OVERVIEW */}
             {activeTab === 'ai-overview' && (
               <div className="space-y-8 animate-in fade-in duration-500">
-                {/* Quick Metrics Row */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <Card className="shadow-sm text-left">
                     <CardContent className="p-6">
@@ -244,7 +263,6 @@ export default function StaffPerformancePage() {
                   </Card>
                 </div>
 
-                {/* Notable AI Alerts Table Section */}
                 <Card className="shadow-sm overflow-hidden border-0">
                   <CardHeader className="bg-white border-b py-6 px-8 text-left">
                     <CardTitle className="text-xl font-bold text-gray-900">Notable AI Alerts</CardTitle>
@@ -282,7 +300,7 @@ export default function StaffPerformancePage() {
                               <TableCell className="text-center">
                                 <Badge 
                                   className={cn(
-                                    "text-[10px] font-black px-3 h-6 rounded-full border-0",
+                                    "text-[10px] font-black px-3 h-6 rounded-full border-0 shadow-none",
                                     alert.severity === 'High' ? "bg-red-500 text-white" :
                                     alert.severity === 'Medium' ? "bg-gray-200 text-gray-700" :
                                     "bg-white border-2 border-gray-100 text-gray-500"
@@ -363,17 +381,17 @@ export default function StaffPerformancePage() {
                         </TableHeader>
                         <TableBody>
                           {waiterSalesData.map((waiter) => (
-                            <TableRow key={waiter.name} className="hover:bg-muted/5 transition-colors h-14">
-                              <TableCell className="font-bold text-sm text-gray-900 text-left px-4">{waiter.name}</TableCell>
-                              <TableCell className="text-sm font-medium text-gray-600 text-left">{waiter.tables}</TableCell>
-                              <TableCell className="text-sm font-medium text-gray-600 text-left">{waiter.orders}</TableCell>
-                              <TableCell className="text-sm font-bold text-gray-900 text-left">${waiter.gross.toFixed(2)}</TableCell>
-                              <TableCell className="text-sm font-bold text-gray-900 text-left">${waiter.collected.toFixed(2)}</TableCell>
-                              <TableCell className={cn("text-sm font-bold text-left", waiter.outstanding > 0 ? "text-red-500" : "text-gray-900")}>
+                            <TableRow key={waiter.name} className="hover:bg-muted/5 transition-colors h-14 text-left">
+                              <TableCell className="font-bold text-sm text-gray-900 px-4">{waiter.name}</TableCell>
+                              <TableCell className="text-sm font-medium text-gray-600">{waiter.tables}</TableCell>
+                              <TableCell className="text-sm font-medium text-gray-600">{waiter.orders}</TableCell>
+                              <TableCell className="text-sm font-bold text-gray-900">${waiter.gross.toFixed(2)}</TableCell>
+                              <TableCell className="text-sm font-bold text-gray-900">${waiter.collected.toFixed(2)}</TableCell>
+                              <TableCell className={cn("text-sm font-bold", waiter.outstanding > 0 ? "text-red-500" : "text-gray-900")}>
                                 ${waiter.outstanding.toFixed(2)}
                               </TableCell>
-                              <TableCell className="text-sm font-bold text-gray-900 text-left">${waiter.avg.toFixed(2)}</TableCell>
-                              <TableCell className="text-sm font-bold text-gray-900 text-left">{waiter.split}</TableCell>
+                              <TableCell className="text-sm font-bold text-gray-900">${waiter.avg.toFixed(2)}</TableCell>
+                              <TableCell className="text-sm font-bold text-gray-900">{waiter.split}</TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
@@ -384,8 +402,174 @@ export default function StaffPerformancePage() {
               </div>
             )}
 
-            {/* Placeholder for other tabs (currently under construction) */}
-            {['tips', 'turnover', 'balances', 'shift-summary', 'leakage'].includes(activeTab) && (
+            {/* TAB CONTENT: TIPS */}
+            {activeTab === 'tips' && (
+              <div className="space-y-8 animate-in fade-in duration-500">
+                {/* Advanced Metrics Section */}
+                <div className="space-y-4">
+                  <div className="text-left">
+                    <h3 className="text-lg font-bold text-gray-900">Advanced Metrics</h3>
+                    <p className="text-xs text-muted-foreground font-medium">Metrics on tip normalization, volatility, and fairness.</p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Card className="shadow-sm text-left">
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Tip Volatility</span>
+                            <Info className="h-3 w-3 text-muted-foreground opacity-50" />
+                          </div>
+                          <div className="p-1.5 rounded-lg bg-pink-50 text-pink-500">
+                            <ZapIcon className="h-4 w-4" />
+                          </div>
+                        </div>
+                        <p className="text-3xl font-black text-gray-900">12.5%</p>
+                        <div className="flex items-center gap-1 mt-1">
+                          <TrendingUp className="h-3 w-3 text-red-500 rotate-180" />
+                          <span className="text-[10px] font-bold text-red-500">-2.1%</span>
+                          <span className="text-[10px] font-medium text-muted-foreground ml-1">Lower is better</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="shadow-sm text-left">
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Normalization Index</span>
+                            <Info className="h-3 w-3 text-muted-foreground opacity-50" />
+                          </div>
+                          <div className="p-1.5 rounded-lg bg-orange-50 text-orange-500">
+                            <Scale className="h-4 w-4" />
+                          </div>
+                        </div>
+                        <p className="text-3xl font-black text-gray-900">8.5/10</p>
+                        <div className="flex items-center gap-1 mt-1">
+                          <TrendingUp className="h-3 w-3 text-teal-500" />
+                          <span className="text-[10px] font-bold text-teal-500">+0.5</span>
+                          <span className="text-[10px] font-medium text-muted-foreground ml-1">vs. restaurant avg.</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="shadow-sm text-left">
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Fairness Score</span>
+                            <Info className="h-3 w-3 text-muted-foreground opacity-50" />
+                          </div>
+                          <div className="p-1.5 rounded-lg bg-blue-50 text-blue-500">
+                            <RefreshCcw className="h-4 w-4" />
+                          </div>
+                        </div>
+                        <p className="text-3xl font-black text-gray-900">92%</p>
+                        <span className="text-[10px] font-medium text-muted-foreground mt-1 block">Based on Gini Coefficient</span>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+
+                {/* Top 5 Staff Leaderboard */}
+                <Card className="shadow-sm border-0">
+                  <CardHeader className="bg-white border-b py-6 px-8 text-left">
+                    <CardTitle className="text-xl font-bold text-gray-900">Top 5 Staff by Tips</CardTitle>
+                    <p className="text-xs text-muted-foreground font-medium">Leaderboard of top-earning waiters.</p>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="divide-y">
+                      {topStaffTips.map((staff) => (
+                        <div key={staff.name} className="flex items-center justify-between py-5 px-8 hover:bg-muted/5 transition-colors">
+                          <div className="flex items-center gap-6">
+                            <div className="w-8 flex justify-center">
+                              {staff.rank <= 3 ? (
+                                <Trophy className={cn(
+                                  "h-6 w-6",
+                                  staff.rank === 1 && "text-yellow-500",
+                                  staff.rank === 2 && "text-gray-400",
+                                  staff.rank === 3 && "text-amber-600"
+                                )} />
+                              ) : (
+                                <span className="text-lg font-bold text-gray-300">{staff.rank}</span>
+                              )}
+                            </div>
+                            <div className="text-left">
+                              <p className="font-bold text-gray-900">{staff.name}</p>
+                              <p className="text-xs text-muted-foreground">Avg Tip: {staff.avgTip}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-lg font-black text-gray-900">{staff.total}</p>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{staff.ratio} (Digital/Cash)</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Tips Breakdown Table */}
+                <Card className="shadow-sm border-0">
+                  <CardHeader className="bg-white border-b py-6 px-8 text-left">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-xl font-bold text-gray-900">Tips Breakdown</CardTitle>
+                      <Button variant="outline" size="sm" className="gap-2 font-bold text-[10px] uppercase tracking-widest h-9 px-4 rounded-lg">
+                        <Download className="h-3.5 w-3.5" /> Export
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground font-medium">Analyze tip performance for each waiter.</p>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="flex mb-6">
+                      <div className="relative w-full max-w-sm">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input placeholder="Search waiter..." className="pl-10 h-11 bg-muted/20 border-border" />
+                      </div>
+                    </div>
+
+                    <div className="border rounded-xl overflow-hidden">
+                      <Table>
+                        <TableHeader className="bg-gray-50/50">
+                          <TableRow>
+                            <TableHead className="px-6 h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-left">Waiter</TableHead>
+                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-left">Total Tips</TableHead>
+                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-left">
+                              <div className="flex items-center gap-1.5">
+                                Tips/Table <Info className="h-3 w-3 opacity-40" />
+                              </div>
+                            </TableHead>
+                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-left">
+                              <div className="flex items-center gap-1.5">
+                                Avg Tip % <Info className="h-3 w-3 opacity-40" />
+                              </div>
+                            </TableHead>
+                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-left">
+                               <div className="flex items-center gap-1.5">
+                                Digital vs Cash <Info className="h-3 w-3 opacity-40" />
+                              </div>
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {tipsBreakdownData.map((row) => (
+                            <TableRow key={row.name} className="hover:bg-muted/5 transition-colors h-14 text-left">
+                              <TableCell className="px-6 font-bold text-sm text-gray-900">{row.name}</TableCell>
+                              <TableCell className="font-bold text-sm text-gray-900">{row.totalTips}</TableCell>
+                              <TableCell className="text-sm font-semibold text-gray-600">{row.tipsPerTable}</TableCell>
+                              <TableCell className="text-sm font-bold text-gray-900">{row.avgTipPercent}</TableCell>
+                              <TableCell className="text-sm font-bold text-gray-900">{row.ratio}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Placeholder for other tabs */}
+            {['turnover', 'balances', 'shift-summary', 'leakage'].includes(activeTab) && (
               <div className="py-20 text-center space-y-4">
                 <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mx-auto">
                    <Clock className="h-8 w-8 text-muted-foreground opacity-20" />
