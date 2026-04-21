@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { DashboardHeader } from '@/components/dashboard/header';
 import { useSidebar } from '@/components/ui/sidebar';
@@ -48,6 +48,7 @@ import {
   Flame,
   MessageSquare,
   Star,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -207,6 +208,10 @@ export default function StaffPerformancePage() {
       </div>
     );
   };
+
+  const topRatingValue = useMemo(() => {
+    return Math.max(...guestFeedbackSummary.map(s => s.avgRating));
+  }, []);
 
   return (
     <>
@@ -760,23 +765,41 @@ export default function StaffPerformancePage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {guestFeedbackSummary.map((staff) => (
-                          <TableRow key={staff.name} className="h-16 hover:bg-muted/5 transition-colors">
-                            <TableCell className="px-8 font-bold text-sm text-gray-900">{staff.name}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-3">
-                                <span className="font-bold text-sm">{staff.avgRating.toFixed(1)}</span>
-                                {renderStars(Math.round(staff.avgRating))}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-sm font-medium text-gray-600">{staff.reviewCount} reviews</TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className="bg-teal-50 text-teal-700 border-teal-100 font-bold text-[10px] uppercase tracking-wider">
-                                "{staff.topKeyword}"
-                              </Badge>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                        {guestFeedbackSummary.map((staff) => {
+                          const isTop = staff.avgRating === topRatingValue;
+                          return (
+                            <TableRow 
+                              key={staff.name} 
+                              className={cn(
+                                "h-16 transition-colors",
+                                isTop ? "bg-yellow-50/50 hover:bg-yellow-50" : "hover:bg-muted/5"
+                              )}
+                            >
+                              <TableCell className="px-8 font-bold text-sm text-gray-900">
+                                <div className="flex items-center gap-2">
+                                  {staff.name}
+                                  {isTop && (
+                                    <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200 text-[10px] font-black uppercase h-5 px-2">
+                                      Top Rated
+                                    </Badge>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-3">
+                                  <span className="font-bold text-sm">{staff.avgRating.toFixed(1)}</span>
+                                  {renderStars(Math.round(staff.avgRating))}
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-sm font-medium text-gray-600">{staff.reviewCount} reviews</TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="bg-teal-50 text-teal-700 border-teal-100 font-bold text-[10px] uppercase tracking-wider">
+                                  "{staff.topKeyword}"
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
                       </TableBody>
                     </Table>
                   </CardContent>
