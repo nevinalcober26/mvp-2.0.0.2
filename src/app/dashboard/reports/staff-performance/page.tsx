@@ -140,6 +140,12 @@ const balancesTableData = [
   { name: 'Maria', outstanding: 5.50, openTables: 1, oldestAge: '8m', recoveredLost: '$10 / $0', risk: 'low' },
 ];
 
+const shiftSummaryData = [
+  { name: 'Alex', shift: 'Morning', tables: 12, sales: '$450.75', tips: '$55.20', balances: '$0.00', voids: 0, notes: 'All tables closed.' },
+  { name: 'Maria', shift: 'Morning', tables: 10, sales: '$380.20', tips: '$45.50', balances: '$0.00', voids: 1, notes: 'T5 disputed charge.' },
+  { name: 'John', shift: 'Afternoon', tables: 14, sales: '$512.50', tips: '$50.10', balances: '$22.50', voids: 0, notes: 'T12 waiting for payment.' },
+];
+
 export default function StaffPerformancePage() {
   const [activeTab, setActiveTab] = useState('ai-overview');
 
@@ -566,7 +572,7 @@ export default function StaffPerformancePage() {
                       <p className="text-xs text-muted-foreground font-medium">Analyze tip performance for each waiter.</p>
                     </div>
                     <Button variant="outline" size="sm" className="gap-2 font-bold text-[10px] uppercase tracking-widest h-9 px-4 rounded-lg">
-                      <Download className="h-3.5 w-3.5" /> Export
+                      <Download className="h-3.5 w-3.5" /> Export Magic
                     </Button>
                   </CardHeader>
                   <CardContent className="p-6">
@@ -867,15 +873,92 @@ export default function StaffPerformancePage() {
               </div>
             )}
 
-            {/* Placeholder for other tabs */}
-            {['shift-summary', 'leakage'].includes(activeTab) && (
-              <div className="py-20 text-center space-y-4">
+            {/* TAB CONTENT: SHIFT SUMMARY */}
+            {activeTab === 'shift-summary' && (
+              <div className="space-y-6 animate-in fade-in duration-500">
+                <Card className="shadow-sm border-0">
+                  <CardHeader className="bg-white border-b py-6 px-8">
+                    <CardTitle className="text-xl font-bold">Waiter Shift Summary</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-8 space-y-6">
+                    <div className="flex flex-wrap items-center gap-4">
+                      <Select defaultValue="today">
+                        <SelectTrigger className="w-[180px] h-11 bg-muted/20">
+                          <SelectValue placeholder="Period" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="today">Today</SelectItem>
+                          <SelectItem value="yesterday">Yesterday</SelectItem>
+                          <SelectItem value="this-week">This Week</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Select defaultValue="all">
+                        <SelectTrigger className="w-[180px] h-11 bg-muted/20">
+                          <SelectValue placeholder="Shift" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Shifts</SelectItem>
+                          <SelectItem value="morning">Morning</SelectItem>
+                          <SelectItem value="afternoon">Afternoon</SelectItem>
+                          <SelectItem value="evening">Evening</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="border rounded-xl overflow-hidden mt-6">
+                      <Table>
+                        <TableHeader className="bg-gray-50/50">
+                          <TableRow>
+                            <TableHead className="px-6 h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Waiter</TableHead>
+                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Shift</TableHead>
+                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Tables</TableHead>
+                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sales</TableHead>
+                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Tips</TableHead>
+                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                              <div className="flex items-center gap-1.5">
+                                Open Balances <Info className="h-3 w-3 opacity-40" />
+                              </div>
+                            </TableHead>
+                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                              <div className="flex items-center gap-1.5">
+                                Voids/Refunds <Info className="h-3 w-3 opacity-40" />
+                              </div>
+                            </TableHead>
+                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Notes</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {shiftSummaryData.map((row) => (
+                            <TableRow key={row.name} className="hover:bg-muted/5 transition-colors h-14">
+                              <TableCell className="px-6 font-bold text-sm text-gray-900">{row.name}</TableCell>
+                              <TableCell className="text-sm font-medium text-gray-600">{row.shift}</TableCell>
+                              <TableCell className="text-sm font-medium text-gray-600">{row.tables}</TableCell>
+                              <TableCell className="text-sm font-bold text-gray-900">{row.sales}</TableCell>
+                              <TableCell className="text-sm font-bold text-gray-900">{row.tips}</TableCell>
+                              <TableCell className={cn("text-sm font-bold", row.balances !== '$0.00' ? "text-red-500" : "text-gray-900")}>
+                                {row.balances}
+                              </TableCell>
+                              <TableCell className="text-sm font-medium text-gray-600">{row.voids}</TableCell>
+                              <TableCell className="text-sm font-medium text-gray-500 max-w-[200px] truncate">{row.notes}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* TAB CONTENT: LEAKAGE */}
+            {activeTab === 'leakage' && (
+              <div className="py-20 text-center space-y-4 animate-in fade-in duration-500">
                 <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mx-auto">
-                   <Clock className="h-8 w-8 text-muted-foreground opacity-20" />
+                   <ShieldAlert className="h-8 w-8 text-muted-foreground opacity-20" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900">Module Under Construction</h3>
+                <h3 className="text-xl font-bold text-gray-900">Revenue Protection</h3>
                 <p className="text-muted-foreground text-sm max-w-xs mx-auto">
-                  We're currently building advanced staff metrics for this view. Stay tuned!
+                  Audit trail for voids, refunds, and deleted items per staff member. Coming soon!
                 </p>
               </div>
             )}
