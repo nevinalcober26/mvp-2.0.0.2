@@ -52,6 +52,9 @@ import {
   File as FileIcon,
   Sheet as SheetIcon,
   Lock,
+  ThumbsUp,
+  History,
+  Calendar,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -76,9 +79,18 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '@/components/ui/sheet';
 import { useToast } from '@/hooks/use-toast';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 
 const navigationItems = [
   { id: 'ai-overview', label: 'AI Overview', icon: Wand2 },
@@ -177,24 +189,26 @@ const leakageLogData = [
 ];
 
 const guestFeedbackSummary = [
-  { name: 'Sarah', avgRating: 5.0, reviewCount: 42, topKeyword: 'Attentive' },
-  { name: 'Alex', avgRating: 4.8, reviewCount: 35, topKeyword: 'Quick' },
-  { name: 'Maria', avgRating: 4.7, reviewCount: 28, topKeyword: 'Friendly' },
-  { name: 'John', avgRating: 4.5, reviewCount: 31, topKeyword: 'Polite' },
-  { name: 'David', avgRating: 3.9, reviewCount: 15, topKeyword: 'Slow' },
+  { name: 'Sarah', avgRating: 5.0, reviewCount: 42, topKeyword: 'Attentive', sentiment: 'Positive' },
+  { name: 'Alex', avgRating: 4.8, reviewCount: 35, topKeyword: 'Quick', sentiment: 'Positive' },
+  { name: 'Maria', avgRating: 4.7, reviewCount: 28, topKeyword: 'Friendly', sentiment: 'Positive' },
+  { name: 'John', avgRating: 4.5, reviewCount: 31, topKeyword: 'Polite', sentiment: 'Mixed' },
+  { name: 'David', avgRating: 3.9, reviewCount: 15, topKeyword: 'Slow', sentiment: 'Neutral' },
 ];
 
 const recentReviews = [
-  { id: 1, waiter: 'Sarah', customer: 'Mark R.', rating: 5, comment: 'Sarah was incredibly attentive and made our anniversary special.', date: '15m ago' },
-  { id: 2, waiter: 'Alex', customer: 'Emily T.', rating: 4, comment: 'Very fast service, though the steak was a bit rare.', date: '1h ago' },
-  { id: 3, waiter: 'David', customer: 'Chris P.', rating: 2, comment: 'Had to wait 20 minutes just to get the bill.', date: '3h ago' },
-  { id: 4, waiter: 'Maria', customer: 'Jessica W.', rating: 5, comment: 'Best dining experience in a long time. Maria is a gem!', date: 'Yesterday' },
+  { id: 1, orderId: '#ORD-9912', waiter: 'Sarah', customer: 'Mark R.', rating: 5, comment: 'Sarah was incredibly attentive and made our anniversary special.', date: '15m ago', fullTimestamp: '2023-11-20 14:32' },
+  { id: 2, orderId: '#ORD-9884', waiter: 'Alex', customer: 'Emily T.', rating: 4, comment: 'Very fast service, though the steak was a bit rare.', date: '1h ago', fullTimestamp: '2023-11-20 13:15' },
+  { id: 3, orderId: '#ORD-9821', waiter: 'David', customer: 'Chris P.', rating: 2, comment: 'Had to wait 20 minutes just to get the bill.', date: '3h ago', fullTimestamp: '2023-11-20 11:20' },
+  { id: 4, orderId: '#ORD-9755', waiter: 'Maria', customer: 'Jessica W.', rating: 5, comment: 'Best dining experience in a long time. Maria is a gem!', date: 'Yesterday', fullTimestamp: '2023-11-19 20:05' },
+  { id: 5, orderId: '#ORD-9955', waiter: 'Sarah', customer: 'Lars O.', rating: 5, comment: 'Flawless service, very knowledgeable about the menu.', date: '30m ago', fullTimestamp: '2023-11-20 14:15' },
+  { id: 6, orderId: '#ORD-9940', waiter: 'Sarah', customer: 'Nina K.', rating: 5, comment: 'Always a pleasure being served by Sarah. Quick and kind!', date: '45m ago', fullTimestamp: '2023-11-20 14:00' },
 ];
 
 const ExportDialog = ({ open, onOpenChange, onExport }: { open: boolean; onOpenChange: (open: boolean) => void; onExport: (format: "CSV" | "PDF") => void; }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden border-0 shadow-2xl rounded-2xl bg-white">
+      <DialogContent className="sm:max-w-md p-0 overflow-hidden border-0 shadow-2xl rounded-2xl bg-white text-left">
         <DialogClose asChild>
           <Button variant="ghost" size="icon" className="absolute top-4 right-4 rounded-full h-10 w-10 bg-black/5 hover:bg-black/10 z-10">
             <X className="h-5 w-5 text-muted-foreground" />
@@ -206,9 +220,9 @@ const ExportDialog = ({ open, onOpenChange, onExport }: { open: boolean; onOpenC
               <Download className="h-8 w-8 text-white" />
             </div>
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 text-left sm:text-center">
             <DialogTitle className="text-2xl font-bold tracking-tight">Export Staff Report</DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground">Choose your format to generate the report</DialogDescription>
+            <DialogDescription className="text-sm font-medium text-muted-foreground">Choose your format to generate the report</DialogDescription>
           </div>
           <div className="grid grid-cols-2 gap-4 pt-4">
             <button
@@ -246,6 +260,7 @@ export default function StaffPerformancePage() {
   const { setOpen } = useSidebar();
   const [activeTab, setActiveTab] = useState('ai-overview');
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [selectedStaff, setSelectedStaff] = useState<any | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -260,7 +275,6 @@ export default function StaffPerformancePage() {
   const handleExport = (format: 'CSV' | 'PDF') => {
     setIsExportDialogOpen(false);
     
-    // Logic to prepare data based on active tab
     let data: any[] = [];
     let headers: string[] = [];
     let title = "";
@@ -287,7 +301,6 @@ export default function StaffPerformancePage() {
         data = turnoverDetailsData.map(t => [t.name, t.tables, t.avgTurnover, t.dwellTime, t.splitImpact]);
         break;
       default:
-        // Fallback for overview or other tabs
         title = "Staff Performance Overview";
         headers = ['Waiter', 'Gross Sales', 'Tips Earned'];
         data = waiterSalesData.map((w, i) => [w.name, `$${w.gross.toFixed(2)}`, tipsBreakdownData[i]?.totalTips || '$0.00']);
@@ -344,6 +357,15 @@ export default function StaffPerformancePage() {
     return Math.max(...guestFeedbackSummary.map(s => s.avgRating));
   }, []);
 
+  const handleOpenStaffFeedback = (staff: any) => {
+    setSelectedStaff(staff);
+  };
+
+  const staffFilteredReviews = useMemo(() => {
+    if (!selectedStaff) return [];
+    return recentReviews.filter(r => r.waiter === selectedStaff.name);
+  }, [selectedStaff]);
+
   return (
     <>
       <DashboardHeader />
@@ -386,7 +408,7 @@ export default function StaffPerformancePage() {
 
         <div className="flex-1 overflow-y-auto p-8">
           <div className="max-w-6xl mx-auto space-y-8">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left">
               <div className="space-y-1">
                 <h1 className="text-2xl font-bold tracking-tight text-gray-900">Staff Performance</h1>
                 <p className="text-muted-foreground text-sm">Real-time staff metrics, payment behavior, and AI insights.</p>
@@ -401,8 +423,9 @@ export default function StaffPerformancePage() {
               </Button>
             </div>
 
+            {/* AI Summary Section */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="relative overflow-hidden border-2 border-transparent bg-white shadow-sm hover:shadow-md transition-shadow">
+              <Card className="relative overflow-hidden border-2 border-transparent bg-white shadow-sm hover:shadow-md transition-shadow text-left">
                 <div className="absolute top-0 left-0 w-1 h-full bg-red-500" />
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
@@ -422,7 +445,7 @@ export default function StaffPerformancePage() {
                 </CardContent>
               </Card>
 
-              <Card className="relative overflow-hidden border-2 border-transparent bg-white shadow-sm hover:shadow-md transition-shadow">
+              <Card className="relative overflow-hidden border-2 border-transparent bg-white shadow-sm hover:shadow-md transition-shadow text-left">
                 <div className="absolute top-0 left-0 w-1 h-full bg-[#18B4A6]" />
                 <CardHeader className="pb-2">
                   <div className="flex items-center gap-2">
@@ -439,7 +462,7 @@ export default function StaffPerformancePage() {
                 </CardContent>
               </Card>
 
-              <Card className="relative overflow-hidden border-2 border-transparent bg-white shadow-sm hover:shadow-md transition-shadow">
+              <Card className="relative overflow-hidden border-2 border-transparent bg-white shadow-sm hover:shadow-md transition-shadow text-left">
                 <div className="absolute top-0 left-0 w-1 h-full bg-blue-500" />
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
@@ -460,8 +483,10 @@ export default function StaffPerformancePage() {
               </Card>
             </div>
 
+            {/* TAB CONTENT */}
+
             {activeTab === 'ai-overview' && (
-              <div className="space-y-8 animate-in fade-in duration-500">
+              <div className="space-y-8 animate-in fade-in duration-500 text-left">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <Card className="shadow-sm">
                     <CardContent className="p-6">
@@ -516,7 +541,7 @@ export default function StaffPerformancePage() {
                   <CardHeader className="bg-white border-b py-6 px-8">
                     <CardTitle className="text-xl font-bold text-gray-900">Notable AI Alerts</CardTitle>
                   </CardHeader>
-                  <CardContent className="p-0">
+                  <CardContent className="p-0 text-left">
                     <TooltipProvider>
                       <Table>
                         <TableHeader className="bg-gray-50/50">
@@ -574,7 +599,7 @@ export default function StaffPerformancePage() {
             )}
 
             {activeTab === 'waiter-sales' && (
-              <div className="space-y-6 animate-in fade-in duration-500">
+              <div className="space-y-6 animate-in fade-in duration-500 text-left">
                 <Card className="shadow-sm">
                   <CardHeader className="flex flex-row items-center justify-between p-6">
                     <div className="space-y-1">
@@ -602,7 +627,7 @@ export default function StaffPerformancePage() {
 
                     <div className="border rounded-xl overflow-hidden">
                       <Table>
-                        <TableHeader className="bg-gray-50/50">
+                        <TableHeader className="bg-gray-50/50 text-left">
                           <TableRow>
                             <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground h-12 px-4">Waiter</TableHead>
                             <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground h-12">Tables</TableHead>
@@ -648,7 +673,7 @@ export default function StaffPerformancePage() {
             )}
 
             {activeTab === 'tips' && (
-              <div className="space-y-8 animate-in fade-in duration-500">
+              <div className="space-y-8 animate-in fade-in duration-500 text-left">
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-lg font-bold text-gray-900">Advanced Metrics</h3>
@@ -766,7 +791,7 @@ export default function StaffPerformancePage() {
                 </Card>
 
                 <Card className="shadow-sm border-0">
-                  <CardHeader className="bg-white border-b py-6 px-8 flex flex-row items-center justify-between">
+                  <CardHeader className="bg-white border-b py-6 px-8 flex flex-row items-center justify-between text-left">
                     <div className="space-y-1">
                       <CardTitle className="text-xl font-bold text-gray-900">Tips Breakdown</CardTitle>
                       <p className="text-xs text-muted-foreground font-medium">Analyze tip performance for each waiter.</p>
@@ -780,7 +805,7 @@ export default function StaffPerformancePage() {
                       </div>
                     </div>
 
-                    <div className="border rounded-xl overflow-hidden">
+                    <div className="border rounded-xl overflow-hidden text-left">
                       <Table>
                         <TableHeader className="bg-gray-50/50">
                           <TableRow>
@@ -822,7 +847,7 @@ export default function StaffPerformancePage() {
             )}
 
             {activeTab === 'guest-feedback' && (
-              <div className="space-y-8 animate-in fade-in duration-500">
+              <div className="space-y-8 animate-in fade-in duration-500 text-left">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <Card className="shadow-sm">
                     <CardContent className="p-6">
@@ -873,9 +898,9 @@ export default function StaffPerformancePage() {
                 <Card className="shadow-sm border-0">
                   <CardHeader className="bg-white border-b py-6 px-8 text-left">
                     <CardTitle className="text-xl font-bold text-gray-900">Waiter Rating Reports</CardTitle>
-                    <p className="text-xs text-muted-foreground font-medium">Aggregated customer ratings per staff member.</p>
+                    <p className="text-xs text-muted-foreground font-medium">Aggregated customer ratings per staff member. Click a name for timeline.</p>
                   </CardHeader>
-                  <CardContent className="p-0">
+                  <CardContent className="p-0 text-left">
                     <Table>
                       <TableHeader className="bg-gray-50/50">
                         <TableRow>
@@ -897,14 +922,17 @@ export default function StaffPerformancePage() {
                               )}
                             >
                               <TableCell className="px-8 font-bold text-sm text-gray-900">
-                                <div className="flex items-center gap-2">
+                                <button 
+                                  onClick={() => handleOpenStaffFeedback(staff)}
+                                  className="flex items-center gap-2 hover:text-primary transition-colors text-left"
+                                >
                                   {staff.name}
                                   {isTop && (
                                     <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200 text-[10px] font-black uppercase h-5 px-2">
                                       Top Rated
                                     </Badge>
                                   )}
-                                </div>
+                                </button>
                               </TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-3">
@@ -935,7 +963,7 @@ export default function StaffPerformancePage() {
                     <div className="space-y-4">
                       {recentReviews.map((review) => (
                         <div key={review.id} className="p-4 rounded-xl border bg-white flex flex-col gap-3 transition-shadow hover:shadow-md">
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between text-left">
                             <div className="flex items-center gap-3">
                               <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center font-bold text-xs">
                                 {review.customer.charAt(0)}
@@ -962,13 +990,13 @@ export default function StaffPerformancePage() {
             )}
 
             {activeTab === 'turnover' && (
-              <div className="space-y-8 animate-in fade-in duration-500">
+              <div className="space-y-8 animate-in fade-in duration-500 text-left">
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-lg font-bold text-gray-900">Table Turnover Performance</h3>
                     <p className="text-xs text-muted-foreground font-medium">Analyze how quickly tables are being turned over by staff.</p>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
                     <Card className="shadow-sm">
                       <CardContent className="p-6">
                         <div className="flex items-center justify-between mb-4">
@@ -991,7 +1019,7 @@ export default function StaffPerformancePage() {
                       </CardContent>
                     </Card>
 
-                    <Card className="shadow-sm">
+                    <Card className="shadow-sm text-left">
                       <CardContent className="p-6">
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-1.5">
@@ -1113,7 +1141,7 @@ export default function StaffPerformancePage() {
             )}
 
             {activeTab === 'balances' && (
-              <div className="space-y-8 animate-in fade-in duration-500">
+              <div className="space-y-8 animate-in fade-in duration-500 text-left">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="text-left">
@@ -1147,7 +1175,7 @@ export default function StaffPerformancePage() {
                   </div>
                 </div>
 
-                <Card className="shadow-sm border-0 overflow-hidden">
+                <Card className="shadow-sm border-0 overflow-hidden text-left">
                   <CardContent className="p-0">
                     <TooltipProvider>
                       <Table>
@@ -1209,7 +1237,7 @@ export default function StaffPerformancePage() {
             )}
 
             {activeTab === 'shift-summary' && (
-              <div className="space-y-6 animate-in fade-in duration-500">
+              <div className="space-y-6 animate-in fade-in duration-500 text-left">
                 <Card className="shadow-sm border-0">
                   <CardHeader className="bg-white border-b py-6 px-8 text-left">
                     <CardTitle className="text-xl font-bold">Waiter Shift Summary</CardTitle>
@@ -1239,9 +1267,9 @@ export default function StaffPerformancePage() {
                       </Select>
                     </div>
 
-                    <div className="border rounded-xl overflow-hidden mt-6">
+                    <div className="border rounded-xl overflow-hidden mt-6 text-left">
                       <Table>
-                        <TableHeader className="bg-gray-50/50">
+                        <TableHeader className="bg-gray-50/50 text-left">
                           <TableRow>
                             <TableHead className="px-6 h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Waiter</TableHead>
                             <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Shift</TableHead>
@@ -1263,7 +1291,7 @@ export default function StaffPerformancePage() {
                         </TableHeader>
                         <TableBody>
                           {shiftSummaryData.map((row) => (
-                            <TableRow key={row.name} className="hover:bg-muted/5 transition-colors h-14 text-left">
+                            <TableRow key={row.name} className="hover:bg-muted/5 transition-colors h-14">
                               <TableCell className="px-6 font-bold text-sm text-gray-900">{row.name}</TableCell>
                               <TableCell className="text-sm font-medium text-gray-600">{row.shift}</TableCell>
                               <TableCell className="text-sm font-medium text-gray-600">{row.tables}</TableCell>
@@ -1285,7 +1313,7 @@ export default function StaffPerformancePage() {
             )}
 
             {activeTab === 'leakage' && (
-              <div className="space-y-8 animate-in fade-in duration-500">
+              <div className="space-y-8 animate-in fade-in duration-500 text-left">
                 <div className="space-y-4">
                   <div className="text-left">
                     <h3 className="text-xl font-bold text-gray-900">Revenue Leakage</h3>
@@ -1361,7 +1389,7 @@ export default function StaffPerformancePage() {
                   </div>
                 </div>
 
-                <Card className="shadow-sm border-0 overflow-hidden">
+                <Card className="shadow-sm border-0 overflow-hidden text-left">
                   <CardContent className="p-0">
                     <TooltipProvider>
                       <Table>
@@ -1423,6 +1451,144 @@ export default function StaffPerformancePage() {
         onOpenChange={setIsExportDialogOpen} 
         onExport={handleExport} 
       />
+
+      <StaffFeedbackDrawer 
+        staff={selectedStaff}
+        reviews={staffFilteredReviews}
+        isOpen={!!selectedStaff}
+        onClose={() => setSelectedStaff(null)}
+      />
     </>
   );
 }
+
+const StaffFeedbackDrawer = ({ staff, reviews, isOpen, onClose }: { staff: any | null; reviews: any[]; isOpen: boolean; onClose: () => void }) => {
+  if (!staff) return null;
+
+  return (
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="sm:max-w-xl w-full p-0 flex flex-col border-l shadow-2xl bg-[#F7F9FB] text-left">
+        <div className="bg-white p-8 border-b shrink-0 shadow-sm">
+          <div className="flex items-start justify-between mb-6">
+            <div className="flex items-center gap-5">
+              <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center border-2 border-primary/20 shadow-inner">
+                <User className="h-8 w-8 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <SheetTitle className="text-3xl font-black tracking-tight text-gray-900">{staff.name}</SheetTitle>
+                <div className="flex items-center gap-3">
+                  <Badge variant="outline" className="bg-teal-50 text-teal-700 border-teal-200 font-black text-[10px] uppercase h-6 px-3 tracking-widest shadow-none">
+                    {staff.sentiment} Sentiment
+                  </Badge>
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{staff.reviewCount} Reviews</span>
+                </div>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-4xl font-black text-primary leading-none">{staff.avgRating.toFixed(1)}</p>
+              <div className="flex items-center gap-0.5 mt-2 justify-end">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star key={s} className={cn("h-4 w-4", s <= Math.round(staff.avgRating) ? "fill-yellow-400 text-yellow-400" : "fill-gray-100 text-gray-200")} />
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+             <div className="p-4 rounded-2xl bg-muted/30 border border-border/50 flex items-center gap-4">
+                <div className="h-10 w-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-teal-600">
+                  <ThumbsUp className="h-5 w-5" />
+                </div>
+                <div>
+                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Top Trait</p>
+                   <p className="text-sm font-bold text-gray-900">{staff.topKeyword}</p>
+                </div>
+             </div>
+             <div className="p-4 rounded-2xl bg-muted/30 border border-border/50 flex items-center gap-4">
+                <div className="h-10 w-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-orange-600">
+                  <History className="h-5 w-5" />
+                </div>
+                <div>
+                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Recency</p>
+                   <p className="text-sm font-bold text-gray-900">Today</p>
+                </div>
+             </div>
+          </div>
+        </div>
+
+        <ScrollArea className="flex-1">
+          <div className="p-8 space-y-6">
+             <div className="flex items-center justify-between mb-2">
+                <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">Review Timeline</h3>
+                <Badge variant="outline" className="font-bold text-[10px] border-border/50">LATEST FIRST</Badge>
+             </div>
+
+             <div className="space-y-4">
+                {reviews.length > 0 ? reviews.map((review) => (
+                  <Card key={review.id} className="border-0 shadow-sm rounded-[24px] overflow-hidden group hover:shadow-md transition-all duration-300">
+                    <CardContent className="p-0">
+                       <div className="p-6 space-y-4">
+                          <div className="flex items-center justify-between">
+                             <div className="flex items-center gap-3">
+                                <div className="h-9 w-9 rounded-full bg-gray-100 flex items-center justify-center font-bold text-xs text-gray-500">
+                                   {review.customer.charAt(0)}
+                                </div>
+                                <div className="text-left">
+                                   <p className="text-sm font-bold text-gray-900">{review.customer}</p>
+                                   <div className="flex items-center gap-2 mt-0.5">
+                                      <div className="flex items-center gap-0.5">
+                                        {[1, 2, 3, 4, 5].map((s) => (
+                                          <Star key={s} className={cn("h-3 w-3", s <= review.rating ? "fill-yellow-400 text-yellow-400" : "fill-gray-100 text-gray-200")} />
+                                        ))}
+                                      </div>
+                                      <span className="h-1 w-1 rounded-full bg-gray-200" />
+                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{review.date}</span>
+                                   </div>
+                                </div>
+                             </div>
+                             <Badge variant="secondary" className="bg-muted/50 text-gray-400 font-mono text-[10px] h-6 px-2 border-0">
+                               {review.orderId}
+                             </Badge>
+                          </div>
+                          
+                          <p className="text-sm text-gray-600 leading-relaxed font-medium italic text-left pl-12 border-l-2 border-primary/10 py-1">
+                             "{review.comment}"
+                          </p>
+
+                          <div className="pt-2 flex items-center gap-4 pl-12">
+                             <div className="flex items-center gap-1.5">
+                                <Clock className="h-3.5 w-3.5 text-gray-300" />
+                                <span className="text-[10px] font-bold text-gray-400 uppercase">{review.fullTimestamp}</span>
+                             </div>
+                             <button className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline decoration-2 underline-offset-4">
+                                View Order
+                             </button>
+                          </div>
+                       </div>
+                    </CardContent>
+                  </Card>
+                )) : (
+                  <div className="py-20 text-center space-y-4">
+                     <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mx-auto opacity-20">
+                        <MessageSquare className="h-8 w-8" />
+                     </div>
+                     <p className="text-sm font-bold text-gray-400">No specific reviews found for this filter.</p>
+                  </div>
+                )}
+             </div>
+          </div>
+        </ScrollArea>
+
+        <div className="p-6 bg-white border-t shrink-0 flex items-center justify-between shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
+           <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-gray-400" />
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Reporting Period: Last 30 Days</span>
+           </div>
+           <Button variant="ghost" className="font-bold text-gray-400 hover:text-gray-900" onClick={onClose}>
+             Close Details
+           </Button>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+};
