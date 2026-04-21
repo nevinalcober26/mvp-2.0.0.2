@@ -499,13 +499,13 @@ export default function StaffPerformancePage() {
                               )}
                             </div>
                             <div className="text-left">
-                              <p className={cn(
+                              <div className={cn(
                                 "font-bold text-gray-900",
                                 staff.rank === 1 ? "text-lg" : "text-sm"
                               )}>
                                 {staff.name}
                                 {staff.rank === 1 && <Badge className="ml-2 bg-yellow-100 text-yellow-700 border-yellow-200 text-[10px] font-black uppercase h-5">Top Performer</Badge>}
-                              </p>
+                              </div>
                               <p className="text-xs text-muted-foreground">Avg Tip: {staff.avgTip}</p>
                             </div>
                           </div>
