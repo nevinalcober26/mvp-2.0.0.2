@@ -24,7 +24,7 @@ import {
   TrendingUp, 
   ShieldAlert, 
   Zap, 
-  BarChart, 
+  BarChart as BarChartIcon, 
   CircleDollarSign, 
   RotateCcw, 
   FileWarning, 
@@ -46,10 +46,20 @@ import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  Cell as RechartsCell,
+} from 'recharts';
 
 const navigationItems = [
   { id: 'ai-overview', label: 'AI Overview', icon: Wand2 },
-  { id: 'waiter-sales', label: 'Waiter Sales', icon: BarChart },
+  { id: 'waiter-sales', label: 'Waiter Sales', icon: BarChartIcon },
   { id: 'tips', label: 'Tips', icon: CircleDollarSign },
   { id: 'turnover', label: 'Turnover', icon: RotateCcw },
   { id: 'balances', label: 'Balances', icon: FileWarning },
@@ -102,16 +112,32 @@ const tipsBreakdownData = [
   { name: 'David', totalTips: '$25.40', tipsPerTable: '$2.82', avgTipPercent: '12.5%', ratio: '60/40' },
 ];
 
+const turnoverChartData = [
+  { name: 'Alex', minutes: 18 },
+  { name: 'Maria', minutes: 15 },
+  { name: 'John', minutes: 22 },
+  { name: 'Sarah', minutes: 16 },
+  { name: 'David', minutes: 25 },
+];
+
+const turnoverDetailsData = [
+  { name: 'Alex', tables: 12, avgTurnover: '18m', dwellTime: '45m', splitImpact: '-5m' },
+  { name: 'Maria', tables: 10, avgTurnover: '15m', dwellTime: '42m', splitImpact: '+2m' },
+  { name: 'John', tables: 14, avgTurnover: '22m', dwellTime: '55m', splitImpact: '+8m' },
+  { name: 'Sarah', tables: 11, avgTurnover: '16m', dwellTime: '40m', splitImpact: '-3m' },
+  { name: 'David', tables: 9, avgTurnover: '25m', dwellTime: '60m', splitImpact: '+10m' },
+];
+
 export default function StaffPerformancePage() {
   const [activeTab, setActiveTab] = useState('ai-overview');
 
   return (
     <>
       <DashboardHeader />
-      <main className="flex h-[calc(100vh-4rem)] overflow-hidden bg-muted/30">
+      <main className="flex h-[calc(100vh-4rem)] overflow-hidden bg-muted/30 text-left">
         {/* Secondary Internal Sidebar */}
         <aside className="w-64 border-r bg-white/50 backdrop-blur-sm p-4 flex flex-col gap-6 shrink-0">
-          <div className="px-2 text-left">
+          <div className="px-2">
             <h2 className="text-lg font-bold text-gray-900">Performance</h2>
             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Staff Analytics</p>
           </div>
@@ -122,7 +148,7 @@ export default function StaffPerformancePage() {
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 text-left",
+                  "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200",
                   activeTab === item.id 
                     ? "bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20" 
                     : "text-gray-500 hover:bg-gray-100"
@@ -139,7 +165,7 @@ export default function StaffPerformancePage() {
         <div className="flex-1 overflow-y-auto p-8">
           <div className="max-w-6xl mx-auto space-y-8">
             {/* Page Title Section */}
-            <div className="space-y-1 text-left">
+            <div className="space-y-1">
               <h1 className="text-2xl font-bold tracking-tight text-gray-900">Staff Performance</h1>
               <p className="text-muted-foreground text-sm">Real-time staff metrics, payment behavior, and AI insights.</p>
             </div>
@@ -147,7 +173,7 @@ export default function StaffPerformancePage() {
             {/* AI Insight Cards Row */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* AI Anomalies */}
-              <Card className="relative overflow-hidden border-2 border-transparent bg-white shadow-sm hover:shadow-md transition-shadow text-left">
+              <Card className="relative overflow-hidden border-2 border-transparent bg-white shadow-sm hover:shadow-md transition-shadow">
                 <div className="absolute top-0 left-0 w-1 h-full bg-red-500" />
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
@@ -168,16 +194,14 @@ export default function StaffPerformancePage() {
               </Card>
 
               {/* AI Tip Insights */}
-              <Card className="relative overflow-hidden border-2 border-transparent bg-white shadow-sm hover:shadow-md transition-shadow text-left">
+              <Card className="relative overflow-hidden border-2 border-transparent bg-white shadow-sm hover:shadow-md transition-shadow">
                 <div className="absolute top-0 left-0 w-1 h-full bg-[#18B4A6]" />
                 <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="p-1.5 rounded-lg bg-teal-50 text-teal-600">
-                        <TrendingUp className="h-4 w-4" />
-                      </div>
-                      <CardTitle className="text-sm font-bold">AI Tip Insights</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-teal-50 text-teal-600">
+                      <TrendingUp className="h-4 w-4" />
                     </div>
+                    <CardTitle className="text-sm font-bold">AI Tip Insights</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -188,7 +212,7 @@ export default function StaffPerformancePage() {
               </Card>
 
               {/* AI Waiter Score */}
-              <Card className="relative overflow-hidden border-2 border-transparent bg-white shadow-sm hover:shadow-md transition-shadow text-left">
+              <Card className="relative overflow-hidden border-2 border-transparent bg-white shadow-sm hover:shadow-md transition-shadow">
                 <div className="absolute top-0 left-0 w-1 h-full bg-blue-500" />
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
@@ -213,7 +237,7 @@ export default function StaffPerformancePage() {
             {activeTab === 'ai-overview' && (
               <div className="space-y-8 animate-in fade-in duration-500">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <Card className="shadow-sm text-left">
+                  <Card className="shadow-sm">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-1.5">
@@ -228,7 +252,7 @@ export default function StaffPerformancePage() {
                     </CardContent>
                   </Card>
 
-                  <Card className="shadow-sm text-left">
+                  <Card className="shadow-sm">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-1.5">
@@ -243,7 +267,7 @@ export default function StaffPerformancePage() {
                     </CardContent>
                   </Card>
 
-                  <Card className="shadow-sm text-left">
+                  <Card className="shadow-sm">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-1.5">
@@ -263,7 +287,7 @@ export default function StaffPerformancePage() {
                 </div>
 
                 <Card className="shadow-sm overflow-hidden border-0">
-                  <CardHeader className="bg-white border-b py-6 px-8 text-left">
+                  <CardHeader className="bg-white border-b py-6 px-8">
                     <CardTitle className="text-xl font-bold text-gray-900">Notable AI Alerts</CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
@@ -271,13 +295,13 @@ export default function StaffPerformancePage() {
                       <Table>
                         <TableHeader className="bg-gray-50/50">
                           <TableRow className="border-b">
-                            <TableHead className="px-8 h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-left">
+                            <TableHead className="px-8 h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                               <div className="flex items-center gap-1.5">
                                 Type <Info className="h-3 w-3 opacity-50" />
                               </div>
                             </TableHead>
-                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-left">Timestamp</TableHead>
-                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-left">
+                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Timestamp</TableHead>
+                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                               <div className="flex items-center gap-1.5">
                                 Reference <Info className="h-3 w-3 opacity-50" />
                               </div>
@@ -293,9 +317,9 @@ export default function StaffPerformancePage() {
                         <TableBody>
                           {alerts.map((alert, idx) => (
                             <TableRow key={idx} className="group hover:bg-muted/30 transition-colors h-16">
-                              <TableCell className="px-8 font-bold text-sm text-gray-900 text-left">{alert.type}</TableCell>
-                              <TableCell className="text-xs text-muted-foreground font-medium text-left">{alert.timestamp}</TableCell>
-                              <TableCell className="text-xs text-gray-600 font-semibold text-left">{alert.reference}</TableCell>
+                              <TableCell className="px-8 font-bold text-sm text-gray-900">{alert.type}</TableCell>
+                              <TableCell className="text-xs text-muted-foreground font-medium">{alert.timestamp}</TableCell>
+                              <TableCell className="text-xs text-gray-600 font-semibold">{alert.reference}</TableCell>
                               <TableCell className="text-center">
                                 <Badge 
                                   className={cn(
@@ -328,7 +352,7 @@ export default function StaffPerformancePage() {
               <div className="space-y-6 animate-in fade-in duration-500">
                 <Card className="shadow-sm">
                   <CardHeader className="flex flex-row items-center justify-between p-6">
-                    <div className="space-y-1 text-left">
+                    <div className="space-y-1">
                       <CardTitle className="text-xl font-bold">Waiter Sales Performance</CardTitle>
                       <CardDescription className="text-sm font-medium">Review sales metrics for each waiter.</CardDescription>
                     </div>
@@ -358,29 +382,29 @@ export default function StaffPerformancePage() {
                       <Table>
                         <TableHeader className="bg-gray-50/50">
                           <TableRow>
-                            <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground h-12 text-left px-4">Waiter</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground h-12 text-left">Tables</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground h-12 text-left">Orders</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground h-12 text-left">
+                            <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground h-12 px-4">Waiter</TableHead>
+                            <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground h-12">Tables</TableHead>
+                            <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground h-12">Orders</TableHead>
+                            <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground h-12">
                               <div className="flex items-center gap-1">Gross Sales <Info className="h-3 w-3 opacity-40" /></div>
                             </TableHead>
-                            <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground h-12 text-left">
+                            <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground h-12">
                               <div className="flex items-center gap-1">Collected <Info className="h-3 w-3 opacity-40" /></div>
                             </TableHead>
-                            <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground h-12 text-left">
+                            <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground h-12">
                               <div className="flex items-center gap-1">Outstanding <Info className="h-3 w-3 opacity-40" /></div>
                             </TableHead>
-                            <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground h-12 text-left">
+                            <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground h-12">
                               <div className="flex items-center gap-1">Avg. Bill <Info className="h-3 w-3 opacity-40" /></div>
                             </TableHead>
-                            <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground h-12 text-left">
+                            <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground h-12">
                               <div className="flex items-center gap-1">% Split Bills <Info className="h-3 w-3 opacity-40" /></div>
                             </TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {waiterSalesData.map((waiter) => (
-                            <TableRow key={waiter.name} className="hover:bg-muted/5 transition-colors h-14 text-left">
+                            <TableRow key={waiter.name} className="hover:bg-muted/5 transition-colors h-14">
                               <TableCell className="font-bold text-sm text-gray-900 px-4">{waiter.name}</TableCell>
                               <TableCell className="text-sm font-medium text-gray-600">{waiter.tables}</TableCell>
                               <TableCell className="text-sm font-medium text-gray-600">{waiter.orders}</TableCell>
@@ -406,12 +430,12 @@ export default function StaffPerformancePage() {
               <div className="space-y-8 animate-in fade-in duration-500">
                 {/* Advanced Metrics Section */}
                 <div className="space-y-4">
-                  <div className="text-left">
+                  <div>
                     <h3 className="text-lg font-bold text-gray-900">Advanced Metrics</h3>
                     <p className="text-xs text-muted-foreground font-medium">Metrics on tip normalization, volatility, and fairness.</p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Card className="shadow-sm text-left">
+                    <Card className="shadow-sm">
                       <CardContent className="p-6">
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-1.5">
@@ -431,7 +455,7 @@ export default function StaffPerformancePage() {
                       </CardContent>
                     </Card>
 
-                    <Card className="shadow-sm text-left">
+                    <Card className="shadow-sm">
                       <CardContent className="p-6">
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-1.5">
@@ -451,7 +475,7 @@ export default function StaffPerformancePage() {
                       </CardContent>
                     </Card>
 
-                    <Card className="shadow-sm text-left">
+                    <Card className="shadow-sm">
                       <CardContent className="p-6">
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-1.5">
@@ -471,7 +495,7 @@ export default function StaffPerformancePage() {
 
                 {/* Top 5 Staff Leaderboard */}
                 <Card className="shadow-sm border-0">
-                  <CardHeader className="bg-white border-b py-6 px-8 text-left">
+                  <CardHeader className="bg-white border-b py-6 px-8">
                     <CardTitle className="text-xl font-bold text-gray-900">Top 5 Staff by Tips</CardTitle>
                     <p className="text-xs text-muted-foreground font-medium">Leaderboard of top-earning waiters.</p>
                   </CardHeader>
@@ -500,7 +524,7 @@ export default function StaffPerformancePage() {
                             </div>
                             <div className="text-left">
                               <div className={cn(
-                                "font-bold text-gray-900",
+                                "font-bold text-gray-900 flex items-center",
                                 staff.rank === 1 ? "text-lg" : "text-sm"
                               )}>
                                 {staff.name}
@@ -524,14 +548,14 @@ export default function StaffPerformancePage() {
 
                 {/* Tips Breakdown Table */}
                 <Card className="shadow-sm border-0">
-                  <CardHeader className="bg-white border-b py-6 px-8 text-left">
-                    <div className="flex items-center justify-between">
+                  <CardHeader className="bg-white border-b py-6 px-8 flex flex-row items-center justify-between">
+                    <div className="space-y-1">
                       <CardTitle className="text-xl font-bold text-gray-900">Tips Breakdown</CardTitle>
-                      <Button variant="outline" size="sm" className="gap-2 font-bold text-[10px] uppercase tracking-widest h-9 px-4 rounded-lg">
-                        <Download className="h-3.5 w-3.5" /> Export
-                      </Button>
+                      <p className="text-xs text-muted-foreground font-medium">Analyze tip performance for each waiter.</p>
                     </div>
-                    <p className="text-xs text-muted-foreground font-medium">Analyze tip performance for each waiter.</p>
+                    <Button variant="outline" size="sm" className="gap-2 font-bold text-[10px] uppercase tracking-widest h-9 px-4 rounded-lg">
+                      <Download className="h-3.5 w-3.5" /> Export
+                    </Button>
                   </CardHeader>
                   <CardContent className="p-6">
                     <div className="flex mb-6">
@@ -545,19 +569,19 @@ export default function StaffPerformancePage() {
                       <Table>
                         <TableHeader className="bg-gray-50/50">
                           <TableRow>
-                            <TableHead className="px-6 h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-left">Waiter</TableHead>
-                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-left">Total Tips</TableHead>
-                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-left">
+                            <TableHead className="px-6 h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Waiter</TableHead>
+                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Total Tips</TableHead>
+                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                               <div className="flex items-center gap-1.5">
                                 Tips/Table <Info className="h-3 w-3 opacity-40" />
                               </div>
                             </TableHead>
-                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-left">
+                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                               <div className="flex items-center gap-1.5">
                                 Avg Tip % <Info className="h-3 w-3 opacity-40" />
                               </div>
                             </TableHead>
-                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-left">
+                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                                <div className="flex items-center gap-1.5">
                                 Digital vs Cash <Info className="h-3 w-3 opacity-40" />
                               </div>
@@ -566,7 +590,7 @@ export default function StaffPerformancePage() {
                         </TableHeader>
                         <TableBody>
                           {tipsBreakdownData.map((row) => (
-                            <TableRow key={row.name} className="hover:bg-muted/5 transition-colors h-14 text-left">
+                            <TableRow key={row.name} className="hover:bg-muted/5 transition-colors h-14">
                               <TableCell className="px-6 font-bold text-sm text-gray-900">{row.name}</TableCell>
                               <TableCell className="font-bold text-sm text-gray-900">{row.totalTips}</TableCell>
                               <TableCell className="text-sm font-semibold text-gray-600">{row.tipsPerTable}</TableCell>
@@ -582,8 +606,160 @@ export default function StaffPerformancePage() {
               </div>
             )}
 
+            {/* TAB CONTENT: TURNOVER */}
+            {activeTab === 'turnover' && (
+              <div className="space-y-8 animate-in fade-in duration-500">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">Table Turnover Performance</h3>
+                    <p className="text-xs text-muted-foreground font-medium">Analyze how quickly tables are being turned over by staff.</p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card className="shadow-sm">
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest whitespace-nowrap">Avg. Time to First Payment</span>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button type="button"><Info className="h-3 w-3 text-muted-foreground opacity-50" /></button>
+                                </TooltipTrigger>
+                                <TooltipContent>The average time from guest arrival to the first partial payment.</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                          <div className="p-1.5 rounded-lg bg-teal-50 text-teal-600">
+                            <Clock className="h-4 w-4" />
+                          </div>
+                        </div>
+                        <p className="text-4xl font-black text-gray-900">8m 30s</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="shadow-sm">
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest whitespace-nowrap">Avg. Time to Fully Paid</span>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button type="button"><Info className="h-3 w-3 text-muted-foreground opacity-50" /></button>
+                                </TooltipTrigger>
+                                <TooltipContent>The average time from guest arrival until the bill is 100% settled.</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                          <div className="p-1.5 rounded-lg bg-orange-50 text-orange-600">
+                            <Clock className="h-4 w-4" />
+                          </div>
+                        </div>
+                        <p className="text-4xl font-black text-gray-900">18m 15s</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+
+                <Card className="shadow-sm border-0">
+                  <CardHeader className="bg-white border-b py-6 px-8">
+                    <CardTitle className="text-xl font-bold text-gray-900">Average Turnover Time by Waiter</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-8">
+                    <div className="h-[300px] w-full mt-4">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={turnoverChartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                          <XAxis 
+                            dataKey="name" 
+                            axisLine={true} 
+                            tickLine={false} 
+                            tick={{ fontSize: 12, fontWeight: 500, fill: '#6b7280' }} 
+                            dy={10}
+                          />
+                          <YAxis 
+                            label={{ value: 'Minutes', angle: -90, position: 'insideLeft', offset: 15, style: { fill: '#6b7280', fontSize: 12, fontWeight: 500 } }}
+                            axisLine={true}
+                            tickLine={false}
+                            tick={{ fontSize: 12, fontWeight: 500, fill: '#6b7280' }}
+                            domain={[0, 28]}
+                            ticks={[0, 7, 14, 21, 28]}
+                          />
+                          <RechartsTooltip 
+                            cursor={{ fill: 'rgba(0,0,0,0.03)' }}
+                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
+                          />
+                          <Bar 
+                            dataKey="minutes" 
+                            fill="#18B4A6" 
+                            radius={[4, 4, 0, 0]} 
+                            barSize={120}
+                          >
+                            {turnoverChartData.map((entry, index) => (
+                              <RechartsCell key={`cell-${index}`} fill="#18B4A6" />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-sm border-0">
+                  <CardHeader className="bg-white border-b py-6 px-8">
+                    <CardTitle className="text-xl font-bold text-gray-900">Turnover Details</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <TooltipProvider>
+                      <Table>
+                        <TableHeader className="bg-gray-50/50">
+                          <TableRow className="border-b">
+                            <TableHead className="px-8 h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Waiter</TableHead>
+                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Tables Served</TableHead>
+                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                              <div className="flex items-center gap-1.5">
+                                Avg. Turnover Time <Info className="h-3 w-3 opacity-40" />
+                              </div>
+                            </TableHead>
+                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                              <div className="flex items-center gap-1.5">
+                                Avg. Dwell Time <Info className="h-3 w-3 opacity-40" />
+                              </div>
+                            </TableHead>
+                            <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground px-8">
+                              <div className="flex items-center gap-1.5">
+                                Split vs. Non-split <Info className="h-3 w-3 opacity-40" />
+                              </div>
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {turnoverDetailsData.map((row) => (
+                            <TableRow key={row.name} className="hover:bg-muted/5 transition-colors h-16">
+                              <TableCell className="px-8 font-bold text-sm text-gray-900">{row.name}</TableCell>
+                              <TableCell className="text-sm font-medium text-gray-600">{row.tables}</TableCell>
+                              <TableCell className="text-sm font-bold text-gray-900">{row.avgTurnover}</TableCell>
+                              <TableCell className="text-sm font-bold text-gray-900">{row.dwellTime}</TableCell>
+                              <TableCell className="px-8">
+                                <span className={cn(
+                                  "text-sm font-bold",
+                                  row.splitImpact.startsWith('-') ? "text-green-500" : "text-red-500"
+                                )}>
+                                  {row.splitImpact}
+                                </span>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TooltipProvider>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
             {/* Placeholder for other tabs */}
-            {['turnover', 'balances', 'shift-summary', 'leakage'].includes(activeTab) && (
+            {['balances', 'shift-summary', 'leakage'].includes(activeTab) && (
               <div className="py-20 text-center space-y-4">
                 <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mx-auto">
                    <Clock className="h-8 w-8 text-muted-foreground opacity-20" />
