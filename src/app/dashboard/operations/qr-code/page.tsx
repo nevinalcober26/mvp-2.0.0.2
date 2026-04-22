@@ -35,7 +35,16 @@ import {
   List,
   Sparkles,
   ArrowUpDown,
+  Trash2,
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { QrDetailSheet } from './qr-detail-sheet';
@@ -50,19 +59,47 @@ interface TableQrData {
 }
 
 const MOCK_TABLES: TableQrData[] = [
-  { id: '1', name: 'Table 8', hasQr: true, status: 'Active', floor: 'Main Dining', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
-  { id: '2', name: 'Table 8', hasQr: false, status: 'Inactive', floor: 'Main Dining', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
-  { id: '3', name: 'Table 8', hasQr: false, status: 'Active', floor: 'Main Dining', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
-  { id: '4', name: 'Table 8', hasQr: true, status: 'Active', floor: 'Main Dining', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
-  { id: '5', name: 'Table 8', hasQr: true, status: 'Active', floor: 'Main Dining', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
-  { id: '6', name: 'Table 8', hasQr: true, status: 'Active', floor: 'Patio', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
-  { id: '7', name: 'Table 8', hasQr: true, status: 'Active', floor: 'Patio', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
+  { id: '1', name: 'Table 1', hasQr: true, status: 'Active', floor: 'Main Dining', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
+  { id: '2', name: 'Table 2', hasQr: false, status: 'Inactive', floor: 'Main Dining', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
+  { id: '3', name: 'Table 3', hasQr: false, status: 'Active', floor: 'Main Dining', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
+  { id: '4', name: 'Table 4', hasQr: true, status: 'Active', floor: 'Main Dining', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
+  { id: '5', name: 'Table 5', hasQr: true, status: 'Active', floor: 'Main Dining', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
+  { id: '6', name: 'Table 6', hasQr: true, status: 'Active', floor: 'Patio', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
+  { id: '7', name: 'Table 7', hasQr: true, status: 'Active', floor: 'Patio', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
   { id: '8', name: 'Table 8', hasQr: true, status: 'Active', floor: 'Patio', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
-  { id: '9', name: 'Table 8', hasQr: true, status: 'Active', floor: 'Patio', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
-  { id: '10', name: 'Table 8', hasQr: true, status: 'Active', floor: 'Patio', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
+  { id: '9', name: 'Table 9', hasQr: true, status: 'Active', floor: 'Patio', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
+  { id: '10', name: 'Table 10', hasQr: true, status: 'Active', floor: 'Patio', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
 ];
 
-const QrGalleryCard = ({ table, onClick }: { table: TableQrData; onClick: () => void }) => {
+const ActionMenuContent = ({ table, onGenerate }: { table: TableQrData; onGenerate: (name: string) => void }) => (
+  <DropdownMenuContent align="end" className="w-64 p-2 rounded-[24px] shadow-2xl border-gray-100 animate-in zoom-in-95 duration-200">
+    <DropdownMenuLabel className="px-4 py-3 text-xl font-black text-[#142424]">Actions</DropdownMenuLabel>
+    <DropdownMenuSeparator className="mb-2" />
+    {!table.hasQr && (
+      <DropdownMenuItem 
+        className="flex items-center gap-3 px-4 py-3.5 text-[15px] font-bold text-[#142424] bg-[#f0fdfa] hover:bg-[#e6fcf5] focus:bg-[#e6fcf5] rounded-xl cursor-pointer mb-1 transition-colors"
+        onSelect={(e) => {
+          e.stopPropagation();
+          onGenerate(table.name);
+        }}
+      >
+        <Sparkles className="h-5 w-5 text-[#18B4A6]" />
+        Generate
+      </DropdownMenuItem>
+    )}
+    <DropdownMenuItem 
+      className="flex items-center gap-3 px-4 py-3.5 text-[15px] font-bold text-red-500 hover:bg-red-50 focus:bg-red-50 rounded-xl cursor-pointer transition-colors"
+      onSelect={(e) => {
+        e.stopPropagation();
+      }}
+    >
+      <Trash2 className="h-5 w-5" />
+      Delete
+    </DropdownMenuItem>
+  </DropdownMenuContent>
+);
+
+const QrGalleryCard = ({ table, onClick, onGenerate }: { table: TableQrData; onClick: () => void; onGenerate: (name: string) => void }) => {
   return (
     <Card 
       className="group relative bg-white border border-gray-100 shadow-sm rounded-xl overflow-hidden hover:shadow-md transition-all duration-300 cursor-pointer"
@@ -118,9 +155,19 @@ const QrGalleryCard = ({ table, onClick }: { table: TableQrData; onClick: () => 
               {table.status}
             </Badge>
           </div>
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-gray-50 text-gray-400 hover:bg-gray-100" onClick={(e) => e.stopPropagation()}>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 rounded-full bg-gray-50 text-gray-400 hover:bg-gray-100" 
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <ActionMenuContent table={table} onGenerate={onGenerate} />
+          </DropdownMenu>
         </div>
       </div>
     </Card>
@@ -346,9 +393,14 @@ export default function QrCodePage() {
                         <TableCell className="font-bold text-sm text-[#142424]">{table.floor}</TableCell>
                         <TableCell className="text-muted-foreground text-sm font-medium">{table.lastUpdated}</TableCell>
                         <TableCell className="text-right pr-6" onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-muted">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-muted">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <ActionMenuContent table={table} onGenerate={handleGenerate} />
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -373,6 +425,7 @@ export default function QrCodePage() {
                         key={table.id} 
                         table={table} 
                         onClick={() => handleRowClick(table)} 
+                        onGenerate={handleGenerate}
                       />
                     ))}
                   </div>
@@ -394,7 +447,7 @@ export default function QrCodePage() {
                 </SelectContent>
               </Select>
               <p className="text-[13px] text-muted-foreground font-medium">
-                Showing <span className="text-foreground font-bold">1 to 6</span> of <span className="text-foreground font-bold">124</span> results
+                Showing <span className="text-foreground font-bold">1 to 10</span> of <span className="text-foreground font-bold">{MOCK_TABLES.length}</span> results
               </p>
             </div>
 
@@ -403,11 +456,7 @@ export default function QrCodePage() {
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <Button className="h-10 w-10 p-0 text-sm font-black bg-[#18B4A6] hover:bg-[#149d94] text-white rounded-xl">1</Button>
-              <Button variant="outline" className="h-10 w-10 p-0 text-sm font-bold text-gray-500 hover:bg-muted rounded-xl border-gray-200">2</Button>
-              <Button variant="outline" className="h-10 w-10 p-0 text-sm font-bold text-gray-500 hover:bg-muted rounded-xl border-gray-200">3</Button>
-              <span className="px-2 text-muted-foreground text-sm font-bold">...</span>
-              <Button variant="outline" className="h-10 w-10 p-0 text-sm font-bold text-gray-500 hover:bg-muted rounded-xl border-gray-200">21</Button>
-              <Button variant="outline" size="icon" className="h-10 w-10 text-muted-foreground rounded-xl border-gray-200">
+              <Button variant="outline" size="icon" className="h-10 w-10 text-muted-foreground rounded-xl border-gray-200" disabled>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
