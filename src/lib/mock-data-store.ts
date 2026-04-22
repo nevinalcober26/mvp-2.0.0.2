@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Product, ProductVariationGroup } from '@/app/dashboard/products/types';
@@ -329,6 +328,23 @@ const productDescriptions: Record<string, { description: string; smallDescriptio
         description: 'A creamy and delicious smoothie made with fresh strawberries, yogurt, and a touch of honey.',
         smallDescription: 'Creamy, fruity, and delicious.'
     }
+};
+
+const productNames = Object.keys(productDescriptions);
+const productStatuses: Product['status'][] = ['Active', 'Draft', 'Archived', 'Out of Stock'];
+const categories = ['Main Courses', 'Appetizers', 'Pizza', 'Desserts', 'Drinks', 'Sides', 'Salads', 'Breakfast'];
+
+const mapGroupToProductVariation = (group: VariationGroup): ProductVariationGroup => {
+  return {
+    ...group,
+    options: group.options.map(opt => ({
+        id: opt.id,
+        value: opt.value,
+        priceMode: 'add',
+        priceValue: opt.regularPrice || 0,
+        hidden: false,
+    }))
+  };
 };
 
 const generateMockProducts = (count: number): Product[] => {
