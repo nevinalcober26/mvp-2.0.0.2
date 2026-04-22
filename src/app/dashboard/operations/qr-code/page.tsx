@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -37,6 +38,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { QrDetailSheet } from './qr-detail-sheet';
 
 interface TableQrData {
   id: string;
@@ -61,6 +63,8 @@ export default function QrCodePage() {
   const { toast } = useToast();
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTable, setSelectedTable] = useState<TableQrData | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const handleGenerate = (tableName: string) => {
     toast({
@@ -70,10 +74,13 @@ export default function QrCodePage() {
   };
 
   const handleCreateNew = () => {
-    toast({
-      title: 'New QR Code',
-      description: 'Opening table selection for new QR assignment.',
-    });
+    setSelectedTable(null);
+    setIsDetailOpen(true);
+  };
+
+  const handleRowClick = (table: TableQrData) => {
+    setSelectedTable(table);
+    setIsDetailOpen(true);
   };
 
   return (
@@ -218,8 +225,12 @@ export default function QrCodePage() {
                   </TableHeader>
                   <TableBody>
                     {MOCK_TABLES.map((table) => (
-                      <TableRow key={table.id} className="h-20 group hover:bg-muted/5 transition-colors border-b">
-                        <TableCell className="px-6">
+                      <TableRow 
+                        key={table.id} 
+                        className="h-20 group hover:bg-muted/5 transition-colors border-b cursor-pointer"
+                        onClick={() => handleRowClick(table)}
+                      >
+                        <TableCell className="px-6" onClick={(e) => e.stopPropagation()}>
                           <Checkbox />
                         </TableCell>
                         <TableCell className="font-black text-base text-[#142424]">{table.name}</TableCell>
@@ -233,7 +244,10 @@ export default function QrCodePage() {
                               variant="outline" 
                               size="sm" 
                               className="h-8 text-[10px] font-bold uppercase tracking-wider gap-1.5"
-                              onClick={() => handleGenerate(table.name)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleGenerate(table.name);
+                              }}
                             >
                               <QrCode className="h-3 w-3" />
                               Generate
@@ -255,7 +269,7 @@ export default function QrCodePage() {
                         </TableCell>
                         <TableCell className="font-bold text-sm text-[#142424]">{table.floor}</TableCell>
                         <TableCell className="text-muted-foreground text-sm font-medium">{table.lastUpdated}</TableCell>
-                        <TableCell className="text-right pr-6">
+                        <TableCell className="text-right pr-6" onClick={(e) => e.stopPropagation()}>
                           <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-muted">
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
@@ -302,6 +316,12 @@ export default function QrCodePage() {
           </Card>
         </div>
       </main>
+
+      <QrDetailSheet 
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+        table={selectedTable}
+      />
     </>
   );
 }
