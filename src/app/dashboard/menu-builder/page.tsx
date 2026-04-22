@@ -18,6 +18,7 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
+  AlertDialogFooter,
   AlertDialogHeader as AlertDialogTitleComponent,
 } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator, SelectGroup, SelectLabel } from '@/components/ui/select';
@@ -2468,7 +2469,7 @@ const MenuBuilderMainPage = ({ onClose, isAddMenuModalOpen, setIsAddMenuModalOpe
             </div>
             <div className="col-span-2 bg-muted/30 p-6 overflow-y-auto">
               <h2 className="text-xl font-bold mb-4 text-center">Live Preview</h2>
-              <div className="w-full max-w-sm mx-auto bg-white rounded-[40px] shadow-2xl p-4 border-[6px] border-black overflow-hidden">
+              <div className="w-full max-sm mx-auto bg-white rounded-[40px] shadow-2xl p-4 border-[6px] border-black overflow-hidden">
                 <div className="relative h-[600px] overflow-hidden bg-[#F7F9FB] flex flex-col">
                   <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-lg p-4 pb-0 flex-shrink-0">
                     <div className="flex items-center justify-between mb-4">
@@ -2660,6 +2661,4 @@ export default function MenuBuilderPage() {
     </div>
   );
 }
-
-    
 
