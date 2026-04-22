@@ -90,6 +90,7 @@ import { useToast } from '@/hooks/use-toast';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { format, formatDistanceToNow } from 'date-fns';
 
 const navigationItems = [
   { id: 'ai-overview', label: 'AI Overview', icon: Wand2 },
@@ -241,7 +242,7 @@ const ExportDialog = ({ open, onOpenChange, onExport }: { open: boolean; onOpenC
               onClick={() => onExport('PDF')}
               className="flex flex-col items-center gap-5 p-6 rounded-2xl border-2 border-red-500/10 bg-red-50/50 hover:border-red-500/30 hover:bg-red-50 transition-all group outline-none text-center"
             >
-              <div className="relative h-16 w-16 rounded-2xl flex items-center justify-center bg-red-500 shadow-lg shadow-red-500/20 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
+              <div className="relative h-16 w-16 rounded-2xl flex items-center justify-center bg-red-500 shadow-lg shadow-red-500/20 transition-all duration-300 group-hover:scale-110 group-hover:-rotate-6">
                 <FileText className="h-8 w-8 text-white" />
                  <span className="absolute bottom-1 right-1 text-[8px] font-bold bg-white text-red-600 px-1 rounded-sm">PDF</span>
               </div>
@@ -263,6 +264,137 @@ const ExportDialog = ({ open, onOpenChange, onExport }: { open: boolean; onOpenC
         </div>
       </DialogContent>
     </Dialog>
+  );
+};
+
+const StaffFeedbackDrawer = ({ staff, reviews, isOpen, onClose }: { staff: any | null; reviews: any[]; isOpen: boolean; onClose: () => void }) => {
+  if (!staff) return null;
+
+  return (
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="sm:max-w-xl w-full p-0 flex flex-col border-l shadow-2xl bg-[#F7F9FB] text-left">
+        <div className="bg-white p-8 border-b shrink-0 shadow-sm text-left">
+          <div className="flex items-start justify-between mb-6">
+            <div className="flex items-center gap-5">
+              <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center border-2 border-primary/20 shadow-inner">
+                <User className="h-8 w-8 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <SheetTitle className="text-3xl font-black tracking-tight text-gray-900">{staff.name}</SheetTitle>
+                <div className="flex items-center gap-3">
+                  <Badge variant="outline" className="bg-teal-50 text-teal-700 border-teal-200 font-black text-[10px] uppercase h-6 px-3 tracking-widest shadow-none">
+                    {staff.sentiment} Sentiment
+                  </Badge>
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{staff.reviewCount} Reviews</span>
+                </div>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-4xl font-black text-primary leading-none">{staff.avgRating.toFixed(1)}</p>
+              <div className="flex items-center gap-0.5 mt-2 justify-end">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star key={s} className={cn("h-4 w-4", s <= Math.round(staff.avgRating) ? "fill-yellow-400 text-yellow-400" : "fill-gray-100 text-gray-200")} />
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+             <div className="p-4 rounded-2xl bg-muted/30 border border-border/50 flex items-center gap-4">
+                <div className="h-10 w-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-teal-600">
+                  <ThumbsUp className="h-5 w-5" />
+                </div>
+                <div>
+                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Top Trait</p>
+                   <p className="text-sm font-bold text-gray-900">{staff.topKeyword}</p>
+                </div>
+             </div>
+             <div className="p-4 rounded-2xl bg-muted/30 border border-border/50 flex items-center gap-4">
+                <div className="h-10 w-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-orange-600">
+                  <History className="h-5 w-5" />
+                </div>
+                <div>
+                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Recency</p>
+                   <p className="text-sm font-bold text-gray-900">Today</p>
+                </div>
+             </div>
+          </div>
+        </div>
+
+        <ScrollArea className="flex-1">
+          <div className="p-8 space-y-6 text-left">
+             <div className="flex items-center justify-between mb-2">
+                <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">Review Timeline</h3>
+                <Badge variant="outline" className="font-bold text-[10px] border-border/50">LATEST FIRST</Badge>
+             </div>
+
+             <div className="space-y-4">
+                {reviews.length > 0 ? reviews.map((review) => (
+                  <Card key={review.id} className="border-0 shadow-sm rounded-[24px] overflow-hidden group hover:shadow-md transition-all duration-300">
+                    <CardContent className="p-0">
+                       <div className="p-6 space-y-4">
+                          <div className="flex items-center justify-between">
+                             <div className="flex items-center gap-3">
+                                <div className="h-9 w-9 rounded-full bg-gray-100 flex items-center justify-center font-bold text-xs text-gray-500">
+                                   {review.customer.charAt(0)}
+                                </div>
+                                <div className="text-left">
+                                   <p className="text-sm font-bold text-gray-900">{review.customer}</p>
+                                   <div className="flex items-center gap-2 mt-0.5">
+                                      <div className="flex items-center gap-0.5">
+                                        {[1, 2, 3, 4, 5].map((s) => (
+                                          <Star key={s} className={cn("h-3 w-3", s <= review.rating ? "fill-yellow-400 text-yellow-400" : "fill-gray-100 text-gray-200")} />
+                                        ))}
+                                      </div>
+                                      <span className="h-1 w-1 rounded-full bg-gray-200" />
+                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{review.date}</span>
+                                   </div>
+                                </div>
+                             </div>
+                             <Badge variant="secondary" className="bg-muted/50 text-gray-400 font-mono text-[10px] h-6 px-2 border-0">
+                               {review.orderId}
+                             </Badge>
+                          </div>
+                          
+                          <p className="text-sm text-gray-600 leading-relaxed font-medium italic text-left pl-12 border-l-2 border-primary/10 py-1">
+                             "{review.comment}"
+                          </p>
+
+                          <div className="pt-2 flex items-center gap-4 pl-12 text-left">
+                             <div className="flex items-center gap-1.5">
+                                <Clock className="h-3.5 w-3.5 text-gray-300" />
+                                <span className="text-[10px] font-bold text-gray-400 uppercase">{review.fullTimestamp}</span>
+                             </div>
+                             <button className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline decoration-2 underline-offset-4">
+                                View Order
+                             </button>
+                          </div>
+                       </div>
+                    </CardContent>
+                  </Card>
+                )) : (
+                  <div className="py-20 text-center space-y-4">
+                     <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mx-auto opacity-20">
+                        <MessageSquare className="h-8 w-8" />
+                     </div>
+                     <p className="text-sm font-bold text-gray-400">No specific reviews found for this filter.</p>
+                  </div>
+                )}
+             </div>
+          </div>
+        </ScrollArea>
+
+        <div className="p-6 bg-white border-t shrink-0 flex items-center justify-between shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
+           <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-gray-400" />
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Reporting Period: Last 30 Days</span>
+           </div>
+           <Button variant="ghost" className="font-bold text-gray-400 hover:text-gray-900" onClick={onClose}>
+             Close Details
+           </Button>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 };
 
@@ -1183,7 +1315,7 @@ export default function StaffPerformancePage() {
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {balancesAgingData.map((bucket) => (
-                        <Card key={bucket.label} className="shadow-sm overflow-hidden border-0 bg-white text-left">
+                        <Card className="shadow-sm overflow-hidden border-0 bg-white text-left" key={bucket.label}>
                             <CardContent className="p-6">
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-1.5 text-left">
@@ -1214,8 +1346,7 @@ export default function StaffPerformancePage() {
                                 <TableHead className="px-8 h-14 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Waiter</TableHead>
                                 <TableHead className="h-14 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                                 <div className="flex items-center gap-1.5">
-                                    Outstanding Amount <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 opacity-40" /></button></TooltipTrigger><TooltipContent>Current total of all unpaid orders assigned to this waiter.</TooltipContent></Tooltip>
-                                </div>
+                                    Outstanding Amount <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 opacity-40" /></button></TooltipTrigger><TooltipContent>Current total of all unpaid orders assigned to this waiter.</TooltipContent></Tooltip></div>
                                 </TableHead>
                                 <TableHead className="h-14 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                                 <div className="flex items-center gap-1.5">
@@ -1483,134 +1614,3 @@ export default function StaffPerformancePage() {
     </>
   );
 }
-
-const StaffFeedbackDrawer = ({ staff, reviews, isOpen, onClose }: { staff: any | null; reviews: any[]; isOpen: boolean; onClose: () => void }) => {
-  if (!staff) return null;
-
-  return (
-    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="sm:max-w-xl w-full p-0 flex flex-col border-l shadow-2xl bg-[#F7F9FB] text-left">
-        <div className="bg-white p-8 border-b shrink-0 shadow-sm text-left">
-          <div className="flex items-start justify-between mb-6">
-            <div className="flex items-center gap-5">
-              <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center border-2 border-primary/20 shadow-inner">
-                <User className="h-8 w-8 text-primary" />
-              </div>
-              <div className="space-y-1">
-                <SheetTitle className="text-3xl font-black tracking-tight text-gray-900">{staff.name}</SheetTitle>
-                <div className="flex items-center gap-3">
-                  <Badge variant="outline" className="bg-teal-50 text-teal-700 border-teal-200 font-black text-[10px] uppercase h-6 px-3 tracking-widest shadow-none">
-                    {staff.sentiment} Sentiment
-                  </Badge>
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{staff.reviewCount} Reviews</span>
-                </div>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-4xl font-black text-primary leading-none">{staff.avgRating.toFixed(1)}</p>
-              <div className="flex items-center gap-0.5 mt-2 justify-end">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star key={s} className={cn("h-4 w-4", s <= Math.round(staff.avgRating) ? "fill-yellow-400 text-yellow-400" : "fill-gray-100 text-gray-200")} />
-                ))}
-              </div>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-             <div className="p-4 rounded-2xl bg-muted/30 border border-border/50 flex items-center gap-4">
-                <div className="h-10 w-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-teal-600">
-                  <ThumbsUp className="h-5 w-5" />
-                </div>
-                <div>
-                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Top Trait</p>
-                   <p className="text-sm font-bold text-gray-900">{staff.topKeyword}</p>
-                </div>
-             </div>
-             <div className="p-4 rounded-2xl bg-muted/30 border border-border/50 flex items-center gap-4">
-                <div className="h-10 w-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-orange-600">
-                  <History className="h-5 w-5" />
-                </div>
-                <div>
-                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Recency</p>
-                   <p className="text-sm font-bold text-gray-900">Today</p>
-                </div>
-             </div>
-          </div>
-        </div>
-
-        <ScrollArea className="flex-1">
-          <div className="p-8 space-y-6 text-left">
-             <div className="flex items-center justify-between mb-2">
-                <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">Review Timeline</h3>
-                <Badge variant="outline" className="font-bold text-[10px] border-border/50">LATEST FIRST</Badge>
-             </div>
-
-             <div className="space-y-4">
-                {reviews.length > 0 ? reviews.map((review) => (
-                  <Card key={review.id} className="border-0 shadow-sm rounded-[24px] overflow-hidden group hover:shadow-md transition-all duration-300">
-                    <CardContent className="p-0">
-                       <div className="p-6 space-y-4">
-                          <div className="flex items-center justify-between">
-                             <div className="flex items-center gap-3">
-                                <div className="h-9 w-9 rounded-full bg-gray-100 flex items-center justify-center font-bold text-xs text-gray-500">
-                                   {review.customer.charAt(0)}
-                                </div>
-                                <div className="text-left">
-                                   <p className="text-sm font-bold text-gray-900">{review.customer}</p>
-                                   <div className="flex items-center gap-2 mt-0.5">
-                                      <div className="flex items-center gap-0.5">
-                                        {[1, 2, 3, 4, 5].map((s) => (
-                                          <Star key={s} className={cn("h-3 w-3", s <= review.rating ? "fill-yellow-400 text-yellow-400" : "fill-gray-100 text-gray-200")} />
-                                        ))}
-                                      </div>
-                                      <span className="h-1 w-1 rounded-full bg-gray-200" />
-                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{review.date}</span>
-                                   </div>
-                                </div>
-                             </div>
-                             <Badge variant="secondary" className="bg-muted/50 text-gray-400 font-mono text-[10px] h-6 px-2 border-0">
-                               {review.orderId}
-                             </Badge>
-                          </div>
-                          
-                          <p className="text-sm text-gray-600 leading-relaxed font-medium italic text-left pl-12 border-l-2 border-primary/10 py-1">
-                             "{review.comment}"
-                          </p>
-
-                          <div className="pt-2 flex items-center gap-4 pl-12 text-left">
-                             <div className="flex items-center gap-1.5">
-                                <Clock className="h-3.5 w-3.5 text-gray-300" />
-                                <span className="text-[10px] font-bold text-gray-400 uppercase">{review.fullTimestamp}</span>
-                             </div>
-                             <button className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline decoration-2 underline-offset-4">
-                                View Order
-                             </button>
-                          </div>
-                       </div>
-                    </CardContent>
-                  </Card>
-                )) : (
-                  <div className="py-20 text-center space-y-4">
-                     <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mx-auto opacity-20">
-                        <MessageSquare className="h-8 w-8" />
-                     </div>
-                     <p className="text-sm font-bold text-gray-400">No specific reviews found for this filter.</p>
-                  </div>
-                )}
-             </div>
-          </div>
-        </ScrollArea>
-
-        <div className="p-6 bg-white border-t shrink-0 flex items-center justify-between shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
-           <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-gray-400" />
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Reporting Period: Last 30 Days</span>
-           </div>
-           <Button variant="ghost" className="font-bold text-gray-400 hover:text-gray-900" onClick={onClose}>
-             Close Details
-           </Button>
-        </div>
-      </SheetContent>
-    </Sheet>
-  );
-};
