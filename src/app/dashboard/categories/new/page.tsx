@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -71,18 +72,27 @@ export default function AddNewBranchPage() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('basic');
 
-  // State for Opening Hours
+  // --- Basic Info State ---
+  const [name, setName] = useState('');
+  const [cuisineType, setCuisineType] = useState('Boutique Café');
+  const [description, setDescription] = useState('');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [googleMapsUrl, setGoogleMapsUrl] = useState('');
+  const [showMapsOnMenu, setShowMapsOnMenu] = useState(true);
+
+  // --- Opening Hours State ---
   const [regularHours, setRegularHours] = useState(
     DAYS.map(day => ({
       day,
-      open: '11:00 AM',
+      open: '09:00 AM',
       close: '10:00 PM',
       closed: day === 'Sunday'
     }))
   );
-
   const [specialHours, setSpecialHours] = useState<any[]>([]);
 
+  // --- Tip Fee State ---
   const [tipFeeEnabled, setTipFeeEnabled] = useState(true);
   const [currency, setCurrency] = useState('AED');
   const [feeType, setFeeType] = useState('Percentage');
@@ -134,7 +144,7 @@ export default function AddNewBranchPage() {
   const handleResetHours = () => {
     setRegularHours(DAYS.map(day => ({
       day,
-      open: '11:00 AM',
+      open: '09:00 AM',
       close: '10:00 PM',
       closed: false
     })));
@@ -143,7 +153,7 @@ export default function AddNewBranchPage() {
   const handleAddSpecialHour = () => {
     setSpecialHours([
       ...specialHours,
-      { id: Date.now().toString(), date: 'New Date', name: 'Holiday Name', from: '11:00 AM', to: '10:00 PM', closed: false }
+      { id: Date.now().toString(), date: 'Jul 4, 2025', name: 'Holiday Name', from: '11:00 AM', to: '10:00 PM', closed: false }
     ]);
   };
 
@@ -158,15 +168,73 @@ export default function AddNewBranchPage() {
   const handleSave = () => {
     toast({
       title: "Draft Saved",
-      description: "Branch details have been saved as a draft.",
+      description: "Branch details have been cached locally.",
     });
   };
 
   const handlePublish = () => {
+    if (!name.trim()) {
+        toast({
+            variant: 'destructive',
+            title: 'Incomplete Information',
+            description: 'Please enter a restaurant name before publishing.'
+        });
+        setActiveTab('basic');
+        return;
+    }
+
+    const newBranch = {
+        id: `branch_${Date.now()}`,
+        name: name,
+        type: cuisineType,
+        location: city || 'Unknown Location',
+        address: address,
+        status: 'Open',
+        rating: 4.5, // Default for new branch
+        image: 'https://picsum.photos/seed/restaurant/600/400',
+        menuItems: 0,
+        scansToday: 0,
+        // Config data
+        config: {
+            description,
+            googleMapsUrl,
+            showMapsOnMenu,
+            hours: {
+                regular: regularHours,
+                special: specialHours
+            },
+            tips: {
+                enabled: tipFeeEnabled,
+                currency,
+                feeType,
+                maxRate,
+                customEntryEnabled,
+                suggestedRates,
+                popularRate
+            }
+        }
+    };
+
+    const existingStr = localStorage.getItem('emenuhub_branches');
+    let branches = [];
+    if (existingStr) {
+        try {
+            branches = JSON.parse(existingStr);
+        } catch (e) {
+            branches = [];
+        }
+    }
+    
+    const updatedBranches = [...branches, newBranch];
+    localStorage.setItem('emenuhub_branches', JSON.stringify(updatedBranches));
+
     toast({
       title: "Branch Published",
-      description: "New branch has been published successfully.",
+      description: `"${name}" has been added to your manage list.`,
     });
+    
+    // Refresh sidebar and main view
+    window.dispatchEvent(new CustomEvent('branch-changed'));
     router.push('/dashboard/categories');
   };
 
@@ -178,7 +246,7 @@ export default function AddNewBranchPage() {
   return (
     <>
       <DashboardHeader />
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-muted/30 min-h-[calc(100vh-4rem)]">
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-muted/30 min-h-[calc(100vh-4rem)] text-left">
         <div className="max-w-5xl mx-auto">
           <Breadcrumbs items={breadcrumbItems} />
           
@@ -187,7 +255,7 @@ export default function AddNewBranchPage() {
               <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <div className="text-left">
+              <div>
                 <h1 className="text-3xl font-bold tracking-tight text-foreground">Add New Branch</h1>
                 <p className="text-muted-foreground mt-1">Configure your new outlet details and operating hours</p>
               </div>
@@ -198,11 +266,11 @@ export default function AddNewBranchPage() {
               </Button>
               <Button variant="outline" className="gap-2 font-semibold" onClick={handleSave}>
                 <Save className="h-4 w-4" />
-                Save
+                Save Draft
               </Button>
               <Button className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold" onClick={handlePublish}>
                 <Rocket className="h-4 w-4" />
-                Publish
+                Publish Branch
               </Button>
             </div>
           </div>
@@ -249,12 +317,17 @@ export default function AddNewBranchPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2 text-left">
-                      <Label className="font-semibold text-muted-foreground text-xs">Restaurant Name</Label>
-                      <Input placeholder="e.g. Bella Cucina Italian" className="bg-background" />
+                      <Label className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">Restaurant Name</Label>
+                      <Input 
+                        placeholder="e.g. Bella Cucina Italian" 
+                        className="bg-background"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                      />
                     </div>
                     <div className="space-y-2 text-left">
-                      <Label className="font-semibold text-muted-foreground text-xs">Cuisine Type</Label>
-                      <Select>
+                      <Label className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">Cuisine Type</Label>
+                      <Select value={cuisineType} onValueChange={setCuisineType}>
                         <SelectTrigger className="bg-background">
                           <SelectValue placeholder="Select cuisine" />
                         </SelectTrigger>
@@ -266,10 +339,12 @@ export default function AddNewBranchPage() {
                   </div>
 
                   <div className="space-y-2 text-left">
-                    <Label className="font-semibold text-muted-foreground text-xs">Description</Label>
+                    <Label className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">Description</Label>
                     <Textarea 
                       placeholder="Enter restaurant description..." 
                       className="min-h-[120px] resize-none bg-background"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
                     />
                   </div>
                 </section>
@@ -279,25 +354,40 @@ export default function AddNewBranchPage() {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2 text-left">
-                      <Label className="font-semibold text-muted-foreground text-xs">Street Address</Label>
-                      <Input placeholder="e.g. 123 Main Street" className="bg-background" />
+                      <Label className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">Street Address</Label>
+                      <Input 
+                        placeholder="e.g. 123 Main Street" 
+                        className="bg-background"
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                      />
                     </div>
                     <div className="space-y-2 text-left">
-                      <Label className="font-semibold text-muted-foreground text-xs">City</Label>
-                      <Input placeholder="e.g. San Francisco" className="bg-background" />
+                      <Label className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">City</Label>
+                      <Input 
+                        placeholder="e.g. San Francisco" 
+                        className="bg-background"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                      />
                     </div>
                   </div>
 
                   <div className="space-y-2 text-left">
-                    <Label className="font-semibold text-muted-foreground text-xs">Google Maps URL</Label>
+                    <Label className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">Google Maps URL</Label>
                     <div className="relative">
-                      <Input placeholder="https://maps.google.com/..." className="pr-10 bg-background" />
+                      <Input 
+                        placeholder="https://maps.google.com/..." 
+                        className="pr-10 bg-background"
+                        value={googleMapsUrl}
+                        onChange={(e) => setGoogleMapsUrl(e.target.value)}
+                      />
                       <ExternalLink className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     </div>
                   </div>
 
                   <div className="flex items-center space-x-2">
-                    <Checkbox id="show-maps" defaultChecked />
+                    <Checkbox id="show-maps" checked={showMapsOnMenu} onCheckedChange={(val) => setShowMapsOnMenu(!!val)} />
                     <label htmlFor="show-maps" className="text-sm font-medium leading-none cursor-pointer">
                       Show Google Maps link on menu page
                     </label>
@@ -305,13 +395,13 @@ export default function AddNewBranchPage() {
                 </section>
               </TabsContent>
 
-              <TabsContent value="hours" className="p-8 space-y-12 focus-visible:ring-0 mt-0 bg-background">
+              <TabsContent value="hours" className="p-8 space-y-12 focus-visible:ring-0 mt-0 bg-background text-left">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
                   <div className="space-y-1.5 text-left max-w-2xl">
-                    <h3 className="text-xl font-bold tracking-tight flex items-center gap-2">
+                    <h3 className="text-xl font-bold tracking-tight flex items-center gap-2 text-left">
                       Operating Schedule <HelpCircle className="h-4 w-4 text-muted-foreground/40" />
                     </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
+                    <p className="text-sm text-muted-foreground leading-relaxed text-left">
                       Define when your branch is open. These hours dictate when customers can view and place orders from your Digital eMenu.
                     </p>
                   </div>
@@ -353,7 +443,7 @@ export default function AddNewBranchPage() {
                           <div className="flex-1 flex flex-wrap items-center gap-4">
                             <div className={cn("flex items-center gap-3 transition-opacity", hour.closed && "pointer-events-none")}>
                               <div className="space-y-1.5 text-left">
-                                <Label className="text-xs font-semibold text-muted-foreground ml-1">Open At</Label>
+                                <Label className="text-xs font-semibold text-muted-foreground ml-1 uppercase tracking-wider">Open At</Label>
                                 <Select value={hour.open} onValueChange={(val) => handleUpdateRegularHour(index, 'open', val)}>
                                   <SelectTrigger className="w-36 h-10 bg-background font-medium">
                                     <SelectValue />
@@ -365,7 +455,7 @@ export default function AddNewBranchPage() {
                               </div>
                               <span className="text-xs font-medium text-muted-foreground mt-6">until</span>
                               <div className="space-y-1.5 text-left">
-                                <Label className="text-xs font-semibold text-muted-foreground ml-1">Close At</Label>
+                                <Label className="text-xs font-semibold text-muted-foreground ml-1 uppercase tracking-wider">Close At</Label>
                                 <Select value={hour.close} onValueChange={(val) => handleUpdateRegularHour(index, 'close', val)}>
                                   <SelectTrigger className="w-36 h-10 bg-background font-medium">
                                     <SelectValue />
@@ -450,7 +540,7 @@ export default function AddNewBranchPage() {
                             ) : (
                               <div className="flex items-center gap-3">
                                 <div className="space-y-1.5 text-left">
-                                  <Label className="text-xs font-semibold text-muted-foreground ml-1">From</Label>
+                                  <Label className="text-xs font-semibold text-muted-foreground ml-1 uppercase tracking-wider">From</Label>
                                   <Select value={item.from} onValueChange={(val) => handleUpdateSpecialHour(item.id, 'from', val)}>
                                     <SelectTrigger className="w-36 h-10 bg-background font-medium">
                                       <SelectValue />
@@ -462,7 +552,7 @@ export default function AddNewBranchPage() {
                                 </div>
                                 <span className="text-xs font-medium text-muted-foreground mt-6">to</span>
                                 <div className="space-y-1.5 text-left">
-                                  <Label className="text-xs font-semibold text-muted-foreground ml-1">Until</Label>
+                                  <Label className="text-xs font-semibold text-muted-foreground ml-1 uppercase tracking-wider">Until</Label>
                                   <Select value={item.to} onValueChange={(val) => handleUpdateSpecialHour(item.id, 'to', val)}>
                                     <SelectTrigger className="w-36 h-10 bg-background font-medium">
                                       <SelectValue />
@@ -501,10 +591,10 @@ export default function AddNewBranchPage() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="tip-fee" className="p-8 space-y-10 focus-visible:ring-0 mt-0 bg-background">
+              <TabsContent value="tip-fee" className="p-8 space-y-10 focus-visible:ring-0 mt-0 bg-background text-left">
                 <section className="space-y-8">
                   <div className="flex items-center justify-between border-b pb-6">
-                    <div>
+                    <div className="text-left">
                       <h3 className="text-xl font-bold">Gratuity Settings</h3>
                       <p className="text-sm text-muted-foreground">Configure how customers can add tips to their orders.</p>
                     </div>
@@ -514,15 +604,15 @@ export default function AddNewBranchPage() {
                     </div>
                   </div>
 
-                  <div className={cn(!tipFeeEnabled && "opacity-40 pointer-events-none", "space-y-8")}>
+                  <div className={cn(!tipFeeEnabled && "opacity-40 pointer-events-none", "space-y-8 text-left")}>
                     <Card>
-                      <CardHeader>
+                      <CardHeader className="text-left">
                         <CardTitle>Core Configuration</CardTitle>
                         <CardDescription>Set the fundamental rules for how tips are calculated.</CardDescription>
                       </CardHeader>
-                      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 text-left">
                         <div className="space-y-2 text-left">
-                          <Label>Currency</Label>
+                          <Label className="text-left block">Currency</Label>
                           <Select value={currency} onValueChange={setCurrency}>
                             <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
                             <SelectContent>
@@ -534,7 +624,7 @@ export default function AddNewBranchPage() {
                           <p className="text-xs text-muted-foreground pt-1">The currency used for all tip calculations.</p>
                         </div>
                         <div className="space-y-2 text-left">
-                          <Label>Tip Calculation Method</Label>
+                          <Label className="text-left block">Tip Calculation Method</Label>
                           <RadioGroup
                             value={feeType}
                             onValueChange={setFeeType}
@@ -547,7 +637,7 @@ export default function AddNewBranchPage() {
                                 className={cn(
                                   "flex h-9 cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium transition-colors",
                                   feeType === 'Percentage'
-                                    ? "bg-background text-foreground shadow-sm"
+                                    ? "bg-background text-foreground shadow-sm font-bold"
                                     : "text-muted-foreground hover:bg-background/50"
                                 )}
                               >
@@ -561,7 +651,7 @@ export default function AddNewBranchPage() {
                                 className={cn(
                                   "flex h-9 cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium transition-colors",
                                   feeType === 'Fixed'
-                                    ? "bg-background text-foreground shadow-sm"
+                                    ? "bg-background text-foreground shadow-sm font-bold"
                                     : "text-muted-foreground hover:bg-background/50"
                                 )}
                               >
@@ -575,19 +665,24 @@ export default function AddNewBranchPage() {
                     </Card>
                     
                     <Card>
-                      <CardHeader>
+                      <CardHeader className="text-left">
                         <CardTitle>Customer Tipping Options</CardTitle>
                         <CardDescription>Control the options and limits your customers see during checkout.</CardDescription>
                       </CardHeader>
-                      <CardContent className="space-y-6 pt-2">
+                      <CardContent className="space-y-6 pt-2 text-left">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                               <div className="space-y-2 text-left">
-                              <Label>Max Tip Amount Allowed ({feeType === 'Percentage' ? '%' : currencySymbols[currency]})</Label>
-                              <Input value={maxRate} onChange={(e) => setMaxRate(e.target.value)} placeholder="e.g. 100" className="bg-background"/>
+                              <Label className="text-left block">Max Tip Amount Allowed ({feeType === 'Percentage' ? '%' : currencySymbols[currency]})</Label>
+                              <Input 
+                                value={maxRate} 
+                                onChange={(e) => setMaxRate(e.target.value)} 
+                                placeholder="e.g. 100" 
+                                className="bg-background"
+                              />
                               <p className="text-xs text-muted-foreground pt-1">Set a maximum limit for tips to prevent errors.</p>
                               </div>
                               <div className="space-y-2 text-left">
-                              <Label>Allow Custom Tip</Label>
+                              <Label className="text-left block">Allow Custom Tip</Label>
                               <div className="flex items-center justify-between rounded-lg border p-3 h-[60px] bg-background">
                                   <p className="text-sm text-muted-foreground">Let customers enter their own amount.</p>
                                   <Switch id="custom-entry-enabled" checked={customEntryEnabled} onCheckedChange={setCustomEntryEnabled} />
@@ -596,8 +691,8 @@ export default function AddNewBranchPage() {
                           </div>
 
                           <div className="space-y-2 text-left pt-4 border-t">
-                              <div className="flex justify-between items-center">
-                                  <Label>Suggested Rates</Label>
+                              <div className="flex justify-between items-center text-left">
+                                  <Label className="text-left block">Suggested Rates</Label>
                                   {suggestedRates.length > 0 && (
                                   <Button type="button" variant="link" className="p-0 h-auto text-xs text-muted-foreground hover:text-destructive" onClick={() => { setSuggestedRates([]); setPopularRate(null); }}>
                                       Clear All
@@ -651,7 +746,7 @@ export default function AddNewBranchPage() {
             </Tabs>
           </Card>
 
-          <div className="mt-8 flex justify-end gap-3">
+          <div className="mt-8 flex justify-end gap-3 pb-20">
             <Button variant="outline" className="px-8 h-12 font-bold rounded-xl" onClick={() => router.back()}>
               Cancel
             </Button>

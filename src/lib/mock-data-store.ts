@@ -110,6 +110,25 @@ export interface Branch {
   address: string;
   menuItems: number;
   scansToday: number;
+  // Optional extended config
+  config?: {
+    description?: string;
+    googleMapsUrl?: string;
+    showMapsOnMenu?: boolean;
+    hours?: {
+        regular: any[];
+        special: any[];
+    };
+    tips?: {
+        enabled: boolean;
+        currency: string;
+        feeType: string;
+        maxRate: string;
+        customEntryEnabled: boolean;
+        suggestedRates: number[];
+        popularRate: number | null;
+    };
+  };
 }
 
 const DEFAULT_RESTAURANT_IMAGE = 'https://picsum.photos/seed/bloomsbury/600/400';
@@ -259,7 +278,7 @@ const productDescriptions: Record<string, { description: string; smallDescriptio
         smallDescription: 'Crispy, golden, and delicious.'
     },
     'Calamari Fritti': {
-        description: 'Tender calamari, lightly breaded and fried until crisp. Served with marinara and a lemon wedge.',
+        description: 'Tender calamarri, lightly breaded and fried until crisp. Served with marinara and a lemon wedge.',
         smallDescription: 'Crispy calamari with marinara.'
     },
     'Chicken Caesar Salad': {
@@ -311,33 +330,6 @@ const productDescriptions: Record<string, { description: string; smallDescriptio
         smallDescription: 'Creamy, fruity, and delicious.'
     }
 };
-
-const mapGroupToProductVariation = (group: VariationGroup): ProductVariationGroup => {
-  return {
-    ...group,
-    options: group.options.map(opt => ({
-        id: opt.id,
-        value: opt.value,
-        priceMode: 'add',
-        priceValue: opt.regularPrice || 0,
-        hidden: false,
-    }))
-  };
-};
-
-// --- Product Generation ---
-const productNames = [
-    'Classic Cheeseburger', 'Truffle Fries', 'Seasonal Berry Crumble', 'Artisanal Pizza',
-    'Fresh Garden Salad', 'Spicy Chicken Wings', 'Avocado Toast', 'Margherita Pizza',
-    'Ribeye Steak', 'Lava Cake', 'Classic Pancakes', 'Orange Juice',
-    'Espresso', 'Latte', 'Cheesecake',
-    'Mushroom Swiss Burger', 'Onion Rings', 'Calamari Fritti', 'Chicken Caesar Salad',
-    'Pepperoni Pizza', 'Four Cheese Pizza', 'Fettuccine Alfredo', 'Lobster Ravioli',
-    'Grilled Salmon', 'Filet Mignon', 'Apple Pie', 'Brownie Sundae',
-    'Iced Tea', 'Mojito (Non-alcoholic)', 'Strawberry Smoothie'
-];
-const categories = ['Burgers', 'Sides', 'Desserts', 'Mains', 'Salads', 'Breakfast', 'Beverages', 'Pizza', 'Pasta', 'Steaks'];
-const productStatuses: Product['status'][] = ['Active', 'Draft', 'Archived', 'Out of Stock'];
 
 const generateMockProducts = (count: number): Product[] => {
     const products: Product[] = [];
@@ -618,7 +610,7 @@ const generateRelatedMockData = (customerCount: number, orderCount: number, prod
             paidAmount,
             items: currentItems,
             orderDate: randomDate.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
-            orderTimestamp: randomDate.getTime(),
+            orderTimestamp: orderTimestamp,
             payments: orderPayments,
             splitType: splitType,
             customer: customer ? { name: customer.name, email: customer.email, phone: customer.phone } : undefined,

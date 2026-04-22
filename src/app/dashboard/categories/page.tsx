@@ -44,12 +44,14 @@ const RestaurantCard = ({
   restaurant, 
   onQuickSettings,
   onEdit,
+  onDelete,
   isActive,
   onSelect
 }: { 
   restaurant: Branch;
   onQuickSettings: (r: Branch) => void;
   onEdit: (r: Branch) => void;
+  onDelete: (id: string) => void;
   isActive: boolean;
   onSelect: (r: Branch) => void;
 }) => (
@@ -104,6 +106,7 @@ const RestaurantCard = ({
                 className="text-destructive cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
+                  onDelete(restaurant.id);
                 }}
               >
                 <Trash className="mr-2 h-4 w-4" />
@@ -132,7 +135,7 @@ const RestaurantCard = ({
         </div>
         <div className="flex items-center gap-1 bg-yellow-50 text-yellow-700 px-2 py-1 rounded text-sm font-bold">
           <Star className="h-3.5 w-3.5 fill-current" />
-          {restaurant.rating}
+          {restaurant.rating || 0}
         </div>
       </div>
     </CardHeader>
@@ -143,11 +146,11 @@ const RestaurantCard = ({
       </div>
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Package className="h-4 w-4 shrink-0" />
-        <span>Active Menu Items: {restaurant.menuItems}</span>
+        <span>Active Menu Items: {restaurant.menuItems || 0}</span>
       </div>
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <QrCode className="h-4 w-4 shrink-0" />
-        <span>Scans Today: {restaurant.scansToday}</span>
+        <span>Scans Today: {restaurant.scansToday || 0}</span>
       </div>
     </CardContent>
     <CardFooter className="p-5 pt-0 flex gap-2">
@@ -181,45 +184,44 @@ const RestaurantCard = ({
 export default function ManageRestaurantPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
   const [isQuickSettingsOpen, setIsQuickSettingsOpen] = useState(false);
   const [activeBranchId, setActiveBranchId] = useState<string>('1');
+  const [branches, setBranches] = useState<Branch[]>([]);
 
   useEffect(() => {
-    const savedBranch = localStorage.getItem('activeBranch');
-    if (savedBranch) {
-      try {
-        const branchData = JSON.parse(savedBranch);
-        setActiveBranchId(branchData.id);
-      } catch (e) {
-        setActiveBranchId('1');
+    const loadData = () => {
+      const stored = localStorage.getItem('emenuhub_branches');
+      if (stored) {
+        setBranches(JSON.parse(stored));
+      } else {
+        setBranches(mockBranches);
+        localStorage.setItem('emenuhub_branches', JSON.stringify(mockBranches));
       }
-    }
-    
-    const timer = 
+
+      const savedBranch = localStorage.getItem('activeBranch');
+      if (savedBranch) {
+        try {
+          const branchData = JSON.parse(savedBranch);
+          setActiveBranchId(branchData.id);
+        } catch (e) {
+          setActiveBranchId('1');
+        }
+      }
       setIsLoading(false);
-    
+    };
+
+    loadData();
 
     const handleBranchChange = () => {
-      // Sync local ID state
-      const updatedBranch = localStorage.getItem('activeBranch');
-      if (updatedBranch) {
-        try {
-          const branchData = JSON.parse(updatedBranch);
-          setActiveBranchId(branchData.id);
-        } catch (e) {}
-      }
-      
-      setIsLoading(true);
-      setIsLoading(false);
+      loadData();
     };
 
     window.addEventListener('branch-changed', handleBranchChange);
 
     return () => {
-      clearTimeout(timer);
       window.removeEventListener('branch-changed', handleBranchChange);
     };
   }, []);
@@ -276,22 +278,33 @@ export default function ManageRestaurantPage() {
     });
   };
 
+  const handleDeleteBranch = (id: string) => {
+    const updated = branches.filter(b => b.id !== id);
+    setBranches(updated);
+    localStorage.setItem('emenuhub_branches', JSON.stringify(updated));
+    toast({
+        variant: 'destructive',
+        title: 'Branch Deleted',
+        description: 'The outlet has been removed from your account.'
+    });
+  };
+
   const filteredRestaurants = useMemo(() => {
-    return mockBranches.filter(r => 
+    return branches.filter(r => 
       r.name.toLowerCase().includes(search.toLowerCase()) || 
       r.location.toLowerCase().includes(search.toLowerCase())
     );
-  }, [search]);
+  }, [search, branches]);
 
   const kpiCards: StatCardData[] = useMemo(() => [
     {
-      title: "Bloomsbury's Outlets",
-      value: '18',
-      change: '+2',
-      changeDescription: 'new branches',
+      title: "Total Outlets",
+      value: branches.length.toString(),
+      change: branches.length > mockBranches.length ? `+${branches.length - mockBranches.length}` : undefined,
+      changeDescription: 'managed branches',
       icon: Store,
       color: 'orange',
-      tooltipText: 'Total number of Bloomsbury\'s branches managed across the network.',
+      tooltipText: 'Total number of restaurant branches managed across the network.',
     },
     {
       title: 'Digital Orders',
@@ -320,7 +333,7 @@ export default function ManageRestaurantPage() {
       color: 'purple',
       tooltipText: 'Average customer rating across all managed branches.',
     },
-  ], []);
+  ], [branches.length]);
 
   if (isLoading) {
     return <CategoriesPageSkeleton view="gallery" />;
@@ -335,7 +348,7 @@ export default function ManageRestaurantPage() {
             <div className="text-left">
               <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Manage Branches</h1>
               <p className="text-muted-foreground mt-1">
-                Overview and configuration for all Bloomsbury&apos;s outlets
+                Overview and configuration for all your outlets
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -367,31 +380,41 @@ export default function ManageRestaurantPage() {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredRestaurants.map((restaurant) => (
-              <RestaurantCard 
-                key={restaurant.id} 
-                restaurant={restaurant} 
-                isActive={activeBranchId === restaurant.id}
-                onSelect={handleSelectBranch}
-                onQuickSettings={handleOpenQuickSettings}
-                onEdit={handleEditBranch}
-              />
-            ))}
-          </div>
+          {filteredRestaurants.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredRestaurants.map((restaurant) => (
+                <RestaurantCard 
+                  key={restaurant.id} 
+                  restaurant={restaurant} 
+                  isActive={activeBranchId === restaurant.id}
+                  onSelect={handleSelectBranch}
+                  onQuickSettings={handleOpenQuickSettings}
+                  onEdit={handleEditBranch}
+                  onDelete={handleDeleteBranch}
+                />
+              ))}
+            </div>
+          ) : (
+            <Card className="p-20 text-center border-dashed bg-background/50">
+               <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <Search className="h-8 w-8 text-muted-foreground opacity-20" />
+               </div>
+               <h3 className="text-xl font-bold">No branches found</h3>
+               <p className="text-muted-foreground">Try adjusting your search or add a new outlet.</p>
+               <Button className="mt-4" variant="outline" onClick={handleAddNewBranch}>Add New Branch</Button>
+            </Card>
+          )}
 
           <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t">
             <p className="text-sm text-muted-foreground">
-              Showing <strong>1 to {filteredRestaurants.length}</strong> of <strong>{mockBranches.length}</strong> branches
+              Showing <strong>1 to {filteredRestaurants.length}</strong> of <strong>{branches.length}</strong> branches
             </p>
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" className="h-9 w-9">
+              <Button variant="ghost" size="icon" className="h-9 w-9" disabled>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <Button size="sm" className="h-9 w-9 bg-primary text-primary-foreground font-bold">1</Button>
-              <Button variant="ghost" size="sm" className="h-9 w-9 font-medium">2</Button>
-              <Button variant="ghost" size="sm" className="h-9 w-9 font-medium">3</Button>
-              <Button variant="ghost" size="icon" className="h-9 w-9">
+              <Button variant="ghost" size="icon" className="h-9 w-9" disabled>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
