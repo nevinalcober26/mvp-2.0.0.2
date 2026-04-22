@@ -50,6 +50,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { QrDetailSheet } from './qr-detail-sheet';
+import { ExportQrDialog } from './export-qr-dialog';
 import { format } from 'date-fns';
 
 interface TableQrData {
@@ -242,6 +243,7 @@ export default function QrCodePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTable, setSelectedTable] = useState<TableQrData | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
   const [floorFilter, setFloorFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
 
@@ -335,8 +337,6 @@ export default function QrCodePage() {
 
   const handleSaveDetail = (data: Partial<TableQrData>) => {
     if (selectedTable) {
-      // Update existing
-      // Logic: if turning active but no QR, generate it automatically
       const needsQr = data.status === 'Active' && !selectedTable.hasQr;
       const updated = tables.map(t => t.id === selectedTable.id ? { 
           ...t, 
@@ -347,7 +347,6 @@ export default function QrCodePage() {
       saveTables(updated as TableQrData[]);
       toast({ title: 'Changes Saved', description: `Configuration for ${data.name || selectedTable.name} updated.` });
     } else {
-      // Create new - Default to generating QR and making it Active
       const newTable: TableQrData = {
         id: `t_${Date.now()}`,
         name: data.name || 'New Table',
@@ -361,6 +360,15 @@ export default function QrCodePage() {
       toast({ title: 'Table Created', description: `New QR provisioned and activated for ${newTable.name}.` });
     }
     setIsDetailOpen(false);
+  };
+
+  const handlePerformExport = (format: 'PDF' | 'ZIP') => {
+    setIsExportOpen(false);
+    toast({
+      title: `Preparing ${format} download`,
+      description: 'Your QR codes are being compiled. Please wait...',
+    });
+    // In a real app, logic to generate the actual files would go here.
   };
 
   const filteredTables = useMemo(() => {
@@ -395,7 +403,11 @@ export default function QrCodePage() {
               <p className="text-muted-foreground text-sm font-medium">Create, edit, and manage QR codes for your tables.</p>
             </div>
             <div className="flex items-center gap-3">
-              <Button variant="outline" className="gap-2 font-bold text-gray-700 bg-white border-gray-200 h-11 px-6 rounded-xl shadow-sm" onClick={() => window.print()}>
+              <Button 
+                variant="outline" 
+                className="gap-2 font-bold text-gray-700 bg-white border-gray-200 h-11 px-6 rounded-xl shadow-sm" 
+                onClick={() => setIsExportOpen(true)}
+              >
                 <Download className="h-4 w-4" />
                 Download All
               </Button>
@@ -633,6 +645,13 @@ export default function QrCodePage() {
         onOpenChange={setIsDetailOpen}
         table={selectedTable}
         onSave={handleSaveDetail}
+      />
+
+      <ExportQrDialog 
+        open={isExportOpen}
+        onOpenChange={setIsExportOpen}
+        tableCount={tables.length}
+        onExport={handlePerformExport}
       />
     </>
   );
