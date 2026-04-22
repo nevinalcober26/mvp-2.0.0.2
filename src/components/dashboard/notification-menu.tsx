@@ -28,6 +28,7 @@ import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import Image from 'next/image';
 
 type NotificationType = 'new-order' | 'order-served' | 'table-scan' | 'review' | 'low-stock' | 'sales-summary';
 
@@ -97,22 +98,6 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
     time: '1 hour ago',
     read: true,
   },
-  {
-    id: '5',
-    type: 'review',
-    title: 'New 5-Star Review',
-    subtitle: '"The service was incredible, Sarah was great!"',
-    time: '2 hours ago',
-    read: true,
-  },
-  {
-    id: '6',
-    type: 'low-stock',
-    title: 'Low Stock: Chicken Breast',
-    subtitle: 'Inventory levels dropping below 5kg threshold.',
-    time: '3 hours ago',
-    read: true,
-  },
 ];
 
 export function NotificationMenu() {
@@ -136,7 +121,7 @@ export function NotificationMenu() {
 
   const getIcon = (type: NotificationType) => {
     switch (type) {
-      case 'new-order': return <Utensils className="h-4 w-4 text-teal-600" />;
+      case 'new-order': return <Utensils className="h-4 w-4 text-[#18B4A6]" />;
       case 'order-served': return <Check className="h-4 w-4 text-green-600" />;
       case 'table-scan': return <QrCode className="h-4 w-4 text-blue-600" />;
       case 'review': return <Star className="h-4 w-4 text-yellow-600" fill="currentColor" />;
@@ -147,7 +132,7 @@ export function NotificationMenu() {
 
   const getIconBg = (type: NotificationType) => {
     switch (type) {
-      case 'new-order': return 'bg-teal-50';
+      case 'new-order': return 'bg-[#f0fdfa]';
       case 'order-served': return 'bg-green-50';
       case 'table-scan': return 'bg-blue-50';
       case 'review': return 'bg-yellow-50';
@@ -157,24 +142,24 @@ export function NotificationMenu() {
   };
 
   return (
-    <SheetContent className="sm:max-w-xl w-full p-0 flex flex-col bg-white border-l shadow-2xl">
-      <div className="p-6 border-b bg-white shrink-0">
+    <SheetContent className="sm:max-w-xl w-full p-0 flex flex-col bg-white border-l shadow-2xl overflow-hidden">
+      <div className="p-6 bg-white shrink-0">
         <SheetHeader className="text-left mb-6">
-          <SheetTitle className="text-xl font-bold text-gray-900">Notifications</SheetTitle>
+          <SheetTitle className="text-[22px] font-black text-[#142424]">Notifications</SheetTitle>
         </SheetHeader>
 
-        <div className="flex items-center gap-6 border-b mb-4">
-          {['all', 'new', 'updates'].map((tab) => (
+        <div className="flex items-center gap-6 border-b border-gray-100 mb-6">
+          {['All', 'New', 'Updates'].map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab as any)}
+              onClick={() => setActiveTab(tab.toLowerCase() as any)}
               className={cn(
                 "pb-3 text-sm font-bold capitalize transition-all relative px-1",
-                activeTab === tab ? "text-[#18B4A6]" : "text-gray-400 hover:text-gray-600"
+                activeTab === tab.toLowerCase() ? "text-[#18B4A6]" : "text-gray-400 hover:text-gray-600"
               )}
             >
               {tab}
-              {activeTab === tab && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#18B4A6] rounded-full" />}
+              {activeTab === tab.toLowerCase() && <div className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-[#18B4A6] rounded-full" />}
             </button>
           ))}
         </div>
@@ -182,15 +167,15 @@ export function NotificationMenu() {
         <div className="flex items-center gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input 
+            <input 
               placeholder="Search notifications..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-10 pl-10 bg-muted/30 border-0 rounded-xl focus-visible:ring-1 focus-visible:ring-primary/20"
+              className="w-full h-11 pl-10 bg-gray-50 border border-gray-100 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#18B4A6]/20 placeholder:text-gray-400 transition-all"
             />
           </div>
           <div className="flex items-center gap-2">
-            <Label htmlFor="unread-toggle" className="text-xs font-bold text-gray-400 uppercase tracking-wider">Unread only</Label>
+            <Label htmlFor="unread-toggle" className="text-xs font-bold text-gray-400 uppercase tracking-widest">Unread only</Label>
             <Switch 
               id="unread-toggle" 
               checked={unreadOnly} 
@@ -201,7 +186,7 @@ export function NotificationMenu() {
         </div>
       </div>
 
-      <ScrollArea className="flex-1 bg-[#F7F9FB]">
+      <ScrollArea className="flex-1 bg-white">
         <div className="p-4 space-y-4 pb-20">
           {filteredNotifications.length > 0 ? (
             filteredNotifications.map((n) => (
@@ -212,16 +197,16 @@ export function NotificationMenu() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <div className="space-y-0.5">
-                        <h4 className="text-sm font-bold text-gray-900 leading-tight pr-8">{n.title}</h4>
-                        <p className="text-xs text-gray-500 font-medium">{n.subtitle}</p>
-                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">{n.time}</p>
+                      <div className="space-y-0.5 text-left">
+                        <h4 className="text-sm font-black text-[#142424] leading-tight pr-8">{n.title}</h4>
+                        <p className="text-xs text-gray-500 font-bold">{n.subtitle}</p>
+                        <p className="text-[10px] text-gray-300 font-bold uppercase tracking-wider mt-1">{n.time}</p>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center gap-3 shrink-0 pt-1">
                         {!n.read && <div className="h-2 w-2 rounded-full bg-red-500 shadow-sm" />}
                         <button 
                           onClick={() => toggleExpand(n.id)}
-                          className="h-8 w-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-300 group-hover:text-gray-600 transition-colors"
+                          className="h-8 w-8 rounded-full hover:bg-gray-50 flex items-center justify-center text-gray-300 transition-colors"
                         >
                           {n.expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         </button>
@@ -230,56 +215,61 @@ export function NotificationMenu() {
 
                     {n.expanded && n.details && (
                       <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300 space-y-4">
-                        <div className="p-3 bg-orange-50 rounded-xl border border-orange-100 flex items-center gap-3">
-                           <Clock className="h-4 w-4 text-orange-600" />
-                           <p className="text-xs font-bold text-orange-900">Customer is waiting at table - prioritize preparation</p>
+                        {/* Priority Alert Box */}
+                        <div className="p-3 bg-orange-50/80 rounded-lg border-l-[3px] border-orange-500 flex items-center gap-3">
+                           <Clock className="h-4 w-4 text-orange-500" />
+                           <p className="text-[11px] font-bold text-orange-900 leading-none">Customer is waiting at table - prioritize preparation</p>
                         </div>
                         
-                        <div className="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm space-y-6">
-                           <div className="grid grid-cols-2 gap-y-4">
+                        {/* Detailed Order Card */}
+                        <div className="p-5 rounded-[18px] border border-gray-100 bg-white shadow-sm space-y-6 text-left">
+                           <div className="grid grid-cols-2 gap-x-8 gap-y-5">
                               <div className="space-y-1">
                                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Table:</p>
-                                <p className="text-sm font-bold text-gray-900">{n.details.table}</p>
+                                <p className="text-sm font-black text-[#142424]">{n.details.table}</p>
                               </div>
                               <div className="space-y-1">
                                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Order Type:</p>
-                                <p className="text-sm font-bold text-gray-900">{n.details.orderType}</p>
+                                <p className="text-sm font-black text-[#142424]">{n.details.orderType}</p>
                               </div>
                               <div className="space-y-1">
                                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total Amount:</p>
-                                <p className="text-sm font-bold text-gray-900">{n.details.totalAmount}</p>
+                                <p className="text-sm font-black text-[#142424]">{n.details.totalAmount}</p>
                               </div>
                               <div className="space-y-1">
                                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Payment:</p>
-                                <p className="text-sm font-bold text-gray-900">{n.details.paymentType}</p>
+                                <p className="text-sm font-black text-[#142424]">{n.details.paymentType}</p>
                               </div>
                            </div>
 
-                           <div className="border-t border-dashed pt-4">
-                              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Order Items:</p>
-                              <div className="space-y-2">
+                           <div className="border-t border-gray-50 pt-4">
+                              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.1em] mb-3">Order Items:</p>
+                              <div className="space-y-2.5">
                                 {n.details.items?.map((item, i) => (
-                                  <div key={i} className="flex justify-between items-center text-sm font-medium">
-                                    <span className="text-gray-700">{item.quantity}x {item.name}</span>
-                                    <span className="text-gray-900 font-bold font-mono">{item.price}</span>
+                                  <div key={i} className="flex justify-between items-center text-sm font-bold text-[#142424]">
+                                    <span className="opacity-80">{item.quantity}x {item.name}</span>
+                                    <span className="font-mono text-gray-900">{item.price}</span>
                                   </div>
                                 ))}
                               </div>
                            </div>
 
                            {n.details.specialInstructions && (
-                             <div className="border-t border-dashed pt-4">
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Special Instructions:</p>
-                                <p className="text-sm italic text-gray-500">{n.details.specialInstructions}</p>
+                             <div className="border-t border-gray-50 pt-4">
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.1em] mb-1.5">Special Instructions:</p>
+                                <p className="text-sm italic font-medium text-gray-500 leading-relaxed">
+                                  {n.details.specialInstructions}
+                                </p>
                              </div>
                            )}
                         </div>
 
-                        <div className="flex gap-3">
-                           <Button className="flex-1 h-11 bg-[#18B4A6] hover:bg-[#149d94] text-white font-bold rounded-xl shadow-lg shadow-teal-500/10">
+                        {/* Action Buttons */}
+                        <div className="flex gap-3 pt-2">
+                           <Button className="flex-1 h-12 bg-[#18B4A6] hover:bg-[#149d94] text-white font-black uppercase text-[11px] tracking-widest rounded-xl shadow-lg shadow-[#18B4A6]/20 transition-all">
                               Accept & Prepare
                            </Button>
-                           <Button variant="outline" className="flex-1 h-11 bg-teal-50 hover:bg-teal-100 border-0 text-[#18B4A6] font-bold rounded-xl">
+                           <Button variant="outline" className="flex-1 h-12 bg-teal-50/50 hover:bg-teal-50 border-0 text-[#18B4A6] font-black uppercase text-[11px] tracking-widest rounded-xl transition-all">
                               View Full Order
                            </Button>
                         </div>
@@ -287,27 +277,33 @@ export function NotificationMenu() {
                     )}
                   </div>
                 </div>
-                <div className="h-px bg-gray-100/50 mt-4 mx-4 last:hidden" />
+                <div className="h-px bg-gray-50 mt-5 mx-4 last:hidden" />
               </div>
             ))
           ) : (
-            <div className="flex flex-col items-center justify-center py-20 text-center space-y-6">
-              <div className="relative">
-                <div className="h-24 w-24 rounded-full bg-muted/50 flex items-center justify-center">
-                  <Bell className="h-12 w-12 text-gray-300" />
-                </div>
-                <div className="absolute -top-1 -right-1 h-8 w-8 rounded-full bg-white flex items-center justify-center shadow-sm border border-border/50">
-                  <div className="h-4 w-4 rounded-full bg-teal-100 flex items-center justify-center">
-                    <div className="h-2 w-2 rounded-full bg-teal-500" />
+            <div className="flex flex-col items-center justify-center py-32 text-center animate-in fade-in duration-500">
+               <div className="relative mb-8">
+                  <div className="h-24 w-24 rounded-[32px] bg-gray-50 flex items-center justify-center">
+                    <Bell className="h-12 w-12 text-gray-300" strokeWidth={1.5} />
                   </div>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-xl font-bold text-gray-900">No new notifications</h3>
-                <p className="text-sm text-gray-400 font-medium max-w-[240px] leading-relaxed">
-                  You're all caught up! We'll let you know when something new comes up.
-                </p>
-              </div>
+                  <div className="absolute -top-1 -right-1 h-8 w-8 rounded-full bg-white flex items-center justify-center shadow-lg border border-gray-100">
+                    <div className="h-4 w-4 rounded-full bg-teal-50 flex items-center justify-center">
+                      <div className="h-1.5 w-1.5 rounded-full bg-[#18B4A6]" />
+                    </div>
+                  </div>
+                  <div className="absolute top-2 -left-2 rotate-[-15deg] opacity-20">
+                     <Bell className="h-6 w-6 text-teal-500" />
+                  </div>
+                  <div className="absolute bottom-2 -right-2 rotate-[15deg] opacity-20">
+                     <Bell className="h-6 w-6 text-teal-500" />
+                  </div>
+               </div>
+               <div className="space-y-2">
+                  <h3 className="text-xl font-black text-[#142424]">No new notifications</h3>
+                  <p className="text-sm text-gray-400 font-bold max-w-[280px] leading-relaxed mx-auto">
+                    You're all caught up! We'll let you know when something new comes up.
+                  </p>
+               </div>
             </div>
           )}
         </div>
