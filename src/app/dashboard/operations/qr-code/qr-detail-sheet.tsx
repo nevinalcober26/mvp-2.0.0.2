@@ -37,9 +37,12 @@ interface QrDetailSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   table: any | null;
+  onSave: (data: any) => void;
 }
 
-export function QrDetailSheet({ open, onOpenChange, table }: QrDetailSheetProps) {
+export function QrDetailSheet({ open, onOpenChange, table, onSave }: QrDetailSheetProps) {
+  const [name, setName] = useState('');
+  const [floor, setFloor] = useState('Main Dining');
   const [logoSize, setLogoSize] = useState([250]);
   const [qrSize, setQrSize] = useState([250]);
   const [qrMargin, setQrMargin] = useState([250]);
@@ -48,15 +51,45 @@ export function QrDetailSheet({ open, onOpenChange, table }: QrDetailSheetProps)
   const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
-    if (table) {
-      setIsActive(table.status === 'Active');
+    if (open) {
+      if (table) {
+        setName(table.name);
+        setFloor(table.floor);
+        setIsActive(table.status === 'Active');
+        setQrColor(table.qrColor || '#000000');
+        setBgColor(table.bgColor || '#FFFFFF');
+        setLogoSize([table.logoSize || 250]);
+        setQrSize([table.qrSize || 250]);
+        setQrMargin([table.qrMargin || 250]);
+      } else {
+        setName('');
+        setFloor('Main Dining');
+        setIsActive(true);
+        setQrColor('#000000');
+        setBgColor('#FFFFFF');
+        setLogoSize([250]);
+        setQrSize([250]);
+        setQrMargin([250]);
+      }
     }
-  }, [table]);
+  }, [table, open]);
+
+  const handleSubmit = () => {
+    onSave({
+      name,
+      floor,
+      status: isActive ? 'Active' : 'Inactive',
+      qrColor,
+      bgColor,
+      logoSize: logoSize[0],
+      qrSize: qrSize[0],
+      qrMargin: qrMargin[0]
+    });
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="sm:max-w-5xl w-full p-0 flex flex-col bg-white overflow-hidden border-l shadow-2xl">
-        {/* Absolute top-left close button as per design */}
         <button 
           onClick={() => onOpenChange(false)}
           className="absolute top-6 left-6 z-50 h-10 w-10 rounded-full bg-[#18B4A6] flex items-center justify-center text-white shadow-lg hover:bg-[#149d94] transition-all"
@@ -65,31 +98,44 @@ export function QrDetailSheet({ open, onOpenChange, table }: QrDetailSheetProps)
         </button>
 
         <div className="flex-1 flex overflow-hidden">
-          {/* Left Side: Form Controls */}
           <div className="flex-1 flex flex-col border-r bg-white pl-20">
             <SheetHeader className="p-8 pb-4 text-left">
-              <SheetTitle className="text-2xl font-black text-[#142424]">Generate New QR Code</SheetTitle>
-              <SheetDescription className="text-sm font-medium text-muted-foreground">Create a new QR code for the table.</SheetDescription>
+              <SheetTitle className="text-2xl font-black text-[#142424]">
+                {table ? 'Edit QR Code' : 'Generate New QR Code'}
+              </SheetTitle>
+              <SheetDescription className="text-sm font-medium text-muted-foreground">
+                Configure the digital identity for this table.
+              </SheetDescription>
             </SheetHeader>
 
             <ScrollArea className="flex-1 px-8">
-              <div className="space-y-10 pb-20">
-                {/* Table Details Section */}
+              <div className="space-y-10 pb-20 text-left">
                 <section className="space-y-6">
                   <h3 className="text-sm font-black uppercase tracking-[0.15em] text-[#142424]">Table Details</h3>
                   <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-xs font-bold text-gray-500">Table Name/Number</Label>
-                      <Select defaultValue={table?.name || ""}>
-                        <SelectTrigger className="h-12 bg-white border-muted rounded-xl px-4 font-medium">
-                          <SelectValue placeholder="Select a table or Create New" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="T1">Table 1</SelectItem>
-                          <SelectItem value="T2">Table 2</SelectItem>
-                          <SelectItem value="T12">Table 12</SelectItem>
-                        </SelectContent>
-                      </Select>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold text-gray-500">Table Name/Number</Label>
+                        <Input 
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="e.g. Table 12"
+                            className="h-12 bg-white border-muted rounded-xl px-4 font-medium"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold text-gray-500">Floor Location</Label>
+                        <Select value={floor} onValueChange={setFloor}>
+                            <SelectTrigger className="h-12 bg-white border-muted rounded-xl px-4 font-medium">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Main Dining">Main Dining</SelectItem>
+                                <SelectItem value="Patio">Patio</SelectItem>
+                                <SelectItem value="First Floor">First Floor</SelectItem>
+                            </SelectContent>
+                        </Select>
+                      </div>
                     </div>
 
                     <div className="p-5 rounded-2xl bg-white border-2 border-blue-50 flex items-center justify-between shadow-sm">
@@ -106,11 +152,9 @@ export function QrDetailSheet({ open, onOpenChange, table }: QrDetailSheetProps)
                   </div>
                 </section>
 
-                {/* QR Customization Section */}
                 <section className="space-y-8">
                   <h3 className="text-sm font-black uppercase tracking-[0.15em] text-[#142424]">QR Customization</h3>
                   
-                  {/* Logo Upload */}
                   <div className="space-y-3">
                     <Label className="text-xs font-bold text-gray-500">Logo</Label>
                     <div className="h-40 w-full rounded-2xl border-2 border-dashed border-blue-100 bg-[#f8fbff] flex flex-col items-center justify-center gap-3 group hover:border-[#18B4A6] cursor-pointer transition-all">
@@ -124,7 +168,6 @@ export function QrDetailSheet({ open, onOpenChange, table }: QrDetailSheetProps)
                     </div>
                   </div>
 
-                  {/* Sliders */}
                   <div className="space-y-8">
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
@@ -138,14 +181,6 @@ export function QrDetailSheet({ open, onOpenChange, table }: QrDetailSheetProps)
                         step={1} 
                         className="[&_[role=slider]]:bg-[#18B4A6] [&_[role=slider]]:border-[#18B4A6]" 
                       />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-xs font-bold text-gray-500">Logo Background Color</Label>
-                      <div className="flex h-12 w-full items-center gap-3 px-3 border border-muted rounded-xl bg-white">
-                        <div className="h-7 w-12 rounded border" style={{ backgroundColor: '#FFFFFF' }} />
-                        <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">#FFFFFF</span>
-                      </div>
                     </div>
 
                     <div className="space-y-4">
@@ -216,24 +251,26 @@ export function QrDetailSheet({ open, onOpenChange, table }: QrDetailSheetProps)
                 Cancel
               </Button>
               <Button 
+                onClick={handleSubmit}
                 className="flex-[2] h-12 rounded-xl font-black uppercase tracking-widest bg-[#18B4A6] hover:bg-[#149d94] text-white shadow-xl shadow-[#18B4A6]/20"
               >
-                Create QR Code
+                {table ? 'Save Changes' : 'Create QR Code'}
               </Button>
             </SheetFooter>
           </div>
 
-          {/* Right Side: Live Preview */}
           <div className="w-[400px] bg-[#f8fbff] flex flex-col p-10 gap-10 items-center justify-center shrink-0">
             <h2 className="text-2xl font-black text-[#142424]">Live Preview</h2>
             
             <div className="relative">
-              {/* QR Code Container as per design */}
               <Card className="w-72 aspect-square rounded-[32px] bg-white shadow-2xl flex flex-col items-center justify-center p-8 gap-6 border-0">
-                <div className="relative w-full aspect-square flex items-center justify-center">
-                   <QrCode className="w-full h-full text-black" strokeWidth={1.5} style={{ color: qrColor }} />
+                <div 
+                    className="relative w-full aspect-square flex items-center justify-center rounded-lg"
+                    style={{ backgroundColor: bgColor }}
+                >
+                   <QrCode className="w-full h-full" strokeWidth={1.5} style={{ color: qrColor }} />
                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="h-10 w-10 rounded-lg bg-black border-4 border-white flex items-center justify-center text-white">
+                      <div className="h-10 w-10 rounded-lg bg-black border-4 border-white flex items-center justify-center text-white shadow-sm">
                          <div className="h-4 w-4 bg-white rounded-sm transform rotate-45 flex items-center justify-center">
                             <div className="h-2 w-2 bg-black rounded-full" />
                          </div>

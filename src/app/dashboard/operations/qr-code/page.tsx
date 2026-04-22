@@ -1,7 +1,6 @@
-
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { DashboardHeader } from '@/components/dashboard/header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,6 +37,7 @@ import {
   Trash2,
   Pencil,
   Ban,
+  CheckCircle2,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -58,9 +58,15 @@ interface TableQrData {
   status: 'Active' | 'Inactive';
   floor: string;
   lastUpdated: string;
+  // Customization props
+  qrColor?: string;
+  bgColor?: string;
+  logoSize?: number;
+  qrSize?: number;
+  qrMargin?: number;
 }
 
-const MOCK_TABLES: TableQrData[] = [
+const INITIAL_TABLES: TableQrData[] = [
   { id: '1', name: 'Table 1', hasQr: true, status: 'Active', floor: 'Main Dining', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
   { id: '2', name: 'Table 2', hasQr: false, status: 'Inactive', floor: 'Main Dining', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
   { id: '3', name: 'Table 3', hasQr: false, status: 'Active', floor: 'Main Dining', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
@@ -76,11 +82,15 @@ const MOCK_TABLES: TableQrData[] = [
 const ActionMenuContent = ({ 
   table, 
   onGenerate,
-  onEdit
+  onEdit,
+  onDelete,
+  onToggleStatus
 }: { 
   table: TableQrData; 
-  onGenerate: (name: string) => void;
+  onGenerate: (id: string) => void;
   onEdit: (table: TableQrData) => void;
+  onDelete: (id: string) => void;
+  onToggleStatus: (id: string) => void;
 }) => (
   <DropdownMenuContent align="end" className="w-64 p-2 rounded-[24px] shadow-2xl border-gray-100 animate-in zoom-in-95 duration-200">
     <DropdownMenuLabel className="px-4 py-3 text-xl font-black text-[#142424]">Actions</DropdownMenuLabel>
@@ -88,43 +98,46 @@ const ActionMenuContent = ({
     
     {table.hasQr ? (
       <>
-        {/* Edit Action - Teal Highlight as per screenshot */}
         <DropdownMenuItem 
           className="flex items-center gap-3 px-4 py-3.5 text-[15px] font-bold text-[#142424] bg-[#f0fdfa] hover:bg-[#e6fcf5] focus:bg-[#e6fcf5] rounded-xl cursor-pointer mb-1 transition-colors"
-          onSelect={(e) => {
-            e.stopPropagation();
-            onEdit(table);
-          }}
+          onSelect={() => onEdit(table)}
         >
           <Pencil className="h-5 w-5 text-[#18B4A6]" />
           Edit
         </DropdownMenuItem>
 
-        {/* Download Action */}
         <DropdownMenuItem 
           className="flex items-center gap-3 px-4 py-3.5 text-[15px] font-bold text-[#142424] hover:bg-gray-50 focus:bg-gray-50 rounded-xl cursor-pointer mb-1 transition-colors"
-          onSelect={(e) => e.stopPropagation()}
+          onSelect={(e) => {
+            e.stopPropagation();
+            window.print();
+          }}
         >
           <Download className="h-5 w-5 text-gray-500" />
           Download
         </DropdownMenuItem>
 
-        {/* Deactivate Action */}
         <DropdownMenuItem 
           className="flex items-center gap-3 px-4 py-3.5 text-[15px] font-bold text-[#142424] hover:bg-gray-50 focus:bg-gray-50 rounded-xl cursor-pointer transition-colors"
-          onSelect={(e) => e.stopPropagation()}
+          onSelect={() => onToggleStatus(table.id)}
         >
-          <Ban className="h-5 w-5 text-gray-500" />
-          Deactivate
+          {table.status === 'Active' ? (
+            <>
+              <Ban className="h-5 w-5 text-gray-500" />
+              Deactivate
+            </>
+          ) : (
+            <>
+              <CheckCircle2 className="h-5 w-5 text-[#18B4A6]" />
+              Activate
+            </>
+          )}
         </DropdownMenuItem>
       </>
     ) : (
       <DropdownMenuItem 
         className="flex items-center gap-3 px-4 py-3.5 text-[15px] font-bold text-[#142424] bg-[#f0fdfa] hover:bg-[#e6fcf5] focus:bg-[#e6fcf5] rounded-xl cursor-pointer mb-1 transition-colors"
-        onSelect={(e) => {
-          e.stopPropagation();
-          onGenerate(table.name);
-        }}
+        onSelect={() => onGenerate(table.id)}
       >
         <Sparkles className="h-5 w-5 text-[#18B4A6]" />
         Generate
@@ -135,9 +148,7 @@ const ActionMenuContent = ({
 
     <DropdownMenuItem 
       className="flex items-center gap-3 px-4 py-3.5 text-[15px] font-bold text-red-500 hover:bg-red-50 focus:bg-red-50 rounded-xl cursor-pointer transition-colors"
-      onSelect={(e) => {
-        e.stopPropagation();
-      }}
+      onSelect={() => onDelete(table.id)}
     >
       <Trash2 className="h-5 w-5" />
       Delete
@@ -145,29 +156,37 @@ const ActionMenuContent = ({
   </DropdownMenuContent>
 );
 
-const QrGalleryCard = ({ table, onClick, onGenerate, onEdit }: { table: TableQrData; onClick: () => void; onGenerate: (name: string) => void; onEdit: (table: TableQrData) => void }) => {
+const QrGalleryCard = ({ table, onClick, onGenerate, onEdit, onDelete, onToggleStatus }: { 
+  table: TableQrData; 
+  onClick: () => void; 
+  onGenerate: (id: string) => void; 
+  onEdit: (table: TableQrData) => void;
+  onDelete: (id: string) => void;
+  onToggleStatus: (id: string) => void;
+}) => {
   return (
     <Card 
       className="group relative bg-white border border-gray-100 shadow-sm rounded-xl overflow-hidden hover:shadow-md transition-all duration-300 cursor-pointer"
       onClick={onClick}
     >
       <div className="p-4">
-        {/* Checkbox Top Left */}
         <div className="absolute top-4 left-4 z-10" onClick={(e) => e.stopPropagation()}>
           <Checkbox className="h-5 w-5 border-gray-200 rounded-md" />
         </div>
 
-        {/* QR Area */}
         <div className="aspect-square flex items-center justify-center bg-white rounded-lg mb-4">
           {table.hasQr ? (
             <div className="w-full h-full flex items-center justify-center p-4">
-               <QrCode className="w-full h-full text-black" strokeWidth={1.5} />
+               <QrCode className="w-full h-full text-black" strokeWidth={1.5} style={{ color: table.qrColor || '#000000' }} />
             </div>
           ) : (
-            <div className={cn(
-                "w-full h-full border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-3 transition-colors",
-                table.status === 'Inactive' ? "border-red-100 bg-red-50/10" : "border-[#18B4A6]/20 bg-teal-50/10"
-            )}>
+            <div 
+                onClick={(e) => { e.stopPropagation(); onGenerate(table.id); }}
+                className={cn(
+                    "w-full h-full border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-3 transition-colors",
+                    table.status === 'Inactive' ? "border-red-100 bg-red-50/10" : "border-[#18B4A6]/20 bg-teal-50/10 hover:border-[#18B4A6]/40 hover:bg-teal-50/20"
+                )}
+            >
               <div className={cn(
                   "h-10 w-10 rounded-lg flex items-center justify-center",
                   table.status === 'Inactive' ? "bg-red-50 text-red-500" : "bg-teal-50 text-[#18B4A6]"
@@ -182,10 +201,8 @@ const QrGalleryCard = ({ table, onClick, onGenerate, onEdit }: { table: TableQrD
           )}
         </div>
 
-        {/* Divider */}
         <div className="border-t border-gray-50 -mx-4 mb-4" />
 
-        {/* Bottom Info */}
         <div className="flex items-center justify-between">
           <div className="space-y-1 text-left">
             <h4 className="text-[13px] font-black text-[#142424]">{table.name}</h4>
@@ -212,7 +229,13 @@ const QrGalleryCard = ({ table, onClick, onGenerate, onEdit }: { table: TableQrD
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <ActionMenuContent table={table} onGenerate={onGenerate} onEdit={onEdit} />
+            <ActionMenuContent 
+              table={table} 
+              onGenerate={onGenerate} 
+              onEdit={onEdit} 
+              onDelete={onDelete} 
+              onToggleStatus={onToggleStatus}
+            />
           </DropdownMenu>
         </div>
       </div>
@@ -226,11 +249,66 @@ export default function QrCodePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTable, setSelectedTable] = useState<TableQrData | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [floorFilter, setFloorFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
 
-  const handleGenerate = (tableName: string) => {
+  // Persistence State
+  const [tables, setTables] = useState<TableQrData[]>([]);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('emenuhub_qr_codes');
+    if (stored) {
+      setTables(JSON.parse(stored));
+    } else {
+      setTables(INITIAL_TABLES);
+      localStorage.setItem('emenuhub_qr_codes', JSON.stringify(INITIAL_TABLES));
+    }
+  }, []);
+
+  const saveTables = (updated: TableQrData[]) => {
+    setTables(updated);
+    localStorage.setItem('emenuhub_qr_codes', JSON.stringify(updated));
+  };
+
+  const handleGenerate = (id: string) => {
+    const updated = tables.map(t => t.id === id ? { ...t, hasQr: true, lastUpdated: format(new Date(), 'LLL dd, yyyy at p') } : t);
+    saveTables(updated);
     toast({
-      title: 'Generating QR Code',
-      description: `Creating secure digital link for table ${tableName}...`,
+      title: 'QR Code Generated',
+      description: 'The digital link is now active.',
+    });
+  };
+
+  const handleDelete = (id: string) => {
+    const updated = tables.filter(t => t.id !== id);
+    saveTables(updated);
+    toast({
+      variant: 'destructive',
+      title: 'Table Deleted',
+      description: 'The entry has been removed from the system.',
+    });
+  };
+
+  const handleToggleStatus = (id: string) => {
+    const updated = tables.map(t => t.id === id ? { ...t, status: (t.status === 'Active' ? 'Inactive' : 'Active') as any } : t);
+    saveTables(updated);
+    toast({
+      title: 'Status Updated',
+      description: 'Table operational status has been changed.',
+    });
+  };
+
+  const handleGenerateAllMissing = () => {
+    const missingCount = tables.filter(t => !t.hasQr).length;
+    if (missingCount === 0) {
+      toast({ title: 'System up to date', description: 'All tables already have active QR codes.' });
+      return;
+    }
+    const updated = tables.map(t => ({ ...t, hasQr: true, lastUpdated: format(new Date(), 'LLL dd, yyyy at p') }));
+    saveTables(updated);
+    toast({
+      title: 'Batch Generation Complete',
+      description: `Provisioned ${missingCount} new digital links.`,
     });
   };
 
@@ -244,14 +322,48 @@ export default function QrCodePage() {
     setIsDetailOpen(true);
   };
 
+  const handleSaveDetail = (data: Partial<TableQrData>) => {
+    if (selectedTable) {
+      // Update existing
+      const updated = tables.map(t => t.id === selectedTable.id ? { ...t, ...data, lastUpdated: format(new Date(), 'LLL dd, yyyy at p') } : t);
+      saveTables(updated as TableQrData[]);
+      toast({ title: 'Changes Saved', description: `Configuration for ${data.name || selectedTable.name} updated.` });
+    } else {
+      // Create new
+      const newTable: TableQrData = {
+        id: `t_${Date.now()}`,
+        name: data.name || 'New Table',
+        floor: data.floor || 'Main Dining',
+        status: data.status || 'Active',
+        hasQr: true,
+        lastUpdated: format(new Date(), 'LLL dd, yyyy at p'),
+        ...data
+      };
+      saveTables([newTable, ...tables]);
+      toast({ title: 'Table Created', description: `New QR provisioned for ${newTable.name}.` });
+    }
+    setIsDetailOpen(false);
+  };
+
+  const filteredTables = useMemo(() => {
+    return tables.filter((t) => {
+      const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesFloor = floorFilter === 'all' || t.floor === floorFilter;
+      const matchesStatus = statusFilter === 'all' || t.status === statusFilter;
+      return matchesSearch && matchesFloor && matchesStatus;
+    });
+  }, [tables, searchQuery, floorFilter, statusFilter]);
+
   const groupedTables = useMemo(() => {
     const groups: Record<string, TableQrData[]> = {};
-    MOCK_TABLES.forEach(table => {
+    filteredTables.forEach(table => {
       if (!groups[table.floor]) groups[table.floor] = [];
       groups[table.floor].push(table);
     });
     return groups;
-  }, []);
+  }, [filteredTables]);
+
+  const missingQrCount = tables.filter(t => !t.hasQr).length;
 
   return (
     <>
@@ -259,14 +371,13 @@ export default function QrCodePage() {
       <main className="p-4 sm:p-6 lg:p-10 bg-[#F7F9FB] min-h-[calc(100vh-4rem)] text-left">
         <div className="max-w-7xl mx-auto space-y-8">
           
-          {/* Page Title & Top Actions */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="space-y-1">
+            <div className="space-y-1 text-left">
               <h1 className="text-3xl font-black tracking-tight text-[#142424]">Manage QR Codes</h1>
               <p className="text-muted-foreground text-sm font-medium">Create, edit, and manage QR codes for your tables.</p>
             </div>
             <div className="flex items-center gap-3">
-              <Button variant="outline" className="gap-2 font-bold text-gray-700 bg-white border-gray-200 h-11 px-6 rounded-xl shadow-sm">
+              <Button variant="outline" className="gap-2 font-bold text-gray-700 bg-white border-gray-200 h-11 px-6 rounded-xl shadow-sm" onClick={() => window.print()}>
                 <Download className="h-4 w-4" />
                 Download All
               </Button>
@@ -280,7 +391,6 @@ export default function QrCodePage() {
             </div>
           </div>
 
-          {/* Filter Bar */}
           <Card className="border-0 shadow-sm rounded-2xl overflow-hidden bg-white">
             <CardContent className="p-4 flex flex-wrap items-center gap-3">
               <div className="relative flex-1 min-w-[200px] max-w-xs">
@@ -293,44 +403,50 @@ export default function QrCodePage() {
                 />
               </div>
               
-              <Select defaultValue="sushi">
+              <Select defaultValue="all">
                 <SelectTrigger className="w-[200px] h-11 bg-white border-muted font-bold rounded-xl">
                   <SelectValue placeholder="Branch" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="sushi">Sushi Restaurant</SelectItem>
+                  <SelectItem value="all">All Branches</SelectItem>
                   <SelectItem value="rak">Bloomsbury's Ras..</SelectItem>
                 </SelectContent>
               </Select>
 
-              <Select defaultValue="all">
+              <Select value={floorFilter} onValueChange={setFloorFilter}>
                 <SelectTrigger className="w-[140px] h-11 bg-white border-muted font-bold rounded-xl">
                   <SelectValue placeholder="All Floors" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Floors</SelectItem>
-                  <SelectItem value="ground">Ground Floor</SelectItem>
+                  <SelectItem value="Main Dining">Main Dining</SelectItem>
+                  <SelectItem value="Patio">Patio</SelectItem>
+                  <SelectItem value="First Floor">First Floor</SelectItem>
                 </SelectContent>
               </Select>
 
-              <Select defaultValue="all">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-[140px] h-11 bg-white border-muted font-bold rounded-xl">
                   <SelectValue placeholder="All Statuses" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
 
               <div className="relative ml-auto flex items-center gap-3">
                 <Button 
                   variant="outline" 
+                  onClick={handleGenerateAllMissing}
                   className="h-11 border-[#18B4A6]/20 text-[#18B4A6] hover:bg-[#18B4A6]/5 gap-2 font-black uppercase tracking-wider px-6 rounded-xl"
                 >
                   <Sparkles className="h-4 w-4" />
                   Generate Missing QR
-                  <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] text-white font-black border-2 border-white">2</span>
+                  {missingQrCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] text-white font-black border-2 border-white">{missingQrCount}</span>
+                  )}
                 </Button>
 
                 <div className="flex items-center gap-1 bg-muted/30 p-1 rounded-xl border">
@@ -361,52 +477,28 @@ export default function QrCodePage() {
                 <Table>
                   <TableHeader className="bg-muted/10">
                     <TableRow className="hover:bg-transparent h-14">
-                      <TableHead className="w-12 px-6">
-                        <Checkbox />
-                      </TableHead>
-                      <TableHead className="font-bold text-[13px] text-muted-foreground uppercase tracking-wider">
-                        <div className="flex items-center gap-1 cursor-pointer hover:text-foreground transition-colors">
-                          Table <ArrowUpDown className="h-3 w-3" />
-                        </div>
-                      </TableHead>
-                      <TableHead className="font-bold text-[13px] text-muted-foreground uppercase tracking-wider">
-                        <div className="flex items-center gap-1 cursor-pointer hover:text-foreground transition-colors">
-                          QR Preview <ArrowUpDown className="h-3 w-3" />
-                        </div>
-                      </TableHead>
-                      <TableHead className="font-bold text-[13px] text-muted-foreground uppercase tracking-wider">
-                        <div className="flex items-center gap-1 cursor-pointer hover:text-foreground transition-colors">
-                          Status <ArrowUpDown className="h-3 w-3" />
-                        </div>
-                      </TableHead>
-                      <TableHead className="font-bold text-[13px] text-muted-foreground uppercase tracking-wider">
-                        <div className="flex items-center gap-1 cursor-pointer hover:text-foreground transition-colors">
-                          Floor <ArrowUpDown className="h-3 w-3" />
-                        </div>
-                      </TableHead>
-                      <TableHead className="font-bold text-[13px] text-muted-foreground uppercase tracking-wider">
-                        <div className="flex items-center gap-1 cursor-pointer hover:text-foreground transition-colors">
-                          Last updated <ArrowUpDown className="h-3 w-3" />
-                        </div>
-                      </TableHead>
+                      <TableHead className="w-12 px-6"><Checkbox /></TableHead>
+                      <TableHead className="font-bold text-[13px] text-muted-foreground uppercase tracking-wider">Table</TableHead>
+                      <TableHead className="font-bold text-[13px] text-muted-foreground uppercase tracking-wider">QR Preview</TableHead>
+                      <TableHead className="font-bold text-[13px] text-muted-foreground uppercase tracking-wider">Status</TableHead>
+                      <TableHead className="font-bold text-[13px] text-muted-foreground uppercase tracking-wider">Floor</TableHead>
+                      <TableHead className="font-bold text-[13px] text-muted-foreground uppercase tracking-wider">Last updated</TableHead>
                       <TableHead className="text-right pr-6 font-bold text-[13px] text-muted-foreground uppercase tracking-wider">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {MOCK_TABLES.map((table) => (
+                    {filteredTables.map((table) => (
                       <TableRow 
                         key={table.id} 
                         className="h-20 group hover:bg-muted/5 transition-colors border-b cursor-pointer"
                         onClick={() => handleOpenDetail(table)}
                       >
-                        <TableCell className="px-6" onClick={(e) => e.stopPropagation()}>
-                          <Checkbox />
-                        </TableCell>
+                        <TableCell className="px-6" onClick={(e) => e.stopPropagation()}><Checkbox /></TableCell>
                         <TableCell className="font-black text-base text-[#142424]">{table.name}</TableCell>
                         <TableCell>
                           {table.hasQr ? (
                             <div className="h-10 w-10 border rounded p-1 bg-white shadow-sm flex items-center justify-center">
-                              <QrCode className="h-full w-full text-black" strokeWidth={1.5} />
+                              <QrCode className="h-full w-full text-black" strokeWidth={1.5} style={{ color: table.qrColor || '#000000' }} />
                             </div>
                           ) : (
                             <Button 
@@ -415,7 +507,7 @@ export default function QrCodePage() {
                               className="h-8 text-[10px] font-bold uppercase tracking-wider gap-1.5"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleGenerate(table.name);
+                                handleGenerate(table.id);
                               }}
                             >
                               <QrCode className="h-3 w-3" />
@@ -445,7 +537,13 @@ export default function QrCodePage() {
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <ActionMenuContent table={table} onGenerate={handleGenerate} onEdit={handleOpenDetail} />
+                            <ActionMenuContent 
+                              table={table} 
+                              onGenerate={handleGenerate} 
+                              onEdit={handleOpenDetail} 
+                              onDelete={handleDelete}
+                              onToggleStatus={handleToggleStatus}
+                            />
                           </DropdownMenu>
                         </TableCell>
                       </TableRow>
@@ -473,6 +571,8 @@ export default function QrCodePage() {
                         onClick={() => handleOpenDetail(table)} 
                         onGenerate={handleGenerate}
                         onEdit={handleOpenDetail}
+                        onDelete={handleDelete}
+                        onToggleStatus={handleToggleStatus}
                       />
                     ))}
                   </div>
@@ -481,7 +581,6 @@ export default function QrCodePage() {
             </div>
           )}
 
-          {/* Pagination */}
           <Card className="border-0 shadow-sm rounded-2xl bg-white p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <Select defaultValue="10">
@@ -494,7 +593,7 @@ export default function QrCodePage() {
                 </SelectContent>
               </Select>
               <p className="text-[13px] text-muted-foreground font-medium">
-                Showing <span className="text-foreground font-bold">1 to 10</span> of <span className="text-foreground font-bold">{MOCK_TABLES.length}</span> results
+                Showing <span className="text-foreground font-bold">1 to {filteredTables.length}</span> of <span className="text-foreground font-bold">{filteredTables.length}</span> results
               </p>
             </div>
 
@@ -515,6 +614,7 @@ export default function QrCodePage() {
         open={isDetailOpen}
         onOpenChange={setIsDetailOpen}
         table={selectedTable}
+        onSave={handleSaveDetail}
       />
     </>
   );
