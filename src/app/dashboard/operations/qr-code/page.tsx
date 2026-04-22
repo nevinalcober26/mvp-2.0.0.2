@@ -36,6 +36,8 @@ import {
   Sparkles,
   ArrowUpDown,
   Trash2,
+  Pencil,
+  Ban,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -71,11 +73,52 @@ const MOCK_TABLES: TableQrData[] = [
   { id: '10', name: 'Table 10', hasQr: true, status: 'Active', floor: 'Patio', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
 ];
 
-const ActionMenuContent = ({ table, onGenerate }: { table: TableQrData; onGenerate: (name: string) => void }) => (
+const ActionMenuContent = ({ 
+  table, 
+  onGenerate,
+  onEdit
+}: { 
+  table: TableQrData; 
+  onGenerate: (name: string) => void;
+  onEdit: (table: TableQrData) => void;
+}) => (
   <DropdownMenuContent align="end" className="w-64 p-2 rounded-[24px] shadow-2xl border-gray-100 animate-in zoom-in-95 duration-200">
     <DropdownMenuLabel className="px-4 py-3 text-xl font-black text-[#142424]">Actions</DropdownMenuLabel>
     <DropdownMenuSeparator className="mb-2" />
-    {!table.hasQr && (
+    
+    {table.hasQr ? (
+      <>
+        {/* Edit Action - Teal Highlight as per screenshot */}
+        <DropdownMenuItem 
+          className="flex items-center gap-3 px-4 py-3.5 text-[15px] font-bold text-[#142424] bg-[#f0fdfa] hover:bg-[#e6fcf5] focus:bg-[#e6fcf5] rounded-xl cursor-pointer mb-1 transition-colors"
+          onSelect={(e) => {
+            e.stopPropagation();
+            onEdit(table);
+          }}
+        >
+          <Pencil className="h-5 w-5 text-[#18B4A6]" />
+          Edit
+        </DropdownMenuItem>
+
+        {/* Download Action */}
+        <DropdownMenuItem 
+          className="flex items-center gap-3 px-4 py-3.5 text-[15px] font-bold text-[#142424] hover:bg-gray-50 focus:bg-gray-50 rounded-xl cursor-pointer mb-1 transition-colors"
+          onSelect={(e) => e.stopPropagation()}
+        >
+          <Download className="h-5 w-5 text-gray-500" />
+          Download
+        </DropdownMenuItem>
+
+        {/* Deactivate Action */}
+        <DropdownMenuItem 
+          className="flex items-center gap-3 px-4 py-3.5 text-[15px] font-bold text-[#142424] hover:bg-gray-50 focus:bg-gray-50 rounded-xl cursor-pointer transition-colors"
+          onSelect={(e) => e.stopPropagation()}
+        >
+          <Ban className="h-5 w-5 text-gray-500" />
+          Deactivate
+        </DropdownMenuItem>
+      </>
+    ) : (
       <DropdownMenuItem 
         className="flex items-center gap-3 px-4 py-3.5 text-[15px] font-bold text-[#142424] bg-[#f0fdfa] hover:bg-[#e6fcf5] focus:bg-[#e6fcf5] rounded-xl cursor-pointer mb-1 transition-colors"
         onSelect={(e) => {
@@ -87,6 +130,9 @@ const ActionMenuContent = ({ table, onGenerate }: { table: TableQrData; onGenera
         Generate
       </DropdownMenuItem>
     )}
+    
+    <DropdownMenuSeparator className="my-1" />
+
     <DropdownMenuItem 
       className="flex items-center gap-3 px-4 py-3.5 text-[15px] font-bold text-red-500 hover:bg-red-50 focus:bg-red-50 rounded-xl cursor-pointer transition-colors"
       onSelect={(e) => {
@@ -99,7 +145,7 @@ const ActionMenuContent = ({ table, onGenerate }: { table: TableQrData; onGenera
   </DropdownMenuContent>
 );
 
-const QrGalleryCard = ({ table, onClick, onGenerate }: { table: TableQrData; onClick: () => void; onGenerate: (name: string) => void }) => {
+const QrGalleryCard = ({ table, onClick, onGenerate, onEdit }: { table: TableQrData; onClick: () => void; onGenerate: (name: string) => void; onEdit: (table: TableQrData) => void }) => {
   return (
     <Card 
       className="group relative bg-white border border-gray-100 shadow-sm rounded-xl overflow-hidden hover:shadow-md transition-all duration-300 cursor-pointer"
@@ -166,7 +212,7 @@ const QrGalleryCard = ({ table, onClick, onGenerate }: { table: TableQrData; onC
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <ActionMenuContent table={table} onGenerate={onGenerate} />
+            <ActionMenuContent table={table} onGenerate={onGenerate} onEdit={onEdit} />
           </DropdownMenu>
         </div>
       </div>
@@ -193,7 +239,7 @@ export default function QrCodePage() {
     setIsDetailOpen(true);
   };
 
-  const handleRowClick = (table: TableQrData) => {
+  const handleOpenDetail = (table: TableQrData) => {
     setSelectedTable(table);
     setIsDetailOpen(true);
   };
@@ -351,7 +397,7 @@ export default function QrCodePage() {
                       <TableRow 
                         key={table.id} 
                         className="h-20 group hover:bg-muted/5 transition-colors border-b cursor-pointer"
-                        onClick={() => handleRowClick(table)}
+                        onClick={() => handleOpenDetail(table)}
                       >
                         <TableCell className="px-6" onClick={(e) => e.stopPropagation()}>
                           <Checkbox />
@@ -399,7 +445,7 @@ export default function QrCodePage() {
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <ActionMenuContent table={table} onGenerate={handleGenerate} />
+                            <ActionMenuContent table={table} onGenerate={handleGenerate} onEdit={handleOpenDetail} />
                           </DropdownMenu>
                         </TableCell>
                       </TableRow>
@@ -424,8 +470,9 @@ export default function QrCodePage() {
                       <QrGalleryCard 
                         key={table.id} 
                         table={table} 
-                        onClick={() => handleRowClick(table)} 
+                        onClick={() => handleOpenDetail(table)} 
                         onGenerate={handleGenerate}
+                        onEdit={handleOpenDetail}
                       />
                     ))}
                   </div>
