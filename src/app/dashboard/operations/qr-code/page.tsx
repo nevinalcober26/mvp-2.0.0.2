@@ -50,6 +50,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { QrDetailSheet } from './qr-detail-sheet';
+import { format } from 'date-fns';
 
 interface TableQrData {
   id: string;
@@ -58,7 +59,6 @@ interface TableQrData {
   status: 'Active' | 'Inactive';
   floor: string;
   lastUpdated: string;
-  // Customization props
   qrColor?: string;
   bgColor?: string;
   logoSize?: number;
@@ -69,7 +69,7 @@ interface TableQrData {
 const INITIAL_TABLES: TableQrData[] = [
   { id: '1', name: 'Table 1', hasQr: true, status: 'Active', floor: 'Main Dining', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
   { id: '2', name: 'Table 2', hasQr: false, status: 'Inactive', floor: 'Main Dining', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
-  { id: '3', name: 'Table 3', hasQr: false, status: 'Active', floor: 'Main Dining', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
+  { id: '3', name: 'Table 3', hasQr: false, status: 'Inactive', floor: 'Main Dining', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
   { id: '4', name: 'Table 4', hasQr: true, status: 'Active', floor: 'Main Dining', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
   { id: '5', name: 'Table 5', hasQr: true, status: 'Active', floor: 'Main Dining', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
   { id: '6', name: 'Table 6', hasQr: true, status: 'Active', floor: 'Patio', lastUpdated: 'Jul 15, 2024 at 1:05 PM' },
@@ -183,20 +183,13 @@ const QrGalleryCard = ({ table, onClick, onGenerate, onEdit, onDelete, onToggleS
             <div 
                 onClick={(e) => { e.stopPropagation(); onGenerate(table.id); }}
                 className={cn(
-                    "w-full h-full border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-3 transition-colors",
-                    table.status === 'Inactive' ? "border-red-100 bg-red-50/10" : "border-[#18B4A6]/20 bg-teal-50/10 hover:border-[#18B4A6]/40 hover:bg-teal-50/20"
+                    "w-full h-full border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-3 transition-colors border-[#18B4A6]/20 bg-teal-50/10 hover:border-[#18B4A6]/40 hover:bg-teal-50/20"
                 )}
             >
-              <div className={cn(
-                  "h-10 w-10 rounded-lg flex items-center justify-center",
-                  table.status === 'Inactive' ? "bg-red-50 text-red-500" : "bg-teal-50 text-[#18B4A6]"
-              )}>
+              <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-teal-50 text-[#18B4A6]">
                 <QrCode className="h-6 w-6" strokeWidth={2} />
               </div>
-              <p className={cn(
-                  "text-[10px] font-black uppercase tracking-widest",
-                  table.status === 'Inactive' ? "text-red-500/60" : "text-[#18B4A6]/60"
-              )}>Generate QR</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#18B4A6]/60">Generate QR</p>
             </div>
           )}
         </div>
@@ -252,7 +245,6 @@ export default function QrCodePage() {
   const [floorFilter, setFloorFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  // Persistence State
   const [tables, setTables] = useState<TableQrData[]>([]);
 
   useEffect(() => {
@@ -271,11 +263,13 @@ export default function QrCodePage() {
   };
 
   const handleGenerate = (id: string) => {
-    const updated = tables.map(t => t.id === id ? { ...t, hasQr: true, lastUpdated: format(new Date(), 'LLL dd, yyyy at p') } : t);
-    saveTables(updated);
+    const updated = tables.map(t => 
+      t.id === id ? { ...t, hasQr: true, status: 'Active', lastUpdated: format(new Date(), 'LLL dd, yyyy at p') } : t
+    );
+    saveTables(updated as TableQrData[]);
     toast({
       title: 'QR Code Generated',
-      description: 'The digital link is now active.',
+      description: 'The digital link is now active and table is set to Active.',
     });
   };
 
@@ -290,6 +284,18 @@ export default function QrCodePage() {
   };
 
   const handleToggleStatus = (id: string) => {
+    const table = tables.find(t => t.id === id);
+    if (!table) return;
+
+    if (!table.hasQr && table.status === 'Inactive') {
+        toast({
+            variant: 'destructive',
+            title: 'Action Denied',
+            description: 'You must generate a QR code before activating this table.',
+        });
+        return;
+    }
+
     const updated = tables.map(t => t.id === id ? { ...t, status: (t.status === 'Active' ? 'Inactive' : 'Active') as any } : t);
     saveTables(updated);
     toast({
@@ -304,11 +310,16 @@ export default function QrCodePage() {
       toast({ title: 'System up to date', description: 'All tables already have active QR codes.' });
       return;
     }
-    const updated = tables.map(t => ({ ...t, hasQr: true, lastUpdated: format(new Date(), 'LLL dd, yyyy at p') }));
-    saveTables(updated);
+    const updated = tables.map(t => ({ 
+        ...t, 
+        hasQr: true, 
+        status: 'Active', 
+        lastUpdated: format(new Date(), 'LLL dd, yyyy at p') 
+    }));
+    saveTables(updated as TableQrData[]);
     toast({
       title: 'Batch Generation Complete',
-      description: `Provisioned ${missingCount} new digital links.`,
+      description: `Provisioned ${missingCount} new digital links and activated tables.`,
     });
   };
 
@@ -325,11 +336,18 @@ export default function QrCodePage() {
   const handleSaveDetail = (data: Partial<TableQrData>) => {
     if (selectedTable) {
       // Update existing
-      const updated = tables.map(t => t.id === selectedTable.id ? { ...t, ...data, lastUpdated: format(new Date(), 'LLL dd, yyyy at p') } : t);
+      // Logic: if turning active but no QR, generate it automatically
+      const needsQr = data.status === 'Active' && !selectedTable.hasQr;
+      const updated = tables.map(t => t.id === selectedTable.id ? { 
+          ...t, 
+          ...data, 
+          hasQr: needsQr ? true : t.hasQr,
+          lastUpdated: format(new Date(), 'LLL dd, yyyy at p') 
+      } : t);
       saveTables(updated as TableQrData[]);
       toast({ title: 'Changes Saved', description: `Configuration for ${data.name || selectedTable.name} updated.` });
     } else {
-      // Create new
+      // Create new - Default to generating QR and making it Active
       const newTable: TableQrData = {
         id: `t_${Date.now()}`,
         name: data.name || 'New Table',
@@ -340,7 +358,7 @@ export default function QrCodePage() {
         ...data
       };
       saveTables([newTable, ...tables]);
-      toast({ title: 'Table Created', description: `New QR provisioned for ${newTable.name}.` });
+      toast({ title: 'Table Created', description: `New QR provisioned and activated for ${newTable.name}.` });
     }
     setIsDetailOpen(false);
   };

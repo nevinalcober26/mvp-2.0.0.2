@@ -28,7 +28,6 @@ import {
   FileCode,
   X,
   QrCode,
-  CheckCircle2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -268,24 +267,33 @@ export function QrDetailSheet({ open, onOpenChange, table, onSave }: QrDetailShe
                     className="relative w-full aspect-square flex items-center justify-center rounded-lg"
                     style={{ backgroundColor: bgColor }}
                 >
-                   <QrCode className="w-full h-full" strokeWidth={1.5} style={{ color: qrColor }} />
-                   <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="h-10 w-10 rounded-lg bg-black border-4 border-white flex items-center justify-center text-white shadow-sm">
-                         <div className="h-4 w-4 bg-white rounded-sm transform rotate-45 flex items-center justify-center">
-                            <div className="h-2 w-2 bg-black rounded-full" />
-                         </div>
+                   {table?.hasQr || !table ? (
+                      <QrCode className="w-full h-full text-black" strokeWidth={1.5} style={{ color: qrColor }} />
+                   ) : (
+                      <div className="flex flex-col items-center gap-2 opacity-20">
+                          <QrCode className="h-20 w-20" />
+                          <span className="text-[10px] font-bold uppercase tracking-widest">No Link Provisioned</span>
                       </div>
-                   </div>
+                   )}
+                   {(table?.hasQr || !table) && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="h-10 w-10 rounded-lg bg-black border-4 border-white flex items-center justify-center text-white shadow-sm">
+                          <div className="h-4 w-4 bg-white rounded-sm transform rotate-45 flex items-center justify-center">
+                              <div className="h-2 w-2 bg-black rounded-full" />
+                          </div>
+                        </div>
+                      </div>
+                   )}
                 </div>
                 <span className="text-xs font-black uppercase tracking-[0.2em] text-[#142424]">Scan for Menu</span>
               </Card>
             </div>
 
             <div className="w-72 flex gap-3">
-              <Button className="flex-1 h-12 rounded-xl bg-[#18B4A6] text-white font-bold gap-2 text-xs">
+              <Button className="flex-1 h-12 rounded-xl bg-[#18B4A6] text-white font-bold gap-2 text-xs" disabled={!table?.hasQr && !!table}>
                 <Download className="h-4 w-4" /> PNG
               </Button>
-              <Button variant="outline" className="flex-1 h-12 rounded-xl bg-white border-muted font-bold gap-2 text-xs text-gray-700">
+              <Button variant="outline" className="flex-1 h-12 rounded-xl bg-white border-muted font-bold gap-2 text-xs text-gray-700" disabled={!table?.hasQr && !!table}>
                 <FileCode className="h-4 w-4" /> SVG
               </Button>
             </div>
