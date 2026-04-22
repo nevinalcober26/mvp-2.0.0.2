@@ -22,6 +22,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Sheet, SheetTrigger } from '@/components/ui/sheet';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { SidebarTrigger } from '../ui/sidebar';
 import { PosSyncStatus } from './pos-sync-status';
@@ -186,16 +187,16 @@ export function DashboardHeader() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+        <Sheet>
+          <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full relative">
               <Bell className="h-5 w-5" />
               <span className="sr-only">Toggle notifications</span>
               <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500" />
             </Button>
-          </DropdownMenuTrigger>
+          </SheetTrigger>
           <NotificationMenu />
-        </DropdownMenu>
+        </Sheet>
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
